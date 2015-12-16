@@ -1,0 +1,6 @@
+/bin/
+*.log
+*.log.*
+*.mp3
+*.db
+/build/

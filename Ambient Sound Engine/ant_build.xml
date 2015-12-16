@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="ASE4_5" default="default" basedir=".">
+	<target name="default">
+		<description>Builds, tests, and runs the project ASE4_5.</description>
+    	<jar destfile="dist/ASE4_5.jar">
+    		<zipfileset dir="build/classes" includes="**/*.class"/>
+			<manifest>
+    			<attribute name="Main-Class" value="ase_source.Main"/>
+	    		<attribute name="Class-Path" value="lib/NativeFmodEx.jar lib/swing-layout-1.0.jar lib/sqlite-jdbc-3.7.2.jar"/>
+    		</manifest>
+    	</jar>
+		<copy file="dist/ASE4_5.jar" tofile="dist/ASE4_5"/>
+    </target>
+</project>
