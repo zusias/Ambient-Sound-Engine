@@ -455,9 +455,9 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		btnAddRelatedKeywords = new JButton();
 		btnAddRelatedKeywords.setLayout(new BorderLayout());
 		btnAddRelatedKeywords.setEnabled(false);
-		addRelatedKeywordsLbl1 = new JLabel("Add Keywords");
+		addRelatedKeywordsLbl1 = new JLabel("Link Selected");
 		addRelatedKeywordsLbl1.setHorizontalAlignment(JLabel.CENTER);
-		addRelatedKeywordsLbl2 = new JLabel("to Sound File");
+		addRelatedKeywordsLbl2 = new JLabel("Keyword(s) to Sound");
 		addRelatedKeywordsLbl2.setHorizontalAlignment(JLabel.CENTER);
 		btnAddRelatedKeywords.add(BorderLayout.NORTH, addRelatedKeywordsLbl1);
 		btnAddRelatedKeywords.add(BorderLayout.SOUTH, addRelatedKeywordsLbl2);
@@ -471,9 +471,9 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		btnAddKeywords = new JButton();
 		btnAddKeywords.setLayout(new BorderLayout());
 		btnAddKeywords.setEnabled(false);
-		addKeywordsLbl1 = new JLabel("Add Keywords");
+		addKeywordsLbl1 = new JLabel("Link Selected");
 		addKeywordsLbl1.setHorizontalAlignment(JLabel.CENTER);
-		addKeywordsLbl2 = new JLabel("to Sound File");
+		addKeywordsLbl2 = new JLabel("Keyword(s) to Sound");
 		addKeywordsLbl2.setHorizontalAlignment(JLabel.CENTER);
 		btnAddKeywords.add(BorderLayout.NORTH, addKeywordsLbl1);
 		btnAddKeywords.add(BorderLayout.SOUTH, addKeywordsLbl2);
