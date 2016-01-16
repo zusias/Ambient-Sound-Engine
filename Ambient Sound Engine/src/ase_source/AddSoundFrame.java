@@ -122,47 +122,58 @@ public class AddSoundFrame extends javax.swing.JFrame {
 	
 	private void initComponents() {
 		GridBagLayout gridBagLayout = new GridBagLayout();
-		gridBagLayout.columnWidths = new int[]{	40, 320, 320, 320};
+		gridBagLayout.columnWidths = new int[]{	40, 320, 320, 320, 15};
 		gridBagLayout.columnWeights = new double[]{0.1, 1.0, 0.3, 0.3};
 		gridBagLayout.rowHeights = new int[]{	20, 20, 20, 20, 20, 
 												20, 20, 20, 20, 20, 
 												20, 20, 20, 20, 20, 
-												20, 20, 20, 20, 20, 
-												20, 30, 30, 30};
+												20, 20, 20, 20, 20,
+												20, 20, 20, 20, 20,
+												30, 30, 30, 15};
 		gridBagLayout.rowWeights = new double[]{0.1, 0.1, 0.1, 0.1, 0.1,  
 												0.1, 0.1, 0.1, 0.1, 1.0, 
 												0.1, 0.1, 0.1, 0.1, 0.1,
 												0.1, 0.1, 0.1, 0.1, 0.1, 
-												0.1, 1.0, 0.1, 0.1};
+												0.1, 0.1, 0.1, 0.1, 0.1,
+												0.1, 1.0, 0.1, 0.0};
 		getContentPane().setLayout(gridBagLayout);
+		
+		//Current grid row dynamically keeps track of which grid row a component is on.
+		//The fact that it's dynamic helps quickly adjust spacing for each element
+		int currentGridRow = 0;
+		
+		//Standard insets. There are other custom insets used for specific components
+		Insets column1Inset = new Insets(0, 15, 5, 5); //for labels
+		Insets column2_3Inset = new Insets(0, 0, 5, 5); //for text fields before notes
 		
 		lblTitle = new JLabel("Import Sound File");
 		lblTitle.setFont(new Font("Tahoma", Font.BOLD, 13));
 		GridBagConstraints gbc_lblTitle = new GridBagConstraints();
 		gbc_lblTitle.gridheight = 2;
 		gbc_lblTitle.anchor = GridBagConstraints.WEST;
-		gbc_lblTitle.insets = new Insets(15, 20, 15, 0);
+		gbc_lblTitle.insets = new Insets(15, 20, 15, 0); //custom inset for title
 		gbc_lblTitle.gridwidth = 4;
 		gbc_lblTitle.gridx = 0;
-		gbc_lblTitle.gridy = 0;
+		gbc_lblTitle.gridy = currentGridRow;
+		currentGridRow+=2;
 		getContentPane().add(lblTitle, gbc_lblTitle);
 		
 		lblImport = new JLabel("Import");
 		GridBagConstraints gbc_lblImport = new GridBagConstraints();
 		gbc_lblImport.anchor = GridBagConstraints.EAST;
-		gbc_lblImport.insets = new Insets(0, 0, 5, 5);
+		gbc_lblImport.insets = column1Inset;
 		gbc_lblImport.gridx = 0;
-		gbc_lblImport.gridy = 2;
+		gbc_lblImport.gridy = currentGridRow;
 		getContentPane().add(lblImport, gbc_lblImport);
 		
 		txtFilepath = new JTextField();
 		txtFilepath.setEnabled(false);
 		GridBagConstraints gbc_txtFilepath = new GridBagConstraints();
 		gbc_txtFilepath.gridwidth = 2;
-		gbc_txtFilepath.insets = new Insets(0, 0, 5, 5);
+		gbc_txtFilepath.insets = column2_3Inset;
 		gbc_txtFilepath.fill = GridBagConstraints.HORIZONTAL;
 		gbc_txtFilepath.gridx = 1;
-		gbc_txtFilepath.gridy = 2;
+		gbc_txtFilepath.gridy = currentGridRow;
 		getContentPane().add(txtFilepath, gbc_txtFilepath);
 		txtFilepath.setColumns(10);
 		
@@ -171,10 +182,11 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		gbc_panel.insets = new Insets(0, 0, 5, 0);
 		gbc_panel.fill = GridBagConstraints.BOTH;
 		gbc_panel.gridx = 3;
-		gbc_panel.gridy = 2;
+		gbc_panel.gridy = currentGridRow++; //last component in this row
 		getContentPane().add(panel, gbc_panel);
 		GridBagLayout gbl_panel = new GridBagLayout();
-		gbl_panel.columnWidths = new int[]{80, 97, 0, 0};
+		gbl_panel.columnWidths = new int[]{30, 30, 40, 0};
+		//gbl_panel.columnWidths = new int[]{80, 97, 0, 0};
 		gbl_panel.rowHeights = new int[]{25, 0};
 		gbl_panel.columnWeights = new double[]{0.0, 0.0, 0.0, Double.MIN_VALUE};
 		gbl_panel.rowWeights = new double[]{0.0, Double.MIN_VALUE};
@@ -187,6 +199,7 @@ public class AddSoundFrame extends javax.swing.JFrame {
 			}
 		});
 		btnOpen.setIcon(fileIcon);
+		btnOpen.setToolTipText("Select File");
 		GridBagConstraints gbc_btnOpen = new GridBagConstraints();
 		gbc_btnOpen.insets = new Insets(0, 0, 0, 5);
 		gbc_btnOpen.gridx = 0;
@@ -200,6 +213,7 @@ public class AddSoundFrame extends javax.swing.JFrame {
 			}
 		});
 		btnPreview.setIcon(previewIcon);
+		btnPreview.setToolTipText("Preview Sound");
 		GridBagConstraints gbc_btnPreview = new GridBagConstraints();
 		gbc_btnPreview.insets = new Insets(0, 0, 0, 5);
 		gbc_btnPreview.gridx = 1;
@@ -221,9 +235,9 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		lblSoundName = new JLabel("Sound Name");
 		GridBagConstraints gbc_lblSoundName = new GridBagConstraints();
 		gbc_lblSoundName.anchor = GridBagConstraints.EAST;
-		gbc_lblSoundName.insets = new Insets(0, 0, 5, 5);
+		gbc_lblSoundName.insets = column1Inset;
 		gbc_lblSoundName.gridx = 0;
-		gbc_lblSoundName.gridy = 3;
+		gbc_lblSoundName.gridy = currentGridRow;
 		getContentPane().add(lblSoundName, gbc_lblSoundName);
 		
 		txtName = new JTextField();
@@ -231,52 +245,52 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		gbc_txtName.fill = GridBagConstraints.HORIZONTAL;
 		gbc_txtName.weightx = 1.0;
 		gbc_txtName.gridwidth = 2;
-		gbc_txtName.insets = new Insets(0, 0, 5, 250);
+		gbc_txtName.insets = new Insets(0, 0, 5, 250); //give this element less space
 		gbc_txtName.gridx = 1;
-		gbc_txtName.gridy = 3;
+		gbc_txtName.gridy = currentGridRow++;
 		getContentPane().add(txtName, gbc_txtName);
 		
 		lblSource = new JLabel("Source");
 		GridBagConstraints gbc_lblSource = new GridBagConstraints();
 		gbc_lblSource.anchor = GridBagConstraints.EAST;
-		gbc_lblSource.insets = new Insets(0, 0, 5, 5);
+		gbc_lblSource.insets = column1Inset;
 		gbc_lblSource.gridx = 0;
-		gbc_lblSource.gridy = 4;
+		gbc_lblSource.gridy = currentGridRow;
 		getContentPane().add(lblSource, gbc_lblSource);
 		
 		txtSource = new JTextField();
 		GridBagConstraints gbc_txtSource = new GridBagConstraints();
 		gbc_txtSource.fill = GridBagConstraints.HORIZONTAL;
 		gbc_txtSource.gridwidth = 2;
-		gbc_txtSource.insets = new Insets(0, 0, 5, 5);
+		gbc_txtSource.insets = column2_3Inset;
 		gbc_txtSource.gridx = 1;
-		gbc_txtSource.gridy = 4;
+		gbc_txtSource.gridy = currentGridRow++;
 		getContentPane().add(txtSource, gbc_txtSource);
 		
 		lblImportedBy = new JLabel("Imported By");
 		GridBagConstraints gbc_lblImportedBy = new GridBagConstraints();
 		gbc_lblImportedBy.anchor = GridBagConstraints.EAST;
-		gbc_lblImportedBy.insets = new Insets(0, 0, 5, 5);
+		gbc_lblImportedBy.insets = column1Inset;
 		gbc_lblImportedBy.gridx = 0;
-		gbc_lblImportedBy.gridy = 5;
+		gbc_lblImportedBy.gridy = currentGridRow;
 		getContentPane().add(lblImportedBy, gbc_lblImportedBy);
 		
 		txtImportedBy = new JTextField();
 		GridBagConstraints gbc_txtImportedBy = new GridBagConstraints();
 		gbc_txtImportedBy.gridwidth = 2;
-		gbc_txtImportedBy.insets = new Insets(0, 0, 5, 5);
+		gbc_txtImportedBy.insets = column2_3Inset;
 		gbc_txtImportedBy.fill = GridBagConstraints.HORIZONTAL;
 		gbc_txtImportedBy.gridx = 1;
-		gbc_txtImportedBy.gridy = 5;
+		gbc_txtImportedBy.gridy = currentGridRow++;
 		getContentPane().add(txtImportedBy, gbc_txtImportedBy);
 		txtImportedBy.setColumns(10);
 		
 		lblCopyright = new JLabel("Copyright");
 		GridBagConstraints gbc_lblCopyright = new GridBagConstraints();
 		gbc_lblCopyright.anchor = GridBagConstraints.EAST;
-		gbc_lblCopyright.insets = new Insets(0, 0, 5, 5);
+		gbc_lblCopyright.insets = column1Inset;
 		gbc_lblCopyright.gridx = 0;
-		gbc_lblCopyright.gridy = 6;
+		gbc_lblCopyright.gridy = currentGridRow;
 		getContentPane().add(lblCopyright, gbc_lblCopyright);
 		
 		copyrightComboBox = new JComboBox<String>();
@@ -284,64 +298,66 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		copyrightComboBox.setModel(model);
 		GridBagConstraints gbc_copyrightComboBox = new GridBagConstraints();
 		gbc_copyrightComboBox.gridwidth = 2;
-		gbc_copyrightComboBox.insets = new Insets(0, 0, 5, 5);
+		gbc_copyrightComboBox.insets = column2_3Inset;
 		gbc_copyrightComboBox.fill = GridBagConstraints.HORIZONTAL;
 		gbc_copyrightComboBox.gridx = 1;
-		gbc_copyrightComboBox.gridy = 6;
+		gbc_copyrightComboBox.gridy = currentGridRow++;
 		getContentPane().add(copyrightComboBox, gbc_copyrightComboBox);
 		
 		lblCreatedBy = new JLabel("Created By");
 		GridBagConstraints gbc_lblCreatedBy = new GridBagConstraints();
 		gbc_lblCreatedBy.anchor = GridBagConstraints.EAST;
-		gbc_lblCreatedBy.insets = new Insets(0, 0, 5, 5);
+		gbc_lblCreatedBy.insets = column1Inset;
 		gbc_lblCreatedBy.gridx = 0;
-		gbc_lblCreatedBy.gridy = 7;
+		gbc_lblCreatedBy.gridy = currentGridRow;
 		getContentPane().add(lblCreatedBy, gbc_lblCreatedBy);
 		
 		txtCreatedBy = new JTextField();
 		GridBagConstraints gbc_txtCreatedBy = new GridBagConstraints();
 		gbc_txtCreatedBy.gridwidth = 2;
-		gbc_txtCreatedBy.insets = new Insets(0, 0, 5, 5);
+		gbc_txtCreatedBy.insets = column2_3Inset;
 		gbc_txtCreatedBy.fill = GridBagConstraints.HORIZONTAL;
 		gbc_txtCreatedBy.gridx = 1;
-		gbc_txtCreatedBy.gridy = 7;
+		gbc_txtCreatedBy.gridy = currentGridRow++;
 		getContentPane().add(txtCreatedBy, gbc_txtCreatedBy);
 		txtCreatedBy.setColumns(10);
 		
 		lblEditedBy = new JLabel("Edited By");
 		GridBagConstraints gbc_lblEditedBy = new GridBagConstraints();
 		gbc_lblEditedBy.anchor = GridBagConstraints.EAST;
-		gbc_lblEditedBy.insets = new Insets(0, 0, 5, 5);
+		gbc_lblEditedBy.insets = column1Inset;
 		gbc_lblEditedBy.gridx = 0;
-		gbc_lblEditedBy.gridy = 8;
+		gbc_lblEditedBy.gridy = currentGridRow;
 		getContentPane().add(lblEditedBy, gbc_lblEditedBy);
 		
 		txtEditedBy = new JTextField();
 		GridBagConstraints gbc_txtEditedBy = new GridBagConstraints();
 		gbc_txtEditedBy.gridwidth = 2;
-		gbc_txtEditedBy.insets = new Insets(0, 0, 5, 5);
+		gbc_txtEditedBy.insets = column2_3Inset;
 		gbc_txtEditedBy.fill = GridBagConstraints.HORIZONTAL;
 		gbc_txtEditedBy.gridx = 1;
-		gbc_txtEditedBy.gridy = 8;
+		gbc_txtEditedBy.gridy = currentGridRow++;
 		getContentPane().add(txtEditedBy, gbc_txtEditedBy);
 		txtEditedBy.setColumns(10);
 		
 		lblNotes = new JLabel("Notes");
 		GridBagConstraints gbc_lblNotes = new GridBagConstraints();
+		gbc_lblNotes.gridheight = 2;
 		gbc_lblNotes.anchor = GridBagConstraints.EAST;
-		gbc_lblNotes.insets = new Insets(0, 0, 5, 5);
+		gbc_lblNotes.insets = column1Inset;
 		gbc_lblNotes.gridx = 0;
-		gbc_lblNotes.gridy = 9;
+		gbc_lblNotes.gridy = currentGridRow;
 		getContentPane().add(lblNotes, gbc_lblNotes);
 		
 		scrollPaneNotes = new JScrollPane();
 		GridBagConstraints gbc_scrollPaneNotes = new GridBagConstraints();
-		gbc_scrollPaneNotes.gridheight = 2;
+		gbc_scrollPaneNotes.gridheight = 4;
 		gbc_scrollPaneNotes.gridwidth = 3;
-		gbc_scrollPaneNotes.insets = new Insets(0, 0, 5, 5);
+		gbc_scrollPaneNotes.insets = column2_3Inset;
 		gbc_scrollPaneNotes.fill = GridBagConstraints.BOTH;
 		gbc_scrollPaneNotes.gridx = 1;
-		gbc_scrollPaneNotes.gridy = 9;
+		gbc_scrollPaneNotes.gridy = currentGridRow;
+		currentGridRow+=6;
 		getContentPane().add(scrollPaneNotes, gbc_scrollPaneNotes);
 		
 		txtAreaNotes = new JTextArea();
@@ -354,22 +370,22 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		GridBagConstraints gbc_lblKeywordsRelatedTo = new GridBagConstraints();
 		gbc_lblKeywordsRelatedTo.insets = new Insets(0, 0, 5, 5);
 		gbc_lblKeywordsRelatedTo.gridx = 2;
-		gbc_lblKeywordsRelatedTo.gridy = 11;
+		gbc_lblKeywordsRelatedTo.gridy = currentGridRow;
 		getContentPane().add(lblKeywordsRelatedTo, gbc_lblKeywordsRelatedTo);
 		
 		lblKeywordSearch = new JLabel("Keyword Search");
 		GridBagConstraints gbc_lblKeywordSearch = new GridBagConstraints();
 		gbc_lblKeywordSearch.insets = new Insets(0, 0, 5, 0);
 		gbc_lblKeywordSearch.gridx = 3;
-		gbc_lblKeywordSearch.gridy = 11;
+		gbc_lblKeywordSearch.gridy = currentGridRow++;
 		getContentPane().add(lblKeywordSearch, gbc_lblKeywordSearch);
 		
 		lblSoundFile = new JLabel("Sound File");
 		GridBagConstraints gbc_lblSoundFile = new GridBagConstraints();
 		gbc_lblSoundFile.anchor = GridBagConstraints.EAST;
-		gbc_lblSoundFile.insets = new Insets(0, 0, 5, 5);
+		gbc_lblSoundFile.insets = column1Inset;
 		gbc_lblSoundFile.gridx = 0;
-		gbc_lblSoundFile.gridy = 12;
+		gbc_lblSoundFile.gridy = currentGridRow;
 		getContentPane().add(lblSoundFile, gbc_lblSoundFile);
 		
 		txtSoundFile = new JTextField();
@@ -378,7 +394,7 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		gbc_txtSoundFile.insets = new Insets(0, 0, 5, 5);
 		gbc_txtSoundFile.fill = GridBagConstraints.HORIZONTAL;
 		gbc_txtSoundFile.gridx = 1;
-		gbc_txtSoundFile.gridy = 12;
+		gbc_txtSoundFile.gridy = currentGridRow;
 		getContentPane().add(txtSoundFile, gbc_txtSoundFile);
 		txtSoundFile.setColumns(10);
 		
@@ -388,26 +404,26 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		gbc_txtRelatedKeywordSearch.insets = new Insets(0, 0, 5, 5);
 		gbc_txtRelatedKeywordSearch.fill = GridBagConstraints.HORIZONTAL;
 		gbc_txtRelatedKeywordSearch.gridx = 2;
-		gbc_txtRelatedKeywordSearch.gridy = 12;
+		gbc_txtRelatedKeywordSearch.gridy = currentGridRow;
 		getContentPane().add(txtRelatedKeywordSearch, gbc_txtRelatedKeywordSearch);
 		txtRelatedKeywordSearch.setColumns(10);
 		
 		txtKeywordSearch = new JTextField();
 		txtKeywordSearch.setEnabled(false);
 		GridBagConstraints gbc_txtKeywordSearch = new GridBagConstraints();
-		gbc_txtKeywordSearch.insets = new Insets(0, 0, 5, 0);
+		gbc_txtKeywordSearch.insets = new Insets(0, 0, 5, 5);
 		gbc_txtKeywordSearch.fill = GridBagConstraints.HORIZONTAL;
 		gbc_txtKeywordSearch.gridx = 3;
-		gbc_txtKeywordSearch.gridy = 12;
+		gbc_txtKeywordSearch.gridy = currentGridRow++;
 		getContentPane().add(txtKeywordSearch, gbc_txtKeywordSearch);
 		txtKeywordSearch.setColumns(10);
 		
 		lblAssociatedKeywords = new JLabel("Associated Keywords");
 		GridBagConstraints gbc_lblAssociatedKeywords = new GridBagConstraints();
 		gbc_lblAssociatedKeywords.gridheight = 2;
-		gbc_lblAssociatedKeywords.insets = new Insets(0, 5, 5, 5);
+		gbc_lblAssociatedKeywords.insets = column1Inset;
 		gbc_lblAssociatedKeywords.gridx = 0;
-		gbc_lblAssociatedKeywords.gridy = 13;
+		gbc_lblAssociatedKeywords.gridy = currentGridRow;
 		getContentPane().add(lblAssociatedKeywords, gbc_lblAssociatedKeywords);
 		
 		associatedKwScrollPane = new JScrollPane();
@@ -417,7 +433,7 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		gbc_associatedKwScrollPane.insets = new Insets(0, 0, 5, 5);
 		gbc_associatedKwScrollPane.fill = GridBagConstraints.BOTH;
 		gbc_associatedKwScrollPane.gridx = 1;
-		gbc_associatedKwScrollPane.gridy = 13;
+		gbc_associatedKwScrollPane.gridy = currentGridRow;
 		getContentPane().add(associatedKwScrollPane, gbc_associatedKwScrollPane);
 		
 		associatedKwList = new JList<String>();
@@ -431,7 +447,7 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		gbc_relatedKwScrollPane.insets = new Insets(0, 0, 5, 5);
 		gbc_relatedKwScrollPane.fill = GridBagConstraints.BOTH;
 		gbc_relatedKwScrollPane.gridx = 2;
-		gbc_relatedKwScrollPane.gridy = 13;
+		gbc_relatedKwScrollPane.gridy = currentGridRow;
 		getContentPane().add(relatedKwScrollPane, gbc_relatedKwScrollPane);
 		
 		relatedKwList = new JList<String>();
@@ -442,10 +458,11 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		GridBagConstraints gbc_searchKwScrollPane = new GridBagConstraints();
 		gbc_searchKwScrollPane.weightx = 1.0;
 		gbc_searchKwScrollPane.gridheight = 9;
-		gbc_searchKwScrollPane.insets = new Insets(0, 0, 5, 0);
+		gbc_searchKwScrollPane.insets = new Insets(0, 0, 5, 5);
 		gbc_searchKwScrollPane.fill = GridBagConstraints.BOTH;
 		gbc_searchKwScrollPane.gridx = 3;
-		gbc_searchKwScrollPane.gridy = 13;
+		gbc_searchKwScrollPane.gridy = currentGridRow;
+		currentGridRow+=9; // Rows it occupies
 		getContentPane().add(searchKwScrollPane, gbc_searchKwScrollPane);
 		
 		searchKwList = new JList<String>();
@@ -462,10 +479,11 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		btnAddRelatedKeywords.add(BorderLayout.NORTH, addRelatedKeywordsLbl1);
 		btnAddRelatedKeywords.add(BorderLayout.SOUTH, addRelatedKeywordsLbl2);
 		GridBagConstraints gbc_btnAddRelatedKw = new GridBagConstraints();
+		gbc_btnAddRelatedKw.anchor = GridBagConstraints.NORTH;
 		gbc_btnAddRelatedKw.gridheight = 2;
 		gbc_btnAddRelatedKw.insets = new Insets(0, 0, 0, 5);
 		gbc_btnAddRelatedKw.gridx = 2;
-		gbc_btnAddRelatedKw.gridy = 22;
+		gbc_btnAddRelatedKw.gridy = currentGridRow;
 		getContentPane().add(btnAddRelatedKeywords, gbc_btnAddRelatedKw);
 		
 		btnAddKeywords = new JButton();
@@ -478,9 +496,10 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		btnAddKeywords.add(BorderLayout.NORTH, addKeywordsLbl1);
 		btnAddKeywords.add(BorderLayout.SOUTH, addKeywordsLbl2);
 		GridBagConstraints gbc_btnAddKw = new GridBagConstraints();
+		gbc_btnAddKw.anchor = GridBagConstraints.NORTH;
 		gbc_btnAddKw.gridheight = 2;
 		gbc_btnAddKw.gridx = 3;
-		gbc_btnAddKw.gridy = 22;
+		gbc_btnAddKw.gridy = currentGridRow;
 		getContentPane().add(btnAddKeywords, gbc_btnAddKw);
 
 		setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
