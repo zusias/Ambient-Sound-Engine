@@ -66,7 +66,8 @@ public class AddSoundFrame extends javax.swing.JFrame {
 	private JTextField txtKeywordSearch;
 	private JScrollPane associatedKwScrollPane;
 	private JList<String> associatedKwList;
-	private JLabel lblAssociatedKeywords;
+	private JLabel lblLinkedKeywords1;
+	private JLabel lblLinkedKeywords2;
 	private JLabel lblSoundFile;
 	private JLabel lblKeywordSearch;
 	private JLabel lblKeywordsRelatedTo;
@@ -90,6 +91,7 @@ public class AddSoundFrame extends javax.swing.JFrame {
 	private JScrollPane searchKwScrollPane;
 	private JButton btnAddRelatedKeywords;
 	private JButton btnAddKeywords;
+	private JButton btnAddKeywordToDB;
 	private JLabel addKeywordsLbl1;
 	private JLabel addKeywordsLbl2;
 	private JLabel addRelatedKeywordsLbl1;
@@ -185,7 +187,7 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		gbc_panel.gridy = currentGridRow++; //last component in this row
 		getContentPane().add(panel, gbc_panel);
 		GridBagLayout gbl_panel = new GridBagLayout();
-		gbl_panel.columnWidths = new int[]{30, 30, 40, 0};
+		gbl_panel.columnWidths = new int[]{40, 40, 80, 0};
 		//gbl_panel.columnWidths = new int[]{80, 97, 0, 0};
 		gbl_panel.rowHeights = new int[]{25, 0};
 		gbl_panel.columnWeights = new double[]{0.0, 0.0, 0.0, Double.MIN_VALUE};
@@ -408,23 +410,62 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		getContentPane().add(txtRelatedKeywordSearch, gbc_txtRelatedKeywordSearch);
 		txtRelatedKeywordSearch.setColumns(10);
 		
+		//JPanel for keyword search and button
+		JPanel keywordSearchPanel = new JPanel();
+		GridBagConstraints gbc_kwSearchPanel = new GridBagConstraints();
+		gbc_kwSearchPanel.insets = new Insets(0, 0, 5, 5);
+		gbc_kwSearchPanel.fill = GridBagConstraints.BOTH;
+		gbc_kwSearchPanel.gridx = 3;
+		gbc_kwSearchPanel.gridy = currentGridRow++; //last in row
+		getContentPane().add(keywordSearchPanel, gbc_kwSearchPanel);
+		
+		GridBagLayout gbl_kwSearchPanel = new GridBagLayout();
+		gbl_kwSearchPanel.columnWidths = new int[]{280, 30};
+		gbl_kwSearchPanel.rowHeights = new int[]{20};
+		gbl_kwSearchPanel.columnWeights = new double[]{0.1, 0};
+		gbl_kwSearchPanel.rowWeights = new double[]{0.1};
+		keywordSearchPanel.setLayout(gbl_kwSearchPanel);
+		
+		//Keyword search textbox
 		txtKeywordSearch = new JTextField();
 		txtKeywordSearch.setEnabled(false);
 		GridBagConstraints gbc_txtKeywordSearch = new GridBagConstraints();
-		gbc_txtKeywordSearch.insets = new Insets(0, 0, 5, 5);
+		gbc_txtKeywordSearch.gridx = 0;
+		gbc_txtKeywordSearch.gridy = 0;
 		gbc_txtKeywordSearch.fill = GridBagConstraints.HORIZONTAL;
-		gbc_txtKeywordSearch.gridx = 3;
-		gbc_txtKeywordSearch.gridy = currentGridRow++;
-		getContentPane().add(txtKeywordSearch, gbc_txtKeywordSearch);
+		keywordSearchPanel.add(txtKeywordSearch, gbc_txtKeywordSearch);
 		txtKeywordSearch.setColumns(10);
 		
-		lblAssociatedKeywords = new JLabel("Associated Keywords");
-		GridBagConstraints gbc_lblAssociatedKeywords = new GridBagConstraints();
-		gbc_lblAssociatedKeywords.gridheight = 2;
-		gbc_lblAssociatedKeywords.insets = column1Inset;
-		gbc_lblAssociatedKeywords.gridx = 0;
-		gbc_lblAssociatedKeywords.gridy = currentGridRow;
-		getContentPane().add(lblAssociatedKeywords, gbc_lblAssociatedKeywords);
+		//Button to add keyword if not found
+		btnAddKeywordToDB = new JButton("+");
+		btnAddKeywordToDB.setToolTipText("Add Keyword to Database");
+		btnAddKeywordToDB.setEnabled(false);
+		GridBagConstraints gbc_btnAddKwToDB = new GridBagConstraints();
+		gbc_btnAddKwToDB.gridx = 1;
+		gbc_btnAddKwToDB.gridy = 0;
+		gbc_btnAddKwToDB.anchor = GridBagConstraints.WEST;
+		gbc_txtKeywordSearch.fill = GridBagConstraints.NONE;
+		Dimension smallButtonSize = new Dimension(45, 40);
+		btnAddKeywordToDB.setPreferredSize(smallButtonSize);
+		btnAddKeywordToDB.setMaximumSize(smallButtonSize);
+		btnAddKeywordToDB.setMinimumSize(smallButtonSize);
+		keywordSearchPanel.add(btnAddKeywordToDB, gbc_btnAddKwToDB);
+		
+		lblLinkedKeywords1 = new JLabel("Linked");
+		GridBagConstraints gbc_lblLinkedKeywords1 = new GridBagConstraints();
+		gbc_lblLinkedKeywords1.insets = column1Inset;
+		gbc_lblLinkedKeywords1.anchor = GridBagConstraints.SOUTHEAST;
+		gbc_lblLinkedKeywords1.gridx = 0;
+		gbc_lblLinkedKeywords1.gridy = currentGridRow+1;
+		getContentPane().add(lblLinkedKeywords1, gbc_lblLinkedKeywords1);
+		
+		lblLinkedKeywords2 = new JLabel("Keywords");
+		GridBagConstraints gbc_lblLinkedKeywords2 = new GridBagConstraints();
+		gbc_lblLinkedKeywords2.insets = column1Inset;
+		gbc_lblLinkedKeywords2.anchor = GridBagConstraints.NORTHEAST;
+		gbc_lblLinkedKeywords2.gridx = 0;
+		gbc_lblLinkedKeywords2.gridy = currentGridRow+2;
+		getContentPane().add(lblLinkedKeywords2, gbc_lblLinkedKeywords2);
 		
 		associatedKwScrollPane = new JScrollPane();
 		GridBagConstraints gbc_associatedKwScrollPane = new GridBagConstraints();
@@ -554,7 +595,7 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		//Labels
 		setFonts(fontSize, lblImport, lblSoundName, lblSource, lblImportedBy,
 				lblCopyright, lblCreatedBy, lblEditedBy, lblNotes, lblSoundFile,
-				lblAssociatedKeywords, lblKeywordsRelatedTo, lblKeywordSearch);
+				lblLinkedKeywords1, lblLinkedKeywords2, lblKeywordsRelatedTo, lblKeywordSearch);
 		//Text Buttons
 		setFonts(fontSize, addKeywordsLbl1, addKeywordsLbl2, addRelatedKeywordsLbl1, 
 				addRelatedKeywordsLbl2, btnImport);
@@ -568,13 +609,13 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		//Image Buttons
 		int size;
 		if(width < 700) {
-			size = 30;
+			size = 20;
 		} else if (width < 1000) {
-			size = 37;
+			size = 27;
 		} else if (width < 1300) {
-			size = 44;
+			size = 32;
 		} else {
-			size = 51;
+			size = 35;
 		}
 		
 		Image img = fileIcon.getImage();
