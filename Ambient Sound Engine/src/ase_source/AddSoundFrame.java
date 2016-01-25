@@ -24,16 +24,21 @@ import org.jouvieje.FmodEx.Enumerations.FMOD_RESULT;
 import org.jouvieje.FmodEx.Misc.BufferUtils;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.geom.Line2D;
 
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
@@ -137,7 +142,7 @@ public class AddSoundFrame extends javax.swing.JFrame {
 												0.1, 0.1, 0.1, 0.1, 0.1,
 												0.1, 0.1, 0.1, 0.1, 0.1, 
 												0.1, 0.1, 0.1, 0.1, 0.1,
-												0.1, 1.0, 0.1, 0.0};
+												0.1, 0.1, 0.1, 0.0};
 		getContentPane().setLayout(gridBagLayout);
 		
 		//Current grid row dynamically keeps track of which grid row a component is on.
@@ -526,6 +531,7 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		gbc_btnAddRelatedKw.gridx = 2;
 		gbc_btnAddRelatedKw.gridy = currentGridRow;
 		getContentPane().add(btnAddRelatedKeywords, gbc_btnAddRelatedKw);
+		getContentPane().setComponentZOrder(btnAddRelatedKeywords, 1);
 		
 		btnAddKeywords = new JButton();
 		btnAddKeywords.setLayout(new BorderLayout());
@@ -542,6 +548,18 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		gbc_btnAddKw.gridx = 3;
 		gbc_btnAddKw.gridy = currentGridRow;
 		getContentPane().add(btnAddKeywords, gbc_btnAddKw);
+		getContentPane().setComponentZOrder(btnAddKeywords, 2);
+		//System.out.println(btnAddKeywords.getX());
+		
+		ArrowDrawing arrow = new ArrowDrawing();
+		GridBagConstraints gbc_ld = new GridBagConstraints();
+		gbc_ld.gridx = 1;
+		gbc_ld.gridy = currentGridRow;
+		gbc_ld.gridheight = 2;
+		gbc_ld.gridwidth = 3;
+		gbc_ld.fill = GridBagConstraints.BOTH;
+		getContentPane().add(arrow, gbc_ld);
+		getContentPane().setComponentZOrder(arrow, 3);
 
 		setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -825,5 +843,22 @@ public class AddSoundFrame extends javax.swing.JFrame {
 				new AddSoundFrame().setVisible(true);
 			}
 		});
+	}
+}
+
+class ArrowDrawing extends JComponent {
+	@Override
+	protected void paintComponent(Graphics g){
+		super.paintComponent(g);
+		int cellW = getWidth() / 3;
+		int cellH = getHeight();
+		int startX = cellW / 2;
+		int endX = cellW/2 + (2 * cellW);
+		int horizontalY = (int) (cellH / 2.25);
+		g.setColor(Color.BLACK);
+		g.drawLine(startX, horizontalY, endX, horizontalY); //main line through buttons
+		g.drawLine(startX, horizontalY, startX, 0); //line up as arrow
+		g.drawLine(startX, 0, startX - 10, 10); //arrow lines
+		g.drawLine(startX, 0, startX + 10, 10); //arrow lines
 	}
 }
