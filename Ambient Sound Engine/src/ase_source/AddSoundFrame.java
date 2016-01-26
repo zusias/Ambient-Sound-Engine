@@ -28,18 +28,14 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Insets;
-import java.awt.Point;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.geom.Line2D;
-
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JTextArea;
@@ -239,7 +235,7 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		gbc_btnImport.gridy = 0;
 		panel.add(btnImport, gbc_btnImport);
 		
-		lblSoundName = new JLabel("Sound Name");
+		lblSoundName = new JLabel("Sound");
 		GridBagConstraints gbc_lblSoundName = new GridBagConstraints();
 		gbc_lblSoundName.anchor = GridBagConstraints.EAST;
 		gbc_lblSoundName.insets = column1Inset;
@@ -373,7 +369,7 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		txtAreaNotes.setRows(1);
 		scrollPaneNotes.setViewportView(txtAreaNotes);
 		
-		lblKeywordsRelatedTo = new JLabel("Keywords Related To");
+		lblKeywordsRelatedTo = new JLabel("Keywords Linked To");
 		GridBagConstraints gbc_lblKeywordsRelatedTo = new GridBagConstraints();
 		gbc_lblKeywordsRelatedTo.insets = new Insets(0, 0, 5, 5);
 		gbc_lblKeywordsRelatedTo.gridx = 2;
@@ -387,7 +383,7 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		gbc_lblKeywordSearch.gridy = currentGridRow++;
 		getContentPane().add(lblKeywordSearch, gbc_lblKeywordSearch);
 		
-		lblSoundFile = new JLabel("Sound File");
+		lblSoundFile = new JLabel("Sound");
 		GridBagConstraints gbc_lblSoundFile = new GridBagConstraints();
 		gbc_lblSoundFile.anchor = GridBagConstraints.EAST;
 		gbc_lblSoundFile.insets = column1Inset;
@@ -846,7 +842,14 @@ public class AddSoundFrame extends javax.swing.JFrame {
 	}
 }
 
+	/**
+	 * Visual component that fits with this layout. Intended to span 3 cells: from the middle of the
+	 * first to the middle of the last cell. The end in the first cell has an arrow pointing upward.
+	 * @author Kevin C. Gall
+	 *
+	 */
 class ArrowDrawing extends JComponent {
+	private static final long serialVersionUID = -5658963463396992330L;
 	@Override
 	protected void paintComponent(Graphics g){
 		super.paintComponent(g);
