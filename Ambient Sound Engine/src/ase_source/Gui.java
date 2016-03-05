@@ -654,7 +654,7 @@ public class Gui extends javax.swing.JFrame {
 		effectsPanel.setLayout(new java.awt.GridBagLayout());
 
 		effectsPanel.setMinimumSize(new java.awt.Dimension(414, 100));
-		effectsPanel.setPreferredSize(new java.awt.Dimension(450, 15));
+		effectsPanel.setPreferredSize(new java.awt.Dimension(450, 70));
 		jSlider1.setPreferredSize(new java.awt.Dimension(400, 18));
 		effectsPanel.add(jSlider1, new java.awt.GridBagConstraints());
 
@@ -666,7 +666,8 @@ public class Gui extends javax.swing.JFrame {
 		gridBagConstraints_15.gridy = 1;
 		gridBagConstraints_15.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gridBagConstraints_15.ipady = 50;
-		Consoles.add(CenterConsole, gridBagConstraints_15);
+		//Consoles.add(CenterConsole, gridBagConstraints_15);
+		Consoles.add(effectsPanel, gridBagConstraints_15);
 
 		ConsoleTwo.setMinimumSize(new java.awt.Dimension(460, 200));
 		ConsoleTwo.setPreferredSize(new java.awt.Dimension(460, 260));
