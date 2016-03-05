@@ -49,7 +49,9 @@ import org.jouvieje.FmodEx.Misc.BufferUtils;
  * FmodExEngine <br>
  * This class is responsible for all sound creation in the application. 
  * Creating an instance of this class initializes one or two sound cards 
- * for playback and creates data structures to hold sound files in memory.
+ * for playback and creates data structures to hold sound files in memory.<br>
+ * 
+ * Javadoc for FMODEx found at http://jerome.jouvie.free.fr/nativefmodex/javadoc/index.html
  ******************************************************************************/
 public class FmodExEngine {
 	static final int STAGEBUFFERSIZE = 500; // number of sounds that can be in
@@ -203,7 +205,7 @@ class Soundcard {
 			soundFile[count] = new SoundData();
 		}
 
-		// set up this soundcard wiht NativeFmodEx
+		// set up this soundcard with NativeFmodEx
 		soundcardID = driverID;
 		int version;
 		buffer = BufferUtils.newByteBuffer(256);
