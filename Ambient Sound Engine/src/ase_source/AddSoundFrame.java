@@ -204,7 +204,7 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		btnOpen.setIcon(fileIcon);
 		btnOpen.setToolTipText("Select File");
 		GridBagConstraints gbc_btnOpen = new GridBagConstraints();
-		gbc_btnOpen.insets = new Insets(0, 0, 0, 5);
+		gbc_btnOpen.insets = new Insets(0, 0, 0, 0);
 		gbc_btnOpen.gridx = 0;
 		gbc_btnOpen.gridy = 0;
 		panel.add(btnOpen, gbc_btnOpen);
@@ -218,7 +218,7 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		btnPreview.setIcon(previewIcon);
 		btnPreview.setToolTipText("Preview Sound");
 		GridBagConstraints gbc_btnPreview = new GridBagConstraints();
-		gbc_btnPreview.insets = new Insets(0, 0, 0, 5);
+		gbc_btnPreview.insets = new Insets(0, 0, 0, 0);
 		gbc_btnPreview.gridx = 1;
 		gbc_btnPreview.gridy = 0;
 		panel.add(btnPreview, gbc_btnPreview);

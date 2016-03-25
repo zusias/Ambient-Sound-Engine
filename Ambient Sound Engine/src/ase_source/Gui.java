@@ -156,8 +156,8 @@ public class Gui extends javax.swing.JFrame {
 		ConsoleOne = new javax.swing.JTabbedPane();
 		soundControlPanel1 = new ase_source.SoundControlPanel();
 		soundControlPanel1.setMinimumSize(new Dimension(457, 284));
-		CenterConsole = new javax.swing.JTabbedPane();
-		effectsPanel = new javax.swing.JPanel();
+		//CenterConsole = new javax.swing.JTabbedPane();
+		effectsPanel = new EffectsPanel();
 		jSlider1 = new javax.swing.JSlider();
 		ConsoleTwo = new javax.swing.JTabbedPane();
 		soundControlPanel2 = new ase_source.SoundControlPanel();
@@ -651,6 +651,9 @@ public class Gui extends javax.swing.JFrame {
 		gridBagConstraints_16.ipady = 50;
 		Consoles.add(ConsoleOne, gridBagConstraints_16);
 
+	/*
+	 * Removed by Kevin C. Gall on 3/25/16 in favor of EffectsPanel
+	 * 
 		effectsPanel.setLayout(new java.awt.GridBagLayout());
 
 		effectsPanel.setMinimumSize(new java.awt.Dimension(414, 100));
@@ -667,6 +670,15 @@ public class Gui extends javax.swing.JFrame {
 		gridBagConstraints_15.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gridBagConstraints_15.ipady = 50;
 		//Consoles.add(CenterConsole, gridBagConstraints_15);
+		Consoles.add(effectsPanel, gridBagConstraints_15);
+	*/
+		gridBagConstraints_15 = new java.awt.GridBagConstraints();
+		gridBagConstraints_15.insets = new Insets(0, 15, 0, 15);
+		gridBagConstraints_15.gridx = 0;
+		gridBagConstraints_15.gridy = 1;
+		gridBagConstraints_15.fill = java.awt.GridBagConstraints.HORIZONTAL;
+		gridBagConstraints_15.ipady = 50;
+		//effectsPanel.setMaximumSize(new Dimension(600, 200));
 		Consoles.add(effectsPanel, gridBagConstraints_15);
 
 		ConsoleTwo.setMinimumSize(new java.awt.Dimension(460, 200));
@@ -1173,7 +1185,7 @@ public class Gui extends javax.swing.JFrame {
 		}
 	}
 	
-	private javax.swing.JTabbedPane CenterConsole;
+	//private javax.swing.JTabbedPane CenterConsole;
 	private javax.swing.JTabbedPane ConsoleOne;
 	private javax.swing.JTabbedPane ConsoleTwo;
 	private javax.swing.JPanel Consoles;
@@ -1183,7 +1195,7 @@ public class Gui extends javax.swing.JFrame {
 	private javax.swing.JMenuItem changeMDItem;
 	private javax.swing.JMenu settingsMenu;
 	private javax.swing.JMenuItem preferencesMenuItem;
-	private javax.swing.JPanel effectsPanel;
+	private EffectsPanel effectsPanel;
 	private javax.swing.JMenu helpMenu;
 	private javax.swing.JMenuItem helpMenuItem;
 	private javax.swing.JList<String> historyList;

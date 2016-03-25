@@ -39,6 +39,7 @@ import java.awt.event.ComponentEvent;
  * <br><br>History
  * <br>10/Oct/2015 - CKidwell - Moved the random play frame to the row 
  * control class.
+ * <br>25/March/2016 - KGall - Changing the layout management for the copy, new, and save icons
  * 
  * @author Lance, CKidwell
  */
@@ -84,6 +85,7 @@ public class SoundControlPanel extends JPanel {
 	RowControlSetX masterControl;
 	private JPanel rowPanel = new JPanel();
 	JSlider volumeControl = new JSlider();
+	private JPanel buttonPanel = new JPanel();
 	private JButton saveSoundscapeButton = new JButton();
 	private JButton newSoundscapeButton = new JButton();
 	private JButton copySoundscapeButton = new JButton();
@@ -119,16 +121,29 @@ public class SoundControlPanel extends JPanel {
 		Dimension masterPanelDimension = new Dimension(300, 40);
 		Dimension rpSize = new Dimension(300, 0);
 		GridBagLayout gridBagLayout = new GridBagLayout();
-		gridBagLayout.columnWidths = new int[]{305, 16, 16, 16};
+		gridBagLayout.columnWidths = new int[]{305, 48};
 		gridBagLayout.rowHeights = new int[]{35, 236};
-		gridBagLayout.columnWeights = new double[]{0.9, 0.0, 0.05, 0.05};
+		gridBagLayout.columnWeights = new double[]{0.9, 0.1};
 		gridBagLayout.rowWeights = new double[]{0.0, 2.5};
 		setLayout(gridBagLayout);
+		
+		GridBagLayout buttonPanelLayout = new GridBagLayout();
+		buttonPanelLayout.columnWidths = new int[]{16, 16, 16};
+		buttonPanel.setLayout(buttonPanelLayout);
+		GridBagConstraints gbc_bp = new GridBagConstraints();
+		gbc_bp.gridx = 1;
+		gbc_bp.gridy = 0;
+		gbc_bp.anchor = GridBagConstraints.EAST;
+		gbc_bp.fill = GridBagConstraints.NONE;
+		
+		add(buttonPanel, gbc_bp);
+		
 		copySoundscapeButton.setPreferredSize(new Dimension(16, 16));
 		copySoundscapeButton.setMinimumSize(new Dimension(16, 16));
 		copySoundscapeButton.setMaximumSize(new Dimension(16, 16));
 
 		copySoundscapeButton.setIcon(COPYICON);
+		copySoundscapeButton.setToolTipText("Copy Soundscape");
 		copySoundscapeButton.setMargin(new Insets(0, 0, 0, 0));
 		copySoundscapeButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
@@ -140,6 +155,7 @@ public class SoundControlPanel extends JPanel {
 		saveSoundscapeButton.setMaximumSize(new Dimension(16, 16));
 
 		saveSoundscapeButton.setIcon(SAVEICON);
+		saveSoundscapeButton.setToolTipText("Save Soundscape");
 		saveSoundscapeButton.setMargin(new Insets(0, 0, 0, 0));
 		saveSoundscapeButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
@@ -163,6 +179,7 @@ public class SoundControlPanel extends JPanel {
 		newSoundscapeButton.setPreferredSize(new Dimension(16, 16));
 
 		newSoundscapeButton.setIcon(NEWSOUNDSCAPE);
+		newSoundscapeButton.setToolTipText("New Soundscape");
 		newSoundscapeButton.setMargin(new Insets(0, 0, 0, 0));
 		newSoundscapeButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
@@ -171,19 +188,19 @@ public class SoundControlPanel extends JPanel {
 		});
 		GridBagConstraints gbc_newSoundscapeButton = new GridBagConstraints();
 		gbc_newSoundscapeButton.insets = new Insets(5, 0, 5, 5);
-		gbc_newSoundscapeButton.gridx = 1;
+		gbc_newSoundscapeButton.gridx = 0;
 		gbc_newSoundscapeButton.gridy = 0;
-		add(newSoundscapeButton, gbc_newSoundscapeButton);
+		buttonPanel.add(newSoundscapeButton, gbc_newSoundscapeButton);
 		GridBagConstraints gbc_saveSoundscapeButton = new GridBagConstraints();
 		gbc_saveSoundscapeButton.insets = new Insets(5, 0, 5, 5);
-		gbc_saveSoundscapeButton.gridx = 2;
+		gbc_saveSoundscapeButton.gridx = 1;
 		gbc_saveSoundscapeButton.gridy = 0;
-		add(saveSoundscapeButton, gbc_saveSoundscapeButton);
+		buttonPanel.add(saveSoundscapeButton, gbc_saveSoundscapeButton);
 		GridBagConstraints gbc_copySoundscapeButton = new GridBagConstraints();
 		gbc_copySoundscapeButton.insets = new Insets(5, 0, 5, 5);
-		gbc_copySoundscapeButton.gridx = 3;
+		gbc_copySoundscapeButton.gridx = 2;
 		gbc_copySoundscapeButton.gridy = 0;
-		add(copySoundscapeButton, gbc_copySoundscapeButton);
+		buttonPanel.add(copySoundscapeButton, gbc_copySoundscapeButton);
 
 		rowPanel.setLayout(new GridLayout(0, 1));
 		setItemSize(rowPanel, rpSize);
@@ -205,7 +222,6 @@ public class SoundControlPanel extends JPanel {
 		
 		volumeControl.setOrientation(JSlider.VERTICAL);
 		GridBagConstraints gbc_volumeControl = new GridBagConstraints();
-		gbc_volumeControl.gridwidth = 3;
 		gbc_volumeControl.fill = GridBagConstraints.VERTICAL;
 		gbc_volumeControl.gridx = 1;
 		gbc_volumeControl.gridy = 1;
@@ -337,14 +353,14 @@ public class SoundControlPanel extends JPanel {
 			System.out.println("Sound Panel size:"+width+"x"+height);
 		}
 		
+	/*
+	 * 3/25/16 Removed sizes larger than 27. It looks shitty when it's any bigger...
+	 * K.Gall
+	 */
 		if(width < 600) {
 			size = 20;
-		} else if (width < 700) {
-			size = 27;
-		} else if (width < 800) {
-			size = 34;
 		} else {
-			size = 41;
+			size = 27;
 		}
 		
 		setButtonSize(saveSoundscapeButton,size,SAVEICON);
