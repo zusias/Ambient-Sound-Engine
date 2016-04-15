@@ -157,10 +157,10 @@ public class Gui extends javax.swing.JFrame {
 		soundControlPanel1 = new ase_source.SoundControlPanel();
 		soundControlPanel1.setMinimumSize(new Dimension(457, 284));
 		//CenterConsole = new javax.swing.JTabbedPane();
-		effectsPanel = new EffectsPanel();
 		ConsoleTwo = new javax.swing.JTabbedPane();
 		soundControlPanel2 = new ase_source.SoundControlPanel();
 		soundControlPanel2.setMinimumSize(new Dimension(457, 284));
+		effectsPanel = new EffectsPanel(soundControlPanel1, soundControlPanel2);
 		menuBar = new javax.swing.JMenuBar();
 		fileMenu = new javax.swing.JMenu();
 		addMenuItem = new javax.swing.JMenuItem();
