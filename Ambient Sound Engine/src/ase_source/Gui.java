@@ -158,7 +158,6 @@ public class Gui extends javax.swing.JFrame {
 		soundControlPanel1.setMinimumSize(new Dimension(457, 284));
 		//CenterConsole = new javax.swing.JTabbedPane();
 		effectsPanel = new EffectsPanel();
-		jSlider1 = new javax.swing.JSlider();
 		ConsoleTwo = new javax.swing.JTabbedPane();
 		soundControlPanel2 = new ase_source.SoundControlPanel();
 		soundControlPanel2.setMinimumSize(new Dimension(457, 284));
@@ -1215,7 +1214,6 @@ public class Gui extends javax.swing.JFrame {
 	private javax.swing.JRadioButton indexScapeRadio;
 	private javax.swing.JScrollPane indexScroll;
 	private javax.swing.JTextField indexSearchField;
-	private javax.swing.JSlider jSlider1;
 	private javax.swing.JLabel keyWordLabel;
 	private javax.swing.JMenuItem manageMenuItem;
 	private javax.swing.JLabel matchLabel;
