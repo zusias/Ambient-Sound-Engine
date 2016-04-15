@@ -1,5 +1,7 @@
 package ase_source;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.BasicStroke;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -32,6 +34,9 @@ public class EffectsPanel extends JPanel {
 	
 	private static ImageIcon settingsIcon = new ImageIcon("transitionSettings.jpg");
 	private static ImageIcon nothingLoaded = new ImageIcon("nothingLoaded.png");
+	private static ImageIcon fadeIn = new ImageIcon("fadeIn.jpg");
+	private static ImageIcon fadeOut = new ImageIcon("fadeOut.jpg");
+	private static ImageIcon crossfade = new ImageIcon("crossfade.jpg");
 	private final JLabel panelLabel;
 	private final TransitionButton configButton;
 	private final JTextField transSoundInput;
@@ -54,7 +59,17 @@ public class EffectsPanel extends JPanel {
 	public static final int FADEINTRANS = 6;
 	public static final int FADEOUTTRANS = 7;
 	
-	public EffectsPanel(){
+//State variables, exposed through the settings menu
+	private int delay = 200;
+	private int fadeTime = 5000;
+	
+	private final SoundControlPanel panel1;
+	private final SoundControlPanel panel2;
+	
+	public EffectsPanel(SoundControlPanel panel1, SoundControlPanel panel2){
+		this.panel1 = panel1;
+		this.panel2 = panel1;
+		
 		addComponentListener(new ComponentAdapter(){
 			@Override
 			public void componentResized(ComponentEvent e){
@@ -138,6 +153,17 @@ public class EffectsPanel extends JPanel {
 		gbc7.anchor = java.awt.GridBagConstraints.CENTER;
 		gbc7.fill = java.awt.GridBagConstraints.NONE;
 		
+	//add event listener here to test. Should not stay here!
+		presetAButton.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e){
+				panel1.chief.masterVolumeFadeIn(panel1.getSoundscape(), fadeTime);
+				panel1.soundscapeChanged = true;
+				panel1.repaintButtons(panel1.chief.evaluateListenerResult(-1, panel1.rowCount,
+						SoundControlPanel.PLAYPAUSEBUTTON, panel1.soundscape, panel1.stateMap));
+			}
+		});
+		
 		add(presetAButton, gbc7);
 		
 		transitionButton = new TransitionButton(nothingLoaded);
@@ -190,7 +216,31 @@ public class EffectsPanel extends JPanel {
 	 * @throws IllegalArgumentException if you try to pass an option to one of the buttons that it should never be. (For instance, if you passed 3 (CROSSPRESETS) as presetA)
 	 */
 	public void setTransitionButtonStates(int presetA, int presetB, int transition, int crossfade){
-		
+		setTransitionButtonIcon(presetAButton, presetA);
+		setTransitionButtonIcon(presetBButton, presetB);
+		setTransitionButtonIcon(transitionButton, transition);
+		setTransitionButtonIcon(crossfadeButton, crossfade);
+	}
+	
+	private void setTransitionButtonIcon(TransitionButton b, int i){
+		switch(i){
+			case 0:
+				b.setIcon(nothingLoaded);
+				break;
+			case 1:
+				b.setIcon(crossfade);
+				break;
+			case 2:
+				b.setIcon(fadeIn);
+				break;
+			case 3:
+				b.setIcon(fadeOut);
+				break;
+			//more cases here for the rest of the icons
+			default:
+				b.setIcon(nothingLoaded);
+				break;
+		}
 	}
 	
 	private void resizeButtons(){
@@ -231,20 +281,22 @@ public class EffectsPanel extends JPanel {
 	}
 	
 	public static void main(String[] args){
+	//Whole below is invalid because of the need for the SoundControlPanels
+		
 		JFrame testFrame = new JFrame();
 		GridBagLayout testLayout = new GridBagLayout();
 		testLayout.columnWeights = new double[]{1.0};
 		testLayout.rowWeights = new double[]{1.0};
 		testFrame.setLayout(testLayout);
 		
-		EffectsPanel effectsPanel = new EffectsPanel();
+		//EffectsPanel effectsPanel = new EffectsPanel();
 		
 		testFrame.setMinimumSize(new java.awt.Dimension(500, 600));
 		testFrame.setPreferredSize(new java.awt.Dimension(500, 720));
 		
-		effectsPanel.setMinimumSize(new java.awt.Dimension(414, 100));
-		effectsPanel.setPreferredSize(new java.awt.Dimension(450, 70));
-		effectsPanel.setBorder(new StrokeBorder(new BasicStroke()));
+		//effectsPanel.setMinimumSize(new java.awt.Dimension(414, 100));
+		//effectsPanel.setPreferredSize(new java.awt.Dimension(450, 70));
+		//effectsPanel.setBorder(new StrokeBorder(new BasicStroke()));
 		
 		GridBagConstraints gbc_test = new GridBagConstraints();
 		gbc_test.gridx = 0;
@@ -252,12 +304,19 @@ public class EffectsPanel extends JPanel {
 		gbc_test.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gbc_test.anchor = java.awt.GridBagConstraints.WEST;
 		
-		testFrame.getContentPane().add(effectsPanel, gbc_test);
+		//testFrame.getContentPane().add(effectsPanel, gbc_test);
 		testFrame.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 		testFrame.setVisible(true);
 	}
 	
+	/**
+	 * Basic Decorator. Extends JButton so that it can retain all its features, but also exposes a way
+	 * to access the ImageIcon passed to the button
+	 * @author Kevin
+	 *
+	 */
 	private class TransitionButton extends JButton {
+		private static final long serialVersionUID = 2802097572198817151L;
 		private ImageIcon icon;
 		
 		public TransitionButton(ImageIcon icon){
