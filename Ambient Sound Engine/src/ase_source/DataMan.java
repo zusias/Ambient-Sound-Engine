@@ -560,7 +560,6 @@ public class DataMan extends JFrame {
 		sfxKWScrollB.setPreferredSize(new java.awt.Dimension(130, 287));
 		sfxKWListB.setFont(new java.awt.Font("Arial", 0, 12));
 		sfxKWListB.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-		sfxKWListB.setPreferredSize(new Dimension(130, 80));
 		sfxKWScrollB.setViewportView(sfxKWListB);
 		
 		gridBagConstraints_18 = new java.awt.GridBagConstraints();
@@ -1084,7 +1083,8 @@ public class DataMan extends JFrame {
 	 * @param evt
 	 */
 	private void kwDeleteButtonActionPerformed(ActionEvent evt) {
-		String keyword = kwKeyList.getSelectedValue().toString();
+		String keyword = kwKeyList.getSelectedValue();
+		if (keyword == null) return;
 		OperationsManager.db.deleteKW(keyword);
 		ssKWListB.setListData(OperationsManager.db.showTable("keyword","keyword"));
 		sfxKWListB.setListData(OperationsManager.db.showTable("keyword","keyword"));
@@ -1097,7 +1097,8 @@ public class DataMan extends JFrame {
 	 * @param evt
 	 */
 	private void sfxDeleteButtonActionPerformed(ActionEvent evt) {
-		String sound = sfxFXList.getSelectedValue().toString();
+		String sound = sfxFXList.getSelectedValue();
+		if (sound == null) return;
 		OperationsManager.db.deleteSound(sound);
 		kwFXListB.setListData(OperationsManager.db.showTable("sound_file","name"));
 		ssFXListB.setListData(OperationsManager.db.showTable("sound_file","name"));
@@ -1110,7 +1111,9 @@ public class DataMan extends JFrame {
 	 * @param evt
 	 */
 	private void ssAddKeywordButtonActionPerformed(ActionEvent evt) {
-		OperationsManager.db.addKeywordIntoSystem(ssNewKeywordField.getText());
+		String keyword = ssNewKeywordField.getText();
+		if (keyword == null || keyword.isEmpty()) return;
+		OperationsManager.db.addKeywordIntoSystem(keyword);
 		kwKeyList.setListData(OperationsManager.db.showTable("keyword","keyword"));
 		ssKWListB.setListData(OperationsManager.db.showTable("keyword","keyword"));
 		sfxKWListB.setListData(OperationsManager.db.showTable("keyword","keyword"));
@@ -1122,7 +1125,9 @@ public class DataMan extends JFrame {
 	 * @param evt
 	 */
 	private void sfxAddKeywordButtonActionPerformed(ActionEvent evt) {
-		OperationsManager.db.addKeywordIntoSystem(sfxNewKeywordField.getText());
+		String keyword = sfxNewKeywordField.getText();
+		if (keyword == null || keyword.isEmpty()) return;
+		OperationsManager.db.addKeywordIntoSystem(keyword);
 		kwKeyList.setListData(OperationsManager.db.showTable("keyword","keyword"));
 		ssKWListB.setListData(OperationsManager.db.showTable("keyword","keyword"));
 		sfxKWListB.setListData(OperationsManager.db.showTable("keyword","keyword"));
@@ -1134,7 +1139,8 @@ public class DataMan extends JFrame {
 	 * @param evt
 	 */
 	private void ssDelButtonActionPerformed(ActionEvent evt) {
-		String scape = ssScapeList.getSelectedValue().toString();
+		String scape = ssScapeList.getSelectedValue();
+		if (scape == null) return;
 		OperationsManager.db.deleteScape(scape);
 		sfxScapeListB.setListData(OperationsManager.db.showTable("soundscape","name"));
 		kwScapeListB.setListData(OperationsManager.db.showTable("soundscape","name"));
@@ -1147,9 +1153,10 @@ public class DataMan extends JFrame {
 	 * @param evt
 	 */
 	private void kwFXbuttonAActionPerformed(ActionEvent evt) {
-		String soundFX = kwFXListA.getSelectedValue().toString();
+		String soundFX = kwFXListA.getSelectedValue();
 		int index = kwFXListA.getSelectedIndex();
-		String kw = kwKeyList.getSelectedValue().toString();
+		String kw = kwKeyList.getSelectedValue();
+		if(soundFX == null || kw == null) return;
 		OperationsManager.db.deleteKeywordSoundFile(soundFX, kw);
 		kwFXListA.remove(index);
 		kwFXListB.setListData(OperationsManager.db.showTable("keyword","keyword"));
@@ -1161,8 +1168,9 @@ public class DataMan extends JFrame {
 	 * @param evt
 	 */
 	private void kwScapeButtonAActionPerformed(ActionEvent evt) {
-		String scape = kwScapeListA.getSelectedValue().toString();
-		String kw = kwKeyList.getSelectedValue().toString();
+		String scape = kwScapeListA.getSelectedValue();
+		String kw = kwKeyList.getSelectedValue();
+		if (scape == null || kw == null) return;
 		OperationsManager.db.deleteKwFromSoundscape(scape, kw);
 		kwScapeListA.setListData(OperationsManager.db.getKeywordSoundscapes(kw));
 	}
@@ -1173,8 +1181,9 @@ public class DataMan extends JFrame {
 	 * @param evt
 	 */
 	private void sfxKWbuttonAActionPerformed(ActionEvent evt) {
-		String soundFX = sfxFXList.getSelectedValue().toString();
-		String kw = sfxKWListA.getSelectedValue().toString();
+		String soundFX = sfxFXList.getSelectedValue();
+		String kw = sfxKWListA.getSelectedValue();
+		if (soundFX == null || kw == null) return;
 		OperationsManager.db.deleteKeywordSoundFile(soundFX, kw);
 		sfxKWListA.setListData(OperationsManager.db.getSoundKeywords(soundFX));
 	}
@@ -1185,8 +1194,9 @@ public class DataMan extends JFrame {
 	 * @param evt
 	 */
 	private void sfxScapeButtonAActionPerformed(ActionEvent evt) {
-		String soundFX = sfxFXList.getSelectedValue().toString();
-		String scape = sfxScapeListA.getSelectedValue().toString();
+		String soundFX = sfxFXList.getSelectedValue();
+		String scape = sfxScapeListA.getSelectedValue();
+		if (soundFX == null || scape == null) return;
 		OperationsManager.db.deleteSoundFromSoundscape(scape, soundFX);
 		sfxScapeListA.setListData(OperationsManager.db.getSoundSoundscapes(soundFX));
 	}
@@ -1197,8 +1207,8 @@ public class DataMan extends JFrame {
 	 * @param evt
 	 */
 	private void ssKWbuttonAActionPerformed(ActionEvent evt) {
-		String scape = ssScapeList.getSelectedValue().toString();
-		String kw = ssKWListA.getSelectedValue().toString();
+		String scape = ssScapeList.getSelectedValue();
+		String kw = ssKWListA.getSelectedValue();
 		OperationsManager.db.deleteKwFromSoundscape(scape, kw);
 		ssKWListA.setListData(OperationsManager.db.getSoundscapeKeywords(scape));
 	}
@@ -1209,8 +1219,9 @@ public class DataMan extends JFrame {
 	 * @param evt
 	 */
 	private void ssFXbuttonAActionPerformed(ActionEvent evt) {
-		String scape = ssScapeList.getSelectedValue().toString();
-		String soundFX = ssFXListA.getSelectedValue().toString();
+		String scape = ssScapeList.getSelectedValue();
+		String soundFX = ssFXListA.getSelectedValue();
+		if (scape == null || soundFX == null) return;
 		OperationsManager.db.deleteSoundFromSoundscape(scape, soundFX);
 		ssFXListA.setListData(OperationsManager.db.getSoundscapeSounds(scape));
 	}
@@ -1221,8 +1232,9 @@ public class DataMan extends JFrame {
 	 * @param evt
 	 */
 	private void kwFXbuttonBActionPerformed(ActionEvent evt) {
-		String soundFX = kwFXListB.getSelectedValue().toString();
-		String kw = kwKeyList.getSelectedValue().toString();
+		String soundFX = kwFXListB.getSelectedValue();
+		String kw = kwKeyList.getSelectedValue();
+		if (soundFX == null || kw == null) return;
 		OperationsManager.db.addKeywordToSoundFile(soundFX, kw);
 		kwFXListA.setListData(OperationsManager.db.getKeywordSounds(kw));
 	}// GEN-LAST:event_kwFXbuttonBActionPerformed
@@ -1233,8 +1245,9 @@ public class DataMan extends JFrame {
 	 * @param evt
 	 */
 	private void kwScapeButtonBActionPerformed(ActionEvent evt) {
-		String scape = kwScapeListB.getSelectedValue().toString();
-		String kw = kwKeyList.getSelectedValue().toString();
+		String scape = kwScapeListB.getSelectedValue();
+		String kw = kwKeyList.getSelectedValue();
+		if (scape == null || kw == null) return;
 		OperationsManager.db.addKeywordToSoundscape(scape, kw);
 		kwScapeListA.setListData(OperationsManager.db.getKeywordSoundscapes(kw));
 	}
@@ -1245,8 +1258,9 @@ public class DataMan extends JFrame {
 	 * @param evt
 	 */
 	private void sfxKWbuttonBActionPerformed(ActionEvent evt) {
-		String soundFX = sfxFXList.getSelectedValue().toString();
-		String kw = sfxKWListB.getSelectedValue().toString();
+		String soundFX = sfxFXList.getSelectedValue();
+		String kw = sfxKWListB.getSelectedValue();
+		if (soundFX == null || kw == null) return;
 		OperationsManager.db.addKeywordToSoundFile(soundFX, kw);
 		sfxKWListA.setListData(OperationsManager.db.getSoundKeywords(soundFX));
 	}
@@ -1257,8 +1271,9 @@ public class DataMan extends JFrame {
 	 * @param evt
 	 */
 	private void sfxScapeButtonBActionPerformed(ActionEvent evt) {
-		String soundFX = sfxFXList.getSelectedValue().toString();
-		String scape = sfxScapeListB.getSelectedValue().toString();
+		String soundFX = sfxFXList.getSelectedValue();
+		String scape = sfxScapeListB.getSelectedValue();
+		if (soundFX == null || scape == null) return;
 		OperationsManager.db.addSoundFileToSoundscape(scape, soundFX);
 		sfxScapeListA.setListData(OperationsManager.db.getSoundSoundscapes(soundFX));
 	}
@@ -1269,8 +1284,9 @@ public class DataMan extends JFrame {
 	 * @param evt
 	 */
 	private void ssKWbuttonBActionPerformed(ActionEvent evt) {
-		String scape = ssScapeList.getSelectedValue().toString();
-		String kw = ssKWListB.getSelectedValue().toString();
+		String scape = ssScapeList.getSelectedValue();
+		String kw = ssKWListB.getSelectedValue();
+		if (scape == null || kw == null) return;
 		OperationsManager.db.addKeywordToSoundscape(scape, kw);
 		ssKWListA.setListData(OperationsManager.db.getSoundscapeKeywords(scape));
 	}
@@ -1281,8 +1297,9 @@ public class DataMan extends JFrame {
 	 * @param evt
 	 */
 	private void ssFXbuttonBActionPerformed(ActionEvent evt) {
-		String scape = ssScapeList.getSelectedValue().toString();
-		String soundFX = ssFXListB.getSelectedValue().toString();
+		String scape = ssScapeList.getSelectedValue();
+		String soundFX = ssFXListB.getSelectedValue();
+		if (scape == null || soundFX == null) return;
 		OperationsManager.db.addSoundFileToSoundscape(scape, soundFX);
 		ssFXListA.setListData(OperationsManager.db.getSoundscapeSounds(scape));
 	}
@@ -1293,7 +1310,9 @@ public class DataMan extends JFrame {
 	 * @param evt
 	 */
 	private void kwAddKeywordButtonActionPerformed(ActionEvent evt) {
-		OperationsManager.db.addKeywordIntoSystem(kwNewKeywordField.getText());
+		String kw = kwNewKeywordField.getText();
+		if (kw == null || kw.isEmpty()) return;
+		OperationsManager.db.addKeywordIntoSystem(kw);
 		kwKeyList.setListData(OperationsManager.db.showTable("keyword","keyword"));
 		ssKWListB.setListData(OperationsManager.db.showTable("keyword","keyword"));
 		sfxKWListB.setListData(OperationsManager.db.showTable("keyword","keyword"));
@@ -1305,13 +1324,15 @@ public class DataMan extends JFrame {
 	 * @param evt
 	 */
 	private void kwKeyListValueChanged(javax.swing.event.ListSelectionEvent evt) {
-		String search = kwKeyList.getSelectedValue().toString();
+		String search = kwKeyList.getSelectedValue();
+		if (search == null) return;
 		kwScapeListA.setListData(OperationsManager.db.getKeywordSoundscapes(search));
 		kwFXListA.setListData(OperationsManager.db.getKeywordSounds(search));
 	}
 
 	private void kwKeyListMouseClicked(MouseEvent evt) {
-		String search = kwKeyList.getSelectedValue().toString();
+		String search = kwKeyList.getSelectedValue();
+		if (search == null) return;
 		kwScapeListA.setListData(OperationsManager.db.getKeywordSoundscapes(search));
 		kwFXListA.setListData(OperationsManager.db.getKeywordSounds(search));
 	}
@@ -1322,13 +1343,15 @@ public class DataMan extends JFrame {
 	 * @param evt
 	 */
 	private void sfxFXListValueChanged(javax.swing.event.ListSelectionEvent evt) {
-		String search = sfxFXList.getSelectedValue().toString();
+		String search = sfxFXList.getSelectedValue();
+		if (search == null) return;
 		sfxKWListA.setListData(OperationsManager.db.getSoundKeywords(search));
 		sfxScapeListA.setListData(OperationsManager.db.getSoundSoundscapes(search));
 	}
 
 	private void sfxFXListMouseClicked(MouseEvent evt) {
-		String search = sfxFXList.getSelectedValue().toString();
+		String search = sfxFXList.getSelectedValue();
+		if(search == null) return;
 		sfxKWListA.setListData(OperationsManager.db.getSoundKeywords(search));
 		sfxScapeListA.setListData(OperationsManager.db.getSoundSoundscapes(search));
 	}
@@ -1339,13 +1362,15 @@ public class DataMan extends JFrame {
 	 * @param evt
 	 */
 	private void ssScapeListValueChanged(javax.swing.event.ListSelectionEvent evt) {
-		String search = ssScapeList.getSelectedValue().toString();
+		String search = ssScapeList.getSelectedValue();
+		if (search == null) return;
 		ssKWListA.setListData(OperationsManager.db.getSoundscapeKeywords(search));
 		ssFXListA.setListData(OperationsManager.db.getSoundscapeSounds(search));
 	}
 
 	private void ssScapeListMouseClicked(MouseEvent evt) {
-		String search = ssScapeList.getSelectedValue().toString();
+		String search = ssScapeList.getSelectedValue();
+		if (search == null) return;
 		ssKWListA.setListData(OperationsManager.db.getSoundscapeKeywords(search));
 		ssFXListA.setListData(OperationsManager.db.getSoundscapeSounds(search));
 	}
