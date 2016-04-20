@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.List;
+import java.util.Vector;
 
 import javax.swing.ComboBoxModel;
 import javax.swing.ImageIcon;
@@ -36,9 +38,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JTextArea;
+
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.ListSelectionEvent;
 
 /**
  * A window used to load new sound files into the system
@@ -47,6 +55,11 @@ import javax.swing.JTextArea;
  * 11/26/2015 - CKidwell - Pretty much a full redesign based on requests
  * from Jeff, this leaves things like the keyword functionality at the bottom
  * unfinished.
+ * 04/19/2015 - CKidwell - Hooked up functionality that was missing on the 
+ * bottom section.
+ * 
+ * TODO: Initial displays of keywords in rightmost column does not default to alphabetical
+ * 
  * @author Lance, CKidwell
  */
 public class AddSoundFrame extends javax.swing.JFrame {
@@ -93,6 +106,7 @@ public class AddSoundFrame extends javax.swing.JFrame {
 	private JButton btnAddRelatedKeywords;
 	private JButton btnAddKeywords;
 	private JButton btnAddKeywordToDB;
+	private JButton btnRemoveKeywords;
 	private JLabel addKeywordsLbl1;
 	private JLabel addKeywordsLbl2;
 	private JLabel addRelatedKeywordsLbl1;
@@ -430,6 +444,12 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		//Keyword search textbox
 		txtKeywordSearch = new JTextField();
 		txtKeywordSearch.setEnabled(false);
+		txtKeywordSearch.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				keywordSearchValueChanged();
+			}
+		});
 		GridBagConstraints gbc_txtKeywordSearch = new GridBagConstraints();
 		gbc_txtKeywordSearch.gridx = 0;
 		gbc_txtKeywordSearch.gridy = 0;
@@ -439,6 +459,11 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		
 		//Button to add keyword if not found
 		btnAddKeywordToDB = new JButton("+");
+		btnAddKeywordToDB.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				insertKeywordButtonPressed();
+			}
+		});
 		btnAddKeywordToDB.setToolTipText("Add Keyword to Database");
 		btnAddKeywordToDB.setEnabled(false);
 		GridBagConstraints gbc_btnAddKwToDB = new GridBagConstraints();
@@ -479,6 +504,11 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		getContentPane().add(associatedKwScrollPane, gbc_associatedKwScrollPane);
 		
 		associatedKwList = new JList<String>();
+		associatedKwList.addListSelectionListener(new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent e) {
+				associatedKwSelected();
+			}
+		});
 		associatedKwList.setEnabled(false);
 		associatedKwScrollPane.setViewportView(associatedKwList);
 		
@@ -508,10 +538,42 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		getContentPane().add(searchKwScrollPane, gbc_searchKwScrollPane);
 		
 		searchKwList = new JList<String>();
+		searchKwList.addListSelectionListener(new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent e) {
+				searchKwSelected();
+			}
+		});
 		searchKwList.setEnabled(false);
 		searchKwScrollPane.setViewportView(searchKwList);
 		
+
+		//Button to remove chosen keywords
+		btnRemoveKeywords = new JButton("-");
+		btnRemoveKeywords.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				removeKwButtonPressed();
+			}
+		});
+		btnRemoveKeywords.setToolTipText("Add Keyword to Database");
+		btnRemoveKeywords.setEnabled(false);
+		GridBagConstraints gbc_btnRemoveKw = new GridBagConstraints();
+		gbc_btnRemoveKw.gridx = 1;
+		gbc_btnRemoveKw.gridy = currentGridRow;
+		gbc_btnRemoveKw.anchor = GridBagConstraints.WEST;
+		gbc_btnRemoveKw.fill = GridBagConstraints.NONE;
+		smallButtonSize = new Dimension(45, 40);
+		btnRemoveKeywords.setPreferredSize(smallButtonSize);
+		btnRemoveKeywords.setMaximumSize(smallButtonSize);
+		btnRemoveKeywords.setMinimumSize(smallButtonSize);
+		getContentPane().add(btnRemoveKeywords, gbc_btnRemoveKw);
+		
 		btnAddRelatedKeywords = new JButton();
+		btnAddRelatedKeywords.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				addRelatedKeywordsButtonPressed();
+			}
+		});
+		
 		btnAddRelatedKeywords.setLayout(new BorderLayout());
 		btnAddRelatedKeywords.setEnabled(false);
 		addRelatedKeywordsLbl1 = new JLabel("Link Selected");
@@ -530,6 +592,11 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		getContentPane().setComponentZOrder(btnAddRelatedKeywords, 1);
 		
 		btnAddKeywords = new JButton();
+		btnAddKeywords.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				addKeywordsButtonPressed();
+			}
+		});
 		btnAddKeywords.setLayout(new BorderLayout());
 		btnAddKeywords.setEnabled(false);
 		addKeywordsLbl1 = new JLabel("Link Selected");
@@ -638,6 +705,7 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		img = previewIcon.getImage();
 		scaledImg = img.getScaledInstance(size-2, size-2, Image.SCALE_DEFAULT);
 		setSquareButtonSize(btnPreview,size, new ImageIcon(scaledImg));
+		
 	}
 	
 	/**
@@ -725,12 +793,15 @@ public class AddSoundFrame extends javax.swing.JFrame {
 				e.printStackTrace();
 			}
 		}
+		txtSoundFile.setText(txtName.getText());
 		txtRelatedKeywordSearch.setEnabled(true);
 		txtKeywordSearch.setEnabled(true);
+		associatedKwList.setEnabled(true);
 		relatedKwList.setEnabled(true);
 		searchKwList.setEnabled(true);
 		btnAddRelatedKeywords.setEnabled(true);
 		btnAddKeywords.setEnabled(true);
+		btnRemoveKeywords.setEnabled(true);
 	}
 
 	/**
@@ -796,10 +867,8 @@ public class AddSoundFrame extends javax.swing.JFrame {
 			insertIntoDb(dest.getName(), dest.getParent(), soundName, size,
 					notes, importedBy, copyright, sourceDesc, createdBy, editedBy);
 
-			if (fis != null)
-				fis.close();
-			if (fos != null)
-				fos.close();
+			fis.close();
+			fos.close();
 		} finally {
 			if (in != null)
 				in.close();
@@ -826,11 +895,71 @@ public class AddSoundFrame extends javax.swing.JFrame {
 			String sourceDesc, String createdBy, String editedBy) {
 		OperationsManager.db.addSoundFileIntoSystem(fileName, filePath + "\\",
 				soundName, size, description, importedBy, copyright,
-				sourceDesc, createdBy, editedBy);		
+				sourceDesc, createdBy, editedBy);
+	}
+	
+	
+	private void insertKeywordButtonPressed() {
+		String keyword = txtKeywordSearch.getText();
+		OperationsManager.db.addKeywordIntoSystem(keyword);
+		searchKwList.setListData(OperationsManager.db.showTable("keyword", "keyword"));
+	}
+	
+	//Filter keywords in the list based on a prefix search
+	private void keywordSearchValueChanged() {
+		Vector<String> keywords = OperationsManager.db.doKwSearchByName(txtKeywordSearch.getText());
+		searchKwList.setListData(keywords);
+	}
+	
+	private void associatedKwSelected() {
+		String keyword = associatedKwList.getSelectedValue();
+		setRelatedKeywords(keyword);
+	}
+	
+	private void searchKwSelected() {
+		String keyword = searchKwList.getSelectedValue();
+		setRelatedKeywords(keyword);
+	}
+	
+	private void setRelatedKeywords(String keyword) {
+		txtRelatedKeywordSearch.setText(keyword);
+		Vector<String> keywords = OperationsManager.db.getRelatedKeywords(keyword);
+		relatedKwList.setListData(keywords);
+	}
+	
+	private void addRelatedKeywordsButtonPressed() {
+		List<String> keywords = relatedKwList.getSelectedValuesList();
+		String soundFile = txtSoundFile.getText();
+		for(String keyword: keywords) {
+			OperationsManager.db.addKeywordToLastSoundfile(keyword);
+		}
+		
+		associatedKwList.setListData(OperationsManager.db.getSoundKeywords(soundFile));
+	}
+	
+	private void addKeywordsButtonPressed() {
+		List<String> keywords = searchKwList.getSelectedValuesList();
+		String soundFile = txtSoundFile.getText();
+		for(String keyword: keywords) {
+			OperationsManager.db.addKeywordToLastSoundfile(keyword);
+		}
+		
+		associatedKwList.setListData(OperationsManager.db.getSoundKeywords(soundFile));
+	}
+	
+	private void removeKwButtonPressed() {
+		List<String> keywords = associatedKwList.getSelectedValuesList();
+		String soundFile = txtSoundFile.getText();
+		if(soundFile != null && !soundFile.isEmpty()) {
+			for(String keyword: keywords) {
+				OperationsManager.db.deleteKeywordSoundFile(soundFile, keyword);
+			}
+		}
+		associatedKwList.setListData(OperationsManager.db.getSoundKeywords(soundFile));
 	}
 
 	/**
-	 * Run for viewing purposes, no db connection
+	 * Run for viewing/testing purposes, no db connection
 	 */
 	public static void main(String args[]) {
 		EnvVariables.initVars();

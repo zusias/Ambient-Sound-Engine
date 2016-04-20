@@ -9,7 +9,7 @@ import java.sql.Statement;
 import java.util.Vector;
 
 /**
- * Handles the majority of the statements to the mySQL database, any mySQL calls
+ * Handles the majority of the statements to the SQLite database, any SQLite calls
  * outside of this file were added by David due to an attempt to expediate the
  * process.
  * 
@@ -18,6 +18,9 @@ import java.util.Vector;
  * 11/26/2015 - CKidwell - Updated to version 3, expanded the Sound table to 
  * add 3 new fields and changed the copyright field to be related to the index
  * of the {@link SoundObject#comboBoxOptions.
+ * 
+ * TODO: Replace sequential selects with join selects
+ * TODO: Replace more stuff with prepared statements, close resource leaks
  * 
  * @author Lance
  * @author CKidwell
@@ -33,6 +36,8 @@ public class Database { // connects to mySQL database
 	static final int SOUNDSCAPE = 2;
 
 	private PreparedStatement loadKeywordFromName;
+	private PreparedStatement loadKeywordFromNameSearch;
+	private PreparedStatement loadRelatedKeywords;
 	private PreparedStatement loadSoundFileData;
 	private PreparedStatement loadSoundscapeData;
 	private PreparedStatement loadSoundscapeSoundsData;
@@ -88,15 +93,14 @@ public class Database { // connects to mySQL database
 		}
 		
 		if(connectionStatus) {
-			Statement statement;
 			int version = 0;
-			try{
-				statement = connection.createStatement();
+			try(Statement statement = connection.createStatement()){
 				ResultSet rs = statement.executeQuery("select * from version");
 				version = 0;
 				while(rs.next()){
 					version = rs.getInt(1);
 				}
+				rs.close();
 				
 				if(version < CURRENT_VERSION){
 					int retCode = this.updateDb(version);
@@ -196,6 +200,8 @@ public class Database { // connects to mySQL database
 				// Loading data about keywords, sounds, or soundscapes
 				loadKeywordFromName = connection
 						.prepareStatement("SELECT keyword_id, keyword FROM keyword WHERE keyword = ?");
+				loadKeywordFromNameSearch = connection
+						.prepareStatement("Select keyword FROM keyword where keyword like ? order by keyword");
 				loadSoundFileData = connection
 						.prepareStatement("SELECT name, data_file, file_path, file_size FROM sound_file WHERE sound_file_id = ?");
 				loadSoundscapeData = connection
@@ -204,14 +210,26 @@ public class Database { // connects to mySQL database
 						.prepareStatement("SELECT soundscape_sound.sound_file_id, sound_file.name," +
 								  " sound_file.data_file, sound_file.file_path, soundscape_sound.fmod_volume," +
 								  " soundscape_sound.playback_mode, sound_file.file_size, " +
-								  " soundscape_sound.min_repeat, soundscape_sound.max_repeat, soundscape_sound.min_repeat_time, soundscape_sound.max_repeat_time" +
+								  " soundscape_sound.min_repeat, soundscape_sound.max_repeat, soundscape_sound.min_repeat_time, " +
+								  " soundscape_sound.max_repeat_time" +
 								  " FROM soundscape_sound " +
 								  " LEFT JOIN sound_file ON (soundscape_sound.sound_file_id = sound_file.sound_file_id)" +
 								  " WHERE soundscape_sound.soundscape_id =?");
 				loadSoundscape = connection
 						.prepareStatement("SELECT soundscape_id, name, description, fmod_volume FROM soundscape WHERE name = ?");
 				loadSoundFile = connection
-						.prepareStatement("SELECT sound_file_id, name, description, data_file, length, owner, copyright, file_path, file_size, IMPORTEDBY, source, EDITEDBY FROM sound_file WHERE name = ?");
+						.prepareStatement("SELECT sound_file_id, name, description, data_file, length, owner, copyright, file_path, file_size, " +
+								"IMPORTEDBY, source, EDITEDBY FROM sound_file WHERE name = ?");
+				
+				loadRelatedKeywords = connection
+						.prepareStatement("select d.keyword " +
+								"from keyword a " +
+								"inner join sound_file_keyword b on (a.keyword_id = b.keyword_id) " +
+								"inner join sound_file_keyword c on (b.sound_file_id = c.sound_file_id) " +
+								"inner join keyword d on (c.keyword_id = d.keyword_id) " +
+								"where a.keyword = ? " +
+								"group by d.keyword, d.keyword_id " +
+								"order by d.keyword");
 				
 				// Used as a convenience function to let the user quickly add
 				// keywords to the most recent item added
@@ -1157,6 +1175,7 @@ public class Database { // connects to mySQL database
 				resultSet = ps.executeQuery();
 			} catch (SQLException e) {
 				e.printStackTrace();
+				return;
 			}
 
 			break;
@@ -1168,11 +1187,13 @@ public class Database { // connects to mySQL database
 				resultSet = ps.executeQuery();
 			} catch (SQLException e) {
 				e.printStackTrace();
+				return;
 			}
 			break;
 		default:
 
 			System.out.println("Error 163");
+			return;
 		}
 
 		try {
@@ -1184,10 +1205,32 @@ public class Database { // connects to mySQL database
 				dbResults.add(newObject);
 
 			}
+			
+			resultSet.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 
+	}
+	
+	public Vector<String> doKwSearchByName(String keyword) {
+		Vector<String> keywordList = new Vector<String>();
+		ResultSet resultSet;
+		
+		keyword += "%";
+		
+		try {
+			loadKeywordFromNameSearch.setString(1, keyword);
+			resultSet = loadKeywordFromNameSearch.executeQuery();
+			while(resultSet.next()) {
+				keywordList.add(resultSet.getString(1));
+			}
+			resultSet.close();
+		} catch (SQLException e) {
+			
+		}
+		
+		return keywordList;
 	}
 
 	/**
@@ -1283,7 +1326,7 @@ public class Database { // connects to mySQL database
 					+ "WHERE (keyword.keyword_id = sound_file_keyword.keyword_id) "
 					+ "AND (sound_file_keyword.sound_file_id = sound_file.sound_file_id) "
 					+ "AND sound_file.sound_file_id = "
-					+ id
+					+ id //XXX replace with parameterized query
 					+ " ORDER BY keyword.keyword";
 
 			resultSet = statement.executeQuery(command);
@@ -1445,11 +1488,27 @@ public class Database { // connects to mySQL database
 			} // while()
 		} catch (SQLException sx) {
 			System.out.println(sx);
-//			sx.printStackTrace();
 		}
 
 		return tableList;
 	} // getKeywordSounds()
+	
+	public Vector<String> getRelatedKeywords(String keyword) {
+		Vector<String> tableList = new Vector<String>();
+		ResultSet resultSet;
+
+		try {
+			loadRelatedKeywords.setString(1, keyword);
+			resultSet = loadRelatedKeywords.executeQuery();
+			
+			while (resultSet.next()) {
+				tableList.addElement(resultSet.getString("keyword"));
+			}
+		} catch (SQLException sx) {
+			System.out.println(sx);
+		}
+		return tableList;
+	}
 	
 	public String getSetting(String setting) {
 		String value = null;
