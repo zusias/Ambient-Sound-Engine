@@ -517,8 +517,66 @@ public class OperationsManager {
     public void masterVolumeChanged(Soundscape soundscape, int newVolume){
         soundscape.setMasterVolume(newVolume);
         changeVolumeConsole(newVolume);
-        
-    }   
+        System.out.println(newVolume);
+    }
+    /**
+     * Fades in a sound on a console if a soundscape is loaded and is not already playing
+     * @param time
+     * @throws IllegalStateException if the soundscape is already playing or not loaded
+     * 
+     * TODO: The thread needs to be interrupted when other events happen (like changing volume).
+     */
+    public void masterVolumeFadeIn(Soundscape ss, int time){
+    	if(ss == null){
+    		throw new IllegalStateException("No soundscape loaded");
+    	}
+    	switch(panelID){
+    	case TOP:
+    		if (soundEngine.stage.consoleOne.isPlaying()){
+    			throw new IllegalStateException("Soundscape is already playing");
+    		}
+    		break;
+    	case BOTTOM:
+    		if (soundEngine.stage.consoleTwo.isPlaying()){
+    			throw new IllegalStateException("Soundscape is already playing");
+    		}
+    		break;
+    	}
+    //the interval, in ms, between each point the volume should go down
+    	int ssVol = ss.getMasterVolume();
+    	int interval = time / ssVol * 5;
+    	
+    	FadeThread fader = new FadeThread(ssVol, interval, 5);
+    	fader.start();
+    }
+    /**
+     * Fades out a sound on a console if a soundscape is playing
+     * @param time
+     * @throws IllegalStateException if a soundscape is not playing or not loaded
+     */
+  /*  public void masterVolumeFadeOut(int time){
+    	if(soundscape == null){
+    		throw new IllegalStateException("No soundscape loaded");
+    	}
+    	switch(panelID){
+    	case TOP:
+    		if (!soundEngine.stage.consoleOne.isPlaying()){
+    			throw new IllegalStateException("Soundscape is not playing");
+    		}
+    		break;
+    	case BOTTOM:
+    		if (!soundEngine.stage.consoleTwo.isPlaying()){
+    			throw new IllegalStateException("Soundscape is not playing");
+    		}
+    		break;
+    	}
+    //the interval, in ms, between each point the volume should go down
+    	int ssVol = soundscape.getMasterVolume();
+    	int interval = ssVol / time;
+    	
+    	FadeThread fader = new FadeThread(ssVol, interval, -1);
+    	fader.run();
+    } */
     public void singleSoundVolumeChanged(Soundscape soundscape, int row, int newVolume){
         soundscape.getSound(row).changeVolume(newVolume);
         changeVolumeSingleSound(newVolume, row);
@@ -657,6 +715,58 @@ class PreviewButtonIconChanger extends Thread{
             e.printStackTrace();
         }
     }
+}
+
+class FadeThread extends Thread{
+	private final int timeInterval;
+	private final int volumeInterval;
+	private final int originalVolume;
+	private int currentVolume;
+	private int endVolume;
+	
+	public FadeThread(int soundscapeVolume, int timeInterval, int volumeInterval){
+		if (soundscapeVolume < 0 || timeInterval < 0 || volumeInterval == 0){
+			throw new IllegalArgumentException();
+		}
+		
+		this.timeInterval = timeInterval;
+		this.volumeInterval = volumeInterval;
+		
+		if (this.volumeInterval > 0){
+			this.currentVolume = 0;
+			this.endVolume = soundscapeVolume;
+		} else if (this.volumeInterval < 0){
+			this.currentVolume = soundscapeVolume;
+			this.endVolume = 0;
+		}
+		this.originalVolume = soundscapeVolume;
+	}
+	
+	@Override
+	public void run(){
+		if (volumeInterval > 0){
+			changeVolumeConsole(currentVolume);
+			startorStopSoundscapeStagePlayback(true);
+		}
+		try {
+			while (currentVolume != endVolume){
+				currentVolume += volumeInterval;
+				if (currentVolume < 0){
+					currentVolume = 0;
+				} else if (currentVolume > endVolume){
+					currentVolume = endVolume;
+				}
+				changeVolumeConsole(currentVolume);
+				Thread.sleep(timeInterval);
+			}
+		} catch (InterruptedException ex){
+			ex.printStackTrace();
+		}
+		if (volumeInterval < 0){
+			startorStopSoundscapeStagePlayback(false);
+			changeVolumeConsole(originalVolume);
+		}
+	}
 }
 }
 
