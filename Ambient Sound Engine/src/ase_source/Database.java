@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collections;
 import java.util.Vector;
 
 /**
@@ -1245,21 +1246,18 @@ public class Database { // connects to mySQL database
 	 */
 	public Vector<String> showTable(String tableName, String columnName) {
 		Vector<String> tableList = new Vector<String>();
-		Statement statement;
-		ResultSet resultSet;
-
-		try {
-			statement = connection.createStatement();
+		
+		try (Statement statement = connection.createStatement();
+			ResultSet resultSet = statement.executeQuery("SELECT " + columnName
+						+ " FROM " + tableName);){
 			// Eww, sql injection, but it's not like this is a client facing web
 			// application
-			resultSet = statement.executeQuery("SELECT " + columnName
-					+ " FROM " + tableName);
 			while (resultSet.next()) {
 				tableList.addElement(resultSet.getString(columnName));
-			} // while()
+			}
 		} catch (SQLException sx) {
 		}
-
+		Collections.sort(tableList);
 		return tableList;
 	} // showTable()
 
