@@ -997,6 +997,10 @@ public class Gui extends javax.swing.JFrame {
 		}
 	}
 
+	/**
+	 * Handler for "To Console 2" button. Sends soundscape and updates effects panel
+	 * @param evt
+	 */
 	private void toBButtonActionPerformed(java.awt.event.ActionEvent evt) {
 		try {
 			int selectedRow = soundScapesList.getSelectedIndex();
@@ -1008,9 +1012,14 @@ public class Gui extends javax.swing.JFrame {
 			else
 				opsManager.sendSoundToPanel(soundControlPanel2, target);
 		} catch (NullPointerException ex) {
+			System.out.println("error 13");
 		}
 	}
 
+	/**
+	 * Handler for "To Console 1" button. Sends soundscape and updates effects panel
+	 * @param evt
+	 */
 	private void toAButtonActionPerformed(java.awt.event.ActionEvent evt) {
 		try {
 			int selectedRow = soundScapesList.getSelectedIndex();
