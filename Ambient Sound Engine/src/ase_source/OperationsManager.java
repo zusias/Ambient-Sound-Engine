@@ -530,7 +530,7 @@ public class OperationsManager {
     	if(ss == null){
     		throw new IllegalStateException("No soundscape loaded");
     	}
-    	switch(panelID){
+    	switch(this.panelID){
     	case TOP:
     		if (soundEngine.stage.consoleOne.isPlaying()){
     			throw new IllegalStateException("Soundscape is already playing");
@@ -724,6 +724,12 @@ class FadeThread extends Thread{
 	private int currentVolume;
 	private int endVolume;
 	
+	/**
+	 * 
+	 * @param soundscapeVolume 
+	 * @param timeInterval
+	 * @param volumeInterval
+	 */
 	public FadeThread(int soundscapeVolume, int timeInterval, int volumeInterval){
 		if (soundscapeVolume < 0 || timeInterval < 0 || volumeInterval == 0){
 			throw new IllegalArgumentException();
