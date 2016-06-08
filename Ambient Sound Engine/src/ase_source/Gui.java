@@ -107,6 +107,26 @@ public class Gui extends javax.swing.JFrame {
 	public SoundControlPanel getSoundPanelTwo() {
 		return soundControlPanel2;
 	}
+	
+	/**
+	 * Routes to EffectsPanel method setTransitionButtonStates. GUI is the only object with a reference
+	 * to effects panel, hence why we're routing through it.
+	 * 
+	 * Each parameter should be an integer as per the static integers on the EffectsPanel class denoting
+	 * the icon it's supposed to display.
+	 * 
+	 * @param presetA
+	 * @param presetB
+	 * @param transition
+	 * @param crossfade
+	 * 
+	 * TODO REALLY BAD PRACTICE!!! Should be refactored to make the Operations Manager (or other) a central controller,
+	 * possibly also the data model. Maybe keep the data model somewhere else. GUI and EffectsPanel should be views,
+	 * not controllers or models.
+	 */
+	public void routeEffectsPanelStates(int presetA, int presetB, int transition, int crossfade) {
+		effectsPanel.setTransitionButtonStates(presetA, presetB, transition, crossfade);
+	}
 
 	/**
 	 * This method is called from within the constructor to initialize the form.
@@ -1006,11 +1026,17 @@ public class Gui extends javax.swing.JFrame {
 			int selectedRow = soundScapesList.getSelectedIndex();
 			int target = opsManager.rowSelectToObjectID(selectedRow);
 
-			if (soundScapeRadioButton.isSelected())
+			if (soundScapeRadioButton.isSelected()){
+				System.out.println("Sending soundscape " + target);
 				opsManager.sendSoundscapeToPanel(soundControlPanel2, target,
 						soundScapesList.getSelectedValue().toString());
-			else
+			
+				routeEffectsPanelStates(EffectsPanel.NOCHANGE, EffectsPanel.FADEIN,
+						EffectsPanel.NOCHANGE, EffectsPanel.NOCHANGE);
+			} else {
+				System.out.println("Sending sound" + target);
 				opsManager.sendSoundToPanel(soundControlPanel2, target);
+			}
 		} catch (NullPointerException ex) {
 			System.out.println("error 13");
 		}
@@ -1029,6 +1055,9 @@ public class Gui extends javax.swing.JFrame {
 				System.out.println("Sending soundscape " + target);
 				opsManager.sendSoundscapeToPanel(soundControlPanel1, target,
 						soundScapesList.getSelectedValue().toString());
+				
+				routeEffectsPanelStates(EffectsPanel.FADEIN, EffectsPanel.NOCHANGE,
+						EffectsPanel.NOCHANGE, EffectsPanel.NOCHANGE);
 			} else {
 				System.out.println("Sending sound" + target);
 				opsManager.sendSoundToPanel(soundControlPanel1, target);

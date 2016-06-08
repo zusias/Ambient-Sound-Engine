@@ -510,6 +510,14 @@ public class OperationsManager {
     }
     public void loadBlankSoundscape(Soundscape newSoundscape){
         preloadSoundscape(newSoundscape,panelID);
+        int presetA = EffectsPanel.NOCHANGE;
+        int presetB = EffectsPanel.NOCHANGE;
+        if (panelID == 1){
+        	presetA = EffectsPanel.FADEIN;
+        } else if (panelID == 2){
+        	presetB = EffectsPanel.FADEIN;
+        }
+        app.routeEffectsPanelStates(presetA, presetB, EffectsPanel.NOCHANGE, EffectsPanel.NOCHANGE);
     }    
     public void purgeSoundscapeInMemory(Soundscape soundscape, int panelID){
         stopSoundscapePlayback();   

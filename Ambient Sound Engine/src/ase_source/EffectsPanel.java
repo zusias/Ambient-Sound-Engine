@@ -50,6 +50,7 @@ public class EffectsPanel extends JPanel {
 	private final JLabel crossfadeLabel;
 	
 //Static constants of the states the transition buttons can be in
+	public static final int NOCHANGE = -1;
 	public static final int NONE = 0;
 	public static final int FADEIN = 1;
 	public static final int FADEOUT = 2;
@@ -228,18 +229,16 @@ public class EffectsPanel extends JPanel {
 				b.setIcon(nothingLoaded);
 				break;
 			case 1:
-				b.setIcon(crossfade);
-				break;
-			case 2:
 				b.setIcon(fadeIn);
 				break;
-			case 3:
+			case 2:
 				b.setIcon(fadeOut);
+				break;
+			case 3:
+				b.setIcon(crossfade);
 				break;
 			//more cases here for the rest of the icons
 			default:
-				b.setIcon(nothingLoaded);
-				break;
 		}
 	}
 	
@@ -311,7 +310,10 @@ public class EffectsPanel extends JPanel {
 	
 	/**
 	 * Basic Decorator. Extends JButton so that it can retain all its features, but also exposes a way
-	 * to access the ImageIcon passed to the button
+	 * to access the ImageIcon passed to the button.
+	 * 
+	 * Also stores state for button (REALLY BAD!!!)
+	 * This is a temporary solution to get the fading functionality running
 	 * @author Kevin
 	 *
 	 */
