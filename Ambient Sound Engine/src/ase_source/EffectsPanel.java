@@ -146,24 +146,13 @@ public class EffectsPanel extends JPanel {
 		
 		add(presetBLabel, gbc6);
 		
-		presetAButton = new TransitionButton(nothingLoaded);
+		presetAButton = new TransitionButton(nothingLoaded, panel1);
 		presetAButton.setMargin(margin);
 		GridBagConstraints gbc7 = new GridBagConstraints();
 		gbc7.gridx = 3;
 		gbc7.gridy = 0;
 		gbc7.anchor = java.awt.GridBagConstraints.CENTER;
 		gbc7.fill = java.awt.GridBagConstraints.NONE;
-		
-	//add event listener here to test. Should not stay here!
-		presetAButton.addActionListener(new ActionListener(){
-			@Override
-			public void actionPerformed(ActionEvent e){
-				panel1.chief.masterVolumeFadeIn(panel1.getSoundscape(), fadeTime);
-				panel1.soundscapeChanged = true;
-				panel1.repaintButtons(panel1.chief.evaluateListenerResult(-1, panel1.rowCount,
-						SoundControlPanel.PLAYPAUSEBUTTON, panel1.soundscape, panel1.stateMap));
-			}
-		});
 		
 		add(presetAButton, gbc7);
 		
@@ -177,7 +166,7 @@ public class EffectsPanel extends JPanel {
 		
 		add(transitionButton, gbc8);
 		
-		presetBButton = new TransitionButton(nothingLoaded);
+		presetBButton = new TransitionButton(nothingLoaded, panel2);
 		presetBButton.setMargin(margin);
 		GridBagConstraints gbc9 = new GridBagConstraints();
 		gbc9.gridx = 3;
@@ -205,6 +194,10 @@ public class EffectsPanel extends JPanel {
 		gbc11.fill = java.awt.GridBagConstraints.NONE;
 		
 		add(crossfadeLabel, gbc11);
+		
+		//Set Action Listeners for buttons
+		presetAButton.addActionListener(new FadeButtonActionListener(presetAButton));
+		presetBButton.addActionListener(new FadeButtonActionListener(presetBButton));
 	}
 	
 	/**
@@ -217,13 +210,13 @@ public class EffectsPanel extends JPanel {
 	 * @throws IllegalArgumentException if you try to pass an option to one of the buttons that it should never be. (For instance, if you passed 3 (CROSSPRESETS) as presetA)
 	 */
 	public void setTransitionButtonStates(int presetA, int presetB, int transition, int crossfade){
-		setTransitionButtonIcon(presetAButton, presetA);
-		setTransitionButtonIcon(presetBButton, presetB);
-		setTransitionButtonIcon(transitionButton, transition);
-		setTransitionButtonIcon(crossfadeButton, crossfade);
+		setTransitionButtonState(presetAButton, presetA);
+		setTransitionButtonState(presetBButton, presetB);
+		setTransitionButtonState(transitionButton, transition);
+		setTransitionButtonState(crossfadeButton, crossfade);
 	}
 	
-	private void setTransitionButtonIcon(TransitionButton b, int i){
+	private void setTransitionButtonState(TransitionButton b, int i){
 		switch(i){
 			case 0:
 				b.setIcon(nothingLoaded);
@@ -239,6 +232,9 @@ public class EffectsPanel extends JPanel {
 				break;
 			//more cases here for the rest of the icons
 			default:
+		}
+		if (i > -1){
+			b.state = i;
 		}
 	}
 	
@@ -314,16 +310,26 @@ public class EffectsPanel extends JPanel {
 	 * 
 	 * Also stores state for button (REALLY BAD!!!)
 	 * This is a temporary solution to get the fading functionality running
+	 * 
 	 * @author Kevin
-	 *
+	 */
+	/*
+	 * TODO Move state to a centralized controller object
+	 * TODO Refactor to make the "nothingloaded" icon a 'disabledIcon' so that we can set disabled
 	 */
 	private class TransitionButton extends JButton {
 		private static final long serialVersionUID = 2802097572198817151L;
 		private ImageIcon icon;
+		public int state = EffectsPanel.NONE;
+		public final SoundControlPanel scp;
 		
-		public TransitionButton(ImageIcon icon){
+		public TransitionButton(ImageIcon icon, SoundControlPanel scp){
 			super(icon);
 			this.icon = icon;
+			this.scp = scp;
+		}
+		public TransitionButton(ImageIcon icon){
+			this(icon, null);
 		}
 		public ImageIcon getImageIcon(){
 			return icon;
@@ -331,6 +337,41 @@ public class EffectsPanel extends JPanel {
 		public void setIcon(ImageIcon icon){
 			super.setIcon(icon);
 			this.icon = icon;
+		}
+	}
+	
+	/**
+	 * Action listeners for buttons. Reads state and performs action based on that
+	 * 
+	 * @author Kevin
+	 */
+	private class FadeButtonActionListener implements ActionListener {
+		private final TransitionButton t;
+		
+		public FadeButtonActionListener(TransitionButton t){
+			this.t = t;
+		}
+		
+		@Override
+		public void actionPerformed(ActionEvent e){
+			int pA = -1, pB = -1, cross = -1, trans = -1;
+			if (t.scp != null){
+				switch (t.state){
+					case FADEIN:
+						t.scp.chief.masterVolumeFadeIn(t.scp, fadeTime);
+						setTransitionButtonState(t, FADEOUT);
+						break;
+					case FADEOUT:
+						t.scp.chief.masterVolumeFadeOut(t.scp, fadeTime);
+						setTransitionButtonState(t, FADEIN);
+						break;
+				}
+				if (presetAButton.state != presetBButton.state && presetAButton.state > 0 && presetBButton.state > 0){
+					setTransitionButtonState(crossfadeButton, CROSSPRESETS);
+				} else {
+					setTransitionButtonState(crossfadeButton, NONE);
+				}
+			}
 		}
 	}
 }

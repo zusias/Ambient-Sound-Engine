@@ -529,12 +529,14 @@ public class OperationsManager {
     }
     /**
      * Fades in a sound on a console if a soundscape is loaded and is not already playing
-     * @param time
+     * @param scp {@link SoundControlPanel}
+     * @param time time in miliseconds for the fade to take.
      * @throws IllegalStateException if the soundscape is already playing or not loaded
      * 
      * TODO: The thread needs to be interrupted when other events happen (like changing volume).
      */
-    public void masterVolumeFadeIn(Soundscape ss, int time){
+    public void masterVolumeFadeIn(SoundControlPanel scp, int time){
+    	Soundscape ss = scp.getSoundscape();
     	if(ss == null){
     		throw new IllegalStateException("No soundscape loaded");
     	}
@@ -554,16 +556,18 @@ public class OperationsManager {
     	int ssVol = ss.getMasterVolume();
     	int interval = time / ssVol * 5;
     	
-    	FadeThread fader = new FadeThread(ssVol, interval, 5);
+    	FadeThread fader = new FadeThread(ssVol, interval, 5, scp);
     	fader.start();
     }
     /**
      * Fades out a sound on a console if a soundscape is playing
-     * @param time
+     * @param scp {@link SoundControlPanel}
+     * @param time The time in milliseconds the fade should take
      * @throws IllegalStateException if a soundscape is not playing or not loaded
      */
-  /*  public void masterVolumeFadeOut(int time){
-    	if(soundscape == null){
+    public void masterVolumeFadeOut(SoundControlPanel scp, int time){
+    	Soundscape ss = scp.getSoundscape();
+    	if(ss == null){
     		throw new IllegalStateException("No soundscape loaded");
     	}
     	switch(panelID){
@@ -579,12 +583,13 @@ public class OperationsManager {
     		break;
     	}
     //the interval, in ms, between each point the volume should go down
-    	int ssVol = soundscape.getMasterVolume();
-    	int interval = ssVol / time;
+    	int ssVol = ss.getMasterVolume();
+    	int interval = time / ssVol * 5;
     	
-    	FadeThread fader = new FadeThread(ssVol, interval, -1);
-    	fader.run();
-    } */
+    	FadeThread fader = new FadeThread(ssVol, interval, -5, scp);
+    	fader.start();
+    }
+    
     public void singleSoundVolumeChanged(Soundscape soundscape, int row, int newVolume){
         soundscape.getSound(row).changeVolume(newVolume);
         changeVolumeSingleSound(newVolume, row);
@@ -693,95 +698,106 @@ public class OperationsManager {
     	}
     }
     
-class PreviewButtonIconChanger extends Thread{
-    public PreviewButtonIconChanger(JButton button, int row,int panelID){
-        final int SLEEPTIME = 125;
-        boolean done = false;
-//        boolean isPlaying = true;
-        
-        try{
-            while(!done){
-                switch(panelID){
-                case TOP:
-                if (soundEngine.preview.consoleOne.isPlaying(row)){
-                    button.setIcon(new ImageIcon("/src/Primary/headphones.gif"));
-                    done=true;
-                }
-                break;
-                    case BOTTOM:
-                         if (soundEngine.preview.consoleTwo.isPlaying(row)){
-                    button.setIcon(new ImageIcon("/src/Primary/headphones.gif"));
-                    done=true;
-                }
-                break;
-                    default:
-                        System.out.print("Error 805");
-                }
-                Thread.sleep(SLEEPTIME);
-            }
-        } catch (InterruptedException e){
-            e.printStackTrace();
-        }
-    }
-}
+	class PreviewButtonIconChanger extends Thread{
+	    public PreviewButtonIconChanger(JButton button, int row,int panelID){
+	        final int SLEEPTIME = 125;
+	        boolean done = false;
+	//        boolean isPlaying = true;
+	        
+	        try{
+	            while(!done){
+	                switch(panelID){
+	                case TOP:
+	                if (soundEngine.preview.consoleOne.isPlaying(row)){
+	                    button.setIcon(new ImageIcon("/src/Primary/headphones.gif"));
+	                    done=true;
+	                }
+	                break;
+	                    case BOTTOM:
+	                         if (soundEngine.preview.consoleTwo.isPlaying(row)){
+	                    button.setIcon(new ImageIcon("/src/Primary/headphones.gif"));
+	                    done=true;
+	                }
+	                break;
+	                    default:
+	                        System.out.print("Error 805");
+	                }
+	                Thread.sleep(SLEEPTIME);
+	            }
+	        } catch (InterruptedException e){
+	            e.printStackTrace();
+	        }
+	    }
+	}
 
-class FadeThread extends Thread{
-	private final int timeInterval;
-	private final int volumeInterval;
-	private final int originalVolume;
-	private int currentVolume;
-	private int endVolume;
-	
 	/**
-	 * 
-	 * @param soundscapeVolume 
-	 * @param timeInterval
-	 * @param volumeInterval
+	 * Thread fades the sound of a particular soundscape
+	 * @author Kevin
+	 *
 	 */
-	public FadeThread(int soundscapeVolume, int timeInterval, int volumeInterval){
-		if (soundscapeVolume < 0 || timeInterval < 0 || volumeInterval == 0){
-			throw new IllegalArgumentException();
-		}
+	//TODO Cancel threads currently playing in playingThreads Vector when fading out. (There are currently memory / processing leaks)
+	class FadeThread extends Thread{
+		private final int timeInterval;
+		private final int volumeInterval;
+		private final int originalVolume;
+		private int currentVolume;
+		private int endVolume;
+		private final SoundControlPanel panel;
 		
-		this.timeInterval = timeInterval;
-		this.volumeInterval = volumeInterval;
-		
-		if (this.volumeInterval > 0){
-			this.currentVolume = 0;
-			this.endVolume = soundscapeVolume;
-		} else if (this.volumeInterval < 0){
-			this.currentVolume = soundscapeVolume;
-			this.endVolume = 0;
-		}
-		this.originalVolume = soundscapeVolume;
-	}
-	
-	@Override
-	public void run(){
-		if (volumeInterval > 0){
-			changeVolumeConsole(currentVolume);
-			startorStopSoundscapeStagePlayback(true);
-		}
-		try {
-			while (currentVolume != endVolume){
-				currentVolume += volumeInterval;
-				if (currentVolume < 0){
-					currentVolume = 0;
-				} else if (currentVolume > endVolume){
-					currentVolume = endVolume;
-				}
-				changeVolumeConsole(currentVolume);
-				Thread.sleep(timeInterval);
+		/**
+		 * 
+		 * @param soundscapeVolume 
+		 * @param timeInterval
+		 * @param volumeInterval
+		 */
+		public FadeThread(int soundscapeVolume, int timeInterval, int volumeInterval, SoundControlPanel panel){
+			if (soundscapeVolume < 0 || timeInterval < 0 || volumeInterval == 0){
+				throw new IllegalArgumentException();
 			}
-		} catch (InterruptedException ex){
-			ex.printStackTrace();
+			
+			this.timeInterval = timeInterval;
+			this.volumeInterval = volumeInterval;
+			
+			if (this.volumeInterval > 0){
+				this.currentVolume = 0;
+				this.endVolume = soundscapeVolume;
+			} else if (this.volumeInterval < 0){
+				this.currentVolume = soundscapeVolume;
+				this.endVolume = 0;
+			}
+			this.originalVolume = soundscapeVolume;
+			
+			this.panel = panel;
 		}
-		if (volumeInterval < 0){
-			startorStopSoundscapeStagePlayback(false);
-			changeVolumeConsole(originalVolume);
+		
+		@Override
+		public void run(){
+			if (volumeInterval > 0){
+				changeVolumeConsole(currentVolume);
+				panel.repaintButtons(panel.chief.evaluateListenerResult(-1, panel.rowCount,
+						SoundControlPanel.PLAYPAUSEBUTTON, panel.soundscape, panel.stateMap));
+			}
+			try {
+				while (currentVolume != endVolume){
+					currentVolume += volumeInterval;
+					if (currentVolume < 0){
+						currentVolume = 0;
+					} else if (currentVolume > endVolume && volumeInterval >= 0){
+						currentVolume = endVolume;
+					}
+					changeVolumeConsole(currentVolume);
+					Thread.sleep(timeInterval);
+				}
+			} catch (InterruptedException ex){
+				ex.printStackTrace();
+			}
+			if (volumeInterval < 0){
+				changeVolumeConsole(originalVolume);
+				panel.repaintButtons(panel.chief.evaluateListenerResult(-1, panel.rowCount,
+						SoundControlPanel.PLAYPAUSEBUTTON, panel.soundscape, panel.stateMap));
+			}
 		}
 	}
-}
 }
 
 
