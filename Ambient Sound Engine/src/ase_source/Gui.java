@@ -109,23 +109,26 @@ public class Gui extends javax.swing.JFrame {
 	}
 	
 	/**
-	 * Routes to EffectsPanel method setTransitionButtonStates. GUI is the only object with a reference
-	 * to effects panel, hence why we're routing through it.
+	 * Routes to EffectsPanel method setTransitionButtonStates. GUI is the only
+	 * object with a reference to effects panel, hence why we're routing through
+	 * it.
 	 * 
-	 * Each parameter should be an integer as per the static integers on the EffectsPanel class denoting
-	 * the icon it's supposed to display.
+	 * Each parameter should be an integer as per the static integers on the
+	 * EffectsPanel class denoting the icon it's supposed to display.
 	 * 
 	 * @param presetA
 	 * @param presetB
 	 * @param transition
 	 * @param crossfade
 	 * 
-	 * TODO REALLY BAD PRACTICE!!! Should be refactored to make the Operations Manager (or other) a central controller,
-	 * possibly also the data model. Maybe keep the data model somewhere else. GUI and EffectsPanel should be views,
-	 * not controllers or models.
+	 *            TODO REALLY BAD PRACTICE!!! Should be refactored to make the
+	 *            Operations Manager (or other) a central controller, possibly
+	 *            also the data model. Maybe keep the data model somewhere else.
+	 *            GUI and EffectsPanel should be views, not controllers or
+	 *            models.
 	 */
-	public void routeEffectsPanelStates(int presetA, int presetB, int transition, int crossfade) {
-		effectsPanel.setTransitionButtonStates(presetA, presetB, transition, crossfade);
+	public void routeEffectsPanelStates(int presetA, int presetB) {
+		effectsPanel.setTransitionButtonStates(presetA, presetB);
 	}
 
 	/**
@@ -1018,7 +1021,7 @@ public class Gui extends javax.swing.JFrame {
 	}
 
 	/**
-	 * Handler for "To Console 2" button. Sends soundscape and updates effects panel
+	 * Handler for "To Console 2" button. Sends soundscape or sound and updates effects panel if needed
 	 * @param evt
 	 */
 	private void toBButtonActionPerformed(java.awt.event.ActionEvent evt) {
@@ -1031,8 +1034,7 @@ public class Gui extends javax.swing.JFrame {
 				opsManager.sendSoundscapeToPanel(soundControlPanel2, target,
 						soundScapesList.getSelectedValue().toString());
 			
-				routeEffectsPanelStates(EffectsPanel.NOCHANGE, EffectsPanel.FADEIN,
-						EffectsPanel.NOCHANGE, EffectsPanel.NOCHANGE);
+				routeEffectsPanelStates(EffectsPanel.NOCHANGE, EffectsPanel.FADEIN);
 			} else {
 				System.out.println("Sending sound" + target);
 				opsManager.sendSoundToPanel(soundControlPanel2, target);
@@ -1043,7 +1045,7 @@ public class Gui extends javax.swing.JFrame {
 	}
 
 	/**
-	 * Handler for "To Console 1" button. Sends soundscape and updates effects panel
+	 * Handler for "To Console 1" button. Sends soundscape or sound and updates effects panel if needed
 	 * @param evt
 	 */
 	private void toAButtonActionPerformed(java.awt.event.ActionEvent evt) {
@@ -1056,8 +1058,7 @@ public class Gui extends javax.swing.JFrame {
 				opsManager.sendSoundscapeToPanel(soundControlPanel1, target,
 						soundScapesList.getSelectedValue().toString());
 				
-				routeEffectsPanelStates(EffectsPanel.FADEIN, EffectsPanel.NOCHANGE,
-						EffectsPanel.NOCHANGE, EffectsPanel.NOCHANGE);
+				routeEffectsPanelStates(EffectsPanel.FADEIN, EffectsPanel.NOCHANGE);
 			} else {
 				System.out.println("Sending sound" + target);
 				opsManager.sendSoundToPanel(soundControlPanel1, target);
@@ -1206,6 +1207,8 @@ public class Gui extends javax.swing.JFrame {
 					System.out.println("selected row=" + selectedRow);
 					if (soundScapeRadioButton.isSelected()) {
 						opsManager.sendSoundscapeToPanel(soundControlPanel1,target, soundScapesList.getSelectedValue().toString());
+
+						routeEffectsPanelStates(EffectsPanel.FADEIN, EffectsPanel.NOCHANGE);
 					} else {
 						opsManager.sendSoundToPanel(soundControlPanel1, target);
 					} 
@@ -1213,6 +1216,8 @@ public class Gui extends javax.swing.JFrame {
 				else {
 					if (soundScapeRadioButton.isSelected()) {
 						opsManager.sendSoundscapeToPanel(soundControlPanel2,target, soundScapesList.getSelectedValue().toString());
+						
+						routeEffectsPanelStates(EffectsPanel.NOCHANGE, EffectsPanel.FADEIN);
 					} else {
 						opsManager.sendSoundToPanel(soundControlPanel2, target);
 					}

@@ -18,9 +18,23 @@ import javax.swing.JOptionPane;
  * <br>10/Oct/2015 - CKidwell - Fixed a bug where the lower console was
  * not updating its play icons correctly.
  * 
+ * <br><br>
+ * NOTES
+ * <br>6/14/2016 - Kevin Gall -
+ * <b>Trying to understand the flow of the start/stop commands and threads.</b><br>
+ * It appears that all sounds are started and stopped by
+ * the instance of FmodExEngine, which will have a console for each logical unit
+ * that plays sounds (SoundControlPanels). The "Play Once" sounds start a thread
+ * when those sounds begin playing that sleeps for the length of the sound, then
+ * wakes up to turn the sound off before it starts again.
+ * The single-play thread scheme is buggy as of this date, as I've witnessed
+ * single-play sounds repeat endlessly, and separately, I've seen them stop in the middle of their play,
+ * only to start back up again minutes later...
+ * 
  * @author CKidwell 
  */
 public class OperationsManager {
+//Static final variables for ops manager
    static final int LEFTPANEL = 0;
    static final int TOP = 1;
    static final int BOTTOM = 2;
@@ -47,19 +61,24 @@ public class OperationsManager {
    
    static final int MASTERCONTROL = -1;
    
-   private int panelID;
-   private Soundscape soundscape;
-   private Vector<ResultObject> resultObject;
+   static final int STATEMAPROWCOUNT = 25;
+   static final int STATEMAPCOLUMNCOUNT = 2;
    
+//Static Variables
    static FmodExEngine soundEngine;
    static Database db;
    static Gui app;
    
-   static final int STATEMAPROWCOUNT = 25;
-   static final int STATEMAPCOLUMNCOUNT = 2;
+//Private Variables
+   private int panelID;
+   private Soundscape soundscape;
+   private Vector<ResultObject> resultObject;
+   private FadeThread currentFade; //the current fader thread, if any
    
+//Package Variables
    Vector<PlayOnceThread> playingThreads; 
 
+//Constructors
    /** Creates a new instance of OperationsManager */
    public OperationsManager(){
 	   // No argument instance - for master GUI
@@ -100,6 +119,8 @@ public class OperationsManager {
        catch (NullPointerException ex) {}
        
    }
+    
+//Private Methods
     private void preloadSoundscape(Soundscape newSoundscape,int console){
         
         switch(console){
@@ -327,13 +348,20 @@ public class OperationsManager {
                 }
                 
         }
-    }    
-    public void sendSoundscapeToPanel(SoundControlPanel scp, int ssID, String Dummy){
-        
-    	for(PlayOnceThread thrd: playingThreads) {
+    }
+    
+    private void endSinglePlayThreads() {
+    	for (PlayOnceThread thrd: playingThreads){
     		thrd.enabled = false;
     	}
     	playingThreads.clear();
+    }
+    
+    //PUBLIC METHODS
+    
+    public void sendSoundscapeToPanel(SoundControlPanel scp, int ssID, String Dummy){
+        
+    	endSinglePlayThreads();
     	
     	if(!scp.evaluateAndSave()){
 			return;
@@ -517,7 +545,7 @@ public class OperationsManager {
         } else if (panelID == 2){
         	presetB = EffectsPanel.FADEIN;
         }
-        app.routeEffectsPanelStates(presetA, presetB, EffectsPanel.NOCHANGE, EffectsPanel.NOCHANGE);
+        app.routeEffectsPanelStates(presetA, presetB);
     }    
     public void purgeSoundscapeInMemory(Soundscape soundscape, int panelID){
         stopSoundscapePlayback();   
@@ -533,21 +561,26 @@ public class OperationsManager {
      * @param time time in miliseconds for the fade to take.
      * @throws IllegalStateException if the soundscape is already playing or not loaded
      * 
-     * TODO: The thread needs to be interrupted when other events happen (like changing volume).
+     * TODO: Bug: When fade out button is pressed, then fade in is pressed, should fade back in. Instead stops sound.
      */
     public void masterVolumeFadeIn(SoundControlPanel scp, int time){
+    	boolean hasCurrentFade = currentFade != null;
+    	if (hasCurrentFade){
+    		currentFade.interrupt();
+    	}
+    	
     	Soundscape ss = scp.getSoundscape();
     	if(ss == null){
     		throw new IllegalStateException("No soundscape loaded");
     	}
     	switch(this.panelID){
     	case TOP:
-    		if (soundEngine.stage.consoleOne.isPlaying()){
+    		if (soundEngine.stage.consoleOne.isPlaying() && !hasCurrentFade){
     			throw new IllegalStateException("Soundscape is already playing");
     		}
     		break;
     	case BOTTOM:
-    		if (soundEngine.stage.consoleTwo.isPlaying()){
+    		if (soundEngine.stage.consoleTwo.isPlaying() && !hasCurrentFade){
     			throw new IllegalStateException("Soundscape is already playing");
     		}
     		break;
@@ -556,7 +589,8 @@ public class OperationsManager {
     	int ssVol = ss.getMasterVolume();
     	int interval = time / ssVol * 5;
     	
-    	FadeThread fader = new FadeThread(ssVol, interval, 5, scp);
+    	FadeThread fader = new FadeThread(ssVol, interval, 5, scp, hasCurrentFade);
+    	currentFade = fader;
     	fader.start();
     }
     /**
@@ -566,6 +600,11 @@ public class OperationsManager {
      * @throws IllegalStateException if a soundscape is not playing or not loaded
      */
     public void masterVolumeFadeOut(SoundControlPanel scp, int time){
+    	boolean hasCurrentFade = currentFade != null;
+    	if (hasCurrentFade){
+    		currentFade.interrupt();
+    	}
+    	
     	Soundscape ss = scp.getSoundscape();
     	if(ss == null){
     		throw new IllegalStateException("No soundscape loaded");
@@ -586,7 +625,8 @@ public class OperationsManager {
     	int ssVol = ss.getMasterVolume();
     	int interval = time / ssVol * 5;
     	
-    	FadeThread fader = new FadeThread(ssVol, interval, -5, scp);
+    	FadeThread fader = new FadeThread(ssVol, interval, -5, scp, hasCurrentFade);
+    	currentFade = fader;
     	fader.start();
     }
     
@@ -651,6 +691,9 @@ public class OperationsManager {
     public int rowSelectToObjectID(int row){
         return resultObject.elementAt(row).resultID;
     }
+    
+    
+//Nested Classes
     
     /**
      * This thread works to keep track of sounds that are in play once mode. After
@@ -735,11 +778,11 @@ public class OperationsManager {
 	 * @author Kevin
 	 *
 	 */
-	//TODO Cancel threads currently playing in playingThreads Vector when fading out. (There are currently memory / processing leaks)
 	class FadeThread extends Thread{
 		private final int timeInterval;
 		private final int volumeInterval;
 		private final int originalVolume;
+		private final boolean interrupting;
 		private int currentVolume;
 		private int endVolume;
 		private final SoundControlPanel panel;
@@ -749,8 +792,9 @@ public class OperationsManager {
 		 * @param soundscapeVolume 
 		 * @param timeInterval
 		 * @param volumeInterval
+		 * @param panel
 		 */
-		public FadeThread(int soundscapeVolume, int timeInterval, int volumeInterval, SoundControlPanel panel){
+		public FadeThread(int soundscapeVolume, int timeInterval, int volumeInterval, SoundControlPanel panel, boolean interrupting){
 			if (soundscapeVolume < 0 || timeInterval < 0 || volumeInterval == 0){
 				throw new IllegalArgumentException();
 			}
@@ -768,11 +812,16 @@ public class OperationsManager {
 			this.originalVolume = soundscapeVolume;
 			
 			this.panel = panel;
+			this.interrupting = interrupting;
+		}
+		
+		public FadeThread(int soundscapeVolume, int timeInterval, int volumeInterval, SoundControlPanel panel){
+			this(soundscapeVolume, timeInterval, volumeInterval, panel, false);
 		}
 		
 		@Override
 		public void run(){
-			if (volumeInterval > 0){
+			if (volumeInterval > 0 && !interrupting){
 				changeVolumeConsole(currentVolume);
 				panel.repaintButtons(panel.chief.evaluateListenerResult(-1, panel.rowCount,
 						SoundControlPanel.PLAYPAUSEBUTTON, panel.soundscape, panel.stateMap));
@@ -790,12 +839,19 @@ public class OperationsManager {
 				}
 			} catch (InterruptedException ex){
 				ex.printStackTrace();
+				return;
 			}
 			if (volumeInterval < 0){
 				changeVolumeConsole(originalVolume);
 				panel.repaintButtons(panel.chief.evaluateListenerResult(-1, panel.rowCount,
 						SoundControlPanel.PLAYPAUSEBUTTON, panel.soundscape, panel.stateMap));
+				
+				//clear up single play threads
+				endSinglePlayThreads();
+			} else {
+				// Bug fix - ensure that fade button repaints state
 			}
+			currentFade = null;
 		}
 	}
 }
