@@ -57,6 +57,7 @@ import javax.swing.event.ListSelectionEvent;
  * unfinished.
  * 04/19/2015 - CKidwell - Hooked up functionality that was missing on the 
  * bottom section.
+ * 07/09/2016 - CKidwell - Minor bug fixes for display items not activating correctly.
  * 
  * TODO: Initial displays of keywords in rightmost column does not default to alphabetical
  * 
@@ -799,6 +800,7 @@ public class AddSoundFrame extends javax.swing.JFrame {
 		associatedKwList.setEnabled(true);
 		relatedKwList.setEnabled(true);
 		searchKwList.setEnabled(true);
+		btnAddKeywordToDB.setEnabled(true);
 		btnAddRelatedKeywords.setEnabled(true);
 		btnAddKeywords.setEnabled(true);
 		btnRemoveKeywords.setEnabled(true);
@@ -902,7 +904,7 @@ public class AddSoundFrame extends javax.swing.JFrame {
 	private void insertKeywordButtonPressed() {
 		String keyword = txtKeywordSearch.getText();
 		OperationsManager.db.addKeywordIntoSystem(keyword);
-		searchKwList.setListData(OperationsManager.db.showTable("keyword", "keyword"));
+		keywordSearchValueChanged();
 	}
 	
 	//Filter keywords in the list based on a prefix search

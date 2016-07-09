@@ -19,6 +19,8 @@ import java.util.Vector;
  * 11/26/2015 - CKidwell - Updated to version 3, expanded the Sound table to 
  * add 3 new fields and changed the copyright field to be related to the index
  * of the {@link SoundObject#comboBoxOptions.
+ * 07/09/2016 - CKidwell - Refactored some calls to try with resources to remove
+ * potential memory leaks.
  * 
  * TODO: Replace sequential selects with join selects
  * TODO: Replace more stuff with prepared statements, close resource leaks
@@ -277,9 +279,7 @@ public class Database { // connects to mySQL database
 	 * recreated without an issue
 	 */
 	public void dropTable() {
-		Statement statement;
-		try {
-			statement = connection.createStatement();
+		try (Statement statement = connection.createStatement()){
 			statement.executeUpdate("DROP view IF EXISTS sscape_keyword_search");
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -329,7 +329,6 @@ public class Database { // connects to mySQL database
 	 */
 	public void deleteSound(String sound) {
 		int sfxID;
-		Statement statement;
 		sfxID = soundFileIdFromString(sound);
 		try {
 			deleteAllKeywordsFromSoundFile.setInt(1, sfxID);
@@ -343,8 +342,7 @@ public class Database { // connects to mySQL database
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		try {
-			statement = connection.createStatement();
+		try (Statement statement = connection.createStatement()) {
 			statement.executeUpdate("DELETE FROM sound_file WHERE name = '"
 					+ sound + "'");
 			// deleteSoundFileFromSystem.setString(1,sound);
@@ -473,11 +471,9 @@ public class Database { // connects to mySQL database
 		String wipe;
 		int fmod_volume, playback_mode;
 		int minRepeatTimes, maxRepeatTimes, minRepeatDelay, maxRepeatDelay;
-		try {
+		try (Statement statement = connection.createStatement()) {
 			deleteAllSoundFilesFromSoundscape.setInt(1, ssID);
 			deleteAllSoundFilesFromSoundscape.executeUpdate();
-			Statement statement;
-			statement = connection.createStatement();
 			statement.executeUpdate("UPDATE soundscape SET fmod_volume="
 					+ Integer.toString(soundscape.getMasterVolume())
 					+ " WHERE soundscape_id=" + Integer.toString(ssID));
@@ -492,20 +488,20 @@ public class Database { // connects to mySQL database
 				minRepeatDelay = soundscape.getSound(count).getMinRepeatDelay();
 				maxRepeatDelay = soundscape.getSound(count).getMaxRepeatDelay();
 				
-				PreparedStatement ps = getInsertSoundForSS();
-
-				ps.setInt(1, ssID);
-				ps.setInt(2,sound_file_id);
-				ps.setInt(3, level);
-				ps.setString(4, wipe);
-				ps.setInt(5, fmod_volume);
-				ps.setInt(6,playback_mode);
-				ps.setInt(7,minRepeatTimes);
-				ps.setInt(8,maxRepeatTimes);
-				ps.setInt(9,minRepeatDelay);
-				ps.setInt(10,maxRepeatDelay);
-
-				ps.executeUpdate();
+				try (PreparedStatement ps = getInsertSoundForSS()) {
+					ps.setInt(1, ssID);
+					ps.setInt(2,sound_file_id);
+					ps.setInt(3, level);
+					ps.setString(4, wipe);
+					ps.setInt(5, fmod_volume);
+					ps.setInt(6,playback_mode);
+					ps.setInt(7,minRepeatTimes);
+					ps.setInt(8,maxRepeatTimes);
+					ps.setInt(9,minRepeatDelay);
+					ps.setInt(10,maxRepeatDelay);
+	
+					ps.executeUpdate();
+				}
 			}
 
 		} catch (SQLException e) {
@@ -531,9 +527,8 @@ public class Database { // connects to mySQL database
 		description = "";
 		fmod_volume = soundscape.getMasterVolume();
 
-		try {
-			PreparedStatement ps = connection
-					.prepareStatement("INSERT INTO soundscape (name, description, fmod_volume) VALUES (?,?,?)");
+		try (PreparedStatement ps = connection.prepareStatement(
+				"INSERT INTO soundscape (name, description, fmod_volume) VALUES (?,?,?)")) {
 			ps.setString(1, name);
 			ps.setString(2, description);
 			ps.setInt(3, fmod_volume);
@@ -558,20 +553,21 @@ public class Database { // connects to mySQL database
 				minRepeatDelay = soundscape.getSound(count).getMinRepeatDelay();
 				maxRepeatDelay = soundscape.getSound(count).getMaxRepeatDelay();
 
-				PreparedStatement ps2 = getInsertSoundForSS();
+				try (PreparedStatement ps2 = getInsertSoundForSS()) {
 				
-				ps2.setInt(1, newSSID);
-				ps2.setInt(2, sound_file_id);
-				ps2.setInt(3, level);
-				ps2.setString(4, wipe);
-				ps2.setInt(5, fmod_volume);
-				ps2.setInt(6, playback_mode);
-				ps2.setInt(7, minRepeatTimes);
-				ps2.setInt(8, maxRepeatTimes);
-				ps2.setInt(9, minRepeatDelay);
-				ps2.setInt(10, maxRepeatDelay);
-
-				ps2.executeUpdate();
+					ps2.setInt(1, newSSID);
+					ps2.setInt(2, sound_file_id);
+					ps2.setInt(3, level);
+					ps2.setString(4, wipe);
+					ps2.setInt(5, fmod_volume);
+					ps2.setInt(6, playback_mode);
+					ps2.setInt(7, minRepeatTimes);
+					ps2.setInt(8, maxRepeatTimes);
+					ps2.setInt(9, minRepeatDelay);
+					ps2.setInt(10, maxRepeatDelay);
+	
+					ps2.executeUpdate();
+				}
 			}
 			
 			if(keywordIdFromString(name) == 0) {
@@ -643,13 +639,12 @@ public class Database { // connects to mySQL database
 	 * @param keyword
 	 */
 	public void addKeywordIntoSystem(String keyword) {
-
-		// TODO: Check to make sure the keyword isn't already in the db
 		if ((keywordIdFromString(keyword) == 0)) {
 			try {
 				PreparedStatement ps = connection.prepareStatement("INSERT INTO keyword (keyword) VALUES (?)");
 				ps.setString(1, keyword);
 				ps.executeUpdate();
+				ps.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -728,9 +723,12 @@ public class Database { // connects to mySQL database
 			resultSet = statement
 					.executeQuery("SELECT keyword_id FROM keyword WHERE keyword = '"
 							+ searchString + "'");
-			resultSet.next();
-			id = resultSet.getInt(1);
-			return id;
+			if(resultSet.next()) {
+				id = resultSet.getInt(1);
+				return id;
+			} else {
+				return 0;
+			}
 		} catch (SQLException sx) {
 			System.out.println(sx);
 			return 0;
