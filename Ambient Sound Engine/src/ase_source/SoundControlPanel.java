@@ -696,9 +696,26 @@ public class SoundControlPanel extends JPanel {
 		if (stateMap[STATEMAPROWCOUNT][1]) {
 			Image img = SPEAKERONICON.getImage().getScaledInstance(size-4, size-4, Image.SCALE_DEFAULT);
 			masterControl.playPauseButton.setIcon(new ImageIcon(img));
+			switch(panelID){
+				case 1:
+					OperationsManager.app.routeEffectsPanelStates(EffectsPanel.FADEOUT, EffectsPanel.NOCHANGE);
+					break;
+				case 2:
+					OperationsManager.app.routeEffectsPanelStates(EffectsPanel.NOCHANGE, EffectsPanel.FADEOUT);
+					break;
+			}
 		} else {
 			Image img = SPEAKEROFFICON.getImage().getScaledInstance(size-4, size-4, Image.SCALE_DEFAULT);
 			masterControl.playPauseButton.setIcon(new ImageIcon(img));
+			
+			switch(panelID){
+				case 1:
+					OperationsManager.app.routeEffectsPanelStates(EffectsPanel.FADEIN, EffectsPanel.NOCHANGE);
+					break;
+				case 2:
+					OperationsManager.app.routeEffectsPanelStates(EffectsPanel.NOCHANGE, EffectsPanel.FADEIN);
+					break;
+			}
 		}
 		
 		if (stateMap[STATEMAPROWCOUNT][0]) {
