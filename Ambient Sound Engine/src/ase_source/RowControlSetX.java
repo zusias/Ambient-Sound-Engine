@@ -93,6 +93,7 @@ class RowControlSetX extends JPanel {
 		previewButton.setMinimumSize(new Dimension(25, 25));
 		previewButton.setPreferredSize(new Dimension(25, 25));
 		
+		previewButton.setFocusable(false);
 		previewButton.setIcon(SoundControlPanel.PREVIEWONICON);
 		previewButton.setIconTextGap(0);
 		previewButton.setMargin(new Insets(0, 0, 0, 0));
@@ -133,6 +134,7 @@ class RowControlSetX extends JPanel {
 		gbc_volumeBar.gridy = 0;
 		add(volumeBar, gbc_volumeBar);
 		playPauseButton = new JButton();
+		playPauseButton.setFocusable(false);
 		playPauseButton.setPreferredSize(new Dimension(25, 25));
 		playPauseButton.setMaximumSize(new Dimension(25, 25));
 		playPauseButton.setMinimumSize(new Dimension(25, 25));
@@ -161,6 +163,7 @@ class RowControlSetX extends JPanel {
 			}
 		});
 
+		playModeButton.setFocusable(false);
 		playModeButton.setIcon(SoundControlPanel.LOOPPLAYICON);
 		playModeButton.setPreferredSize(new Dimension(25, 25));
 		playModeButton.setMaximumSize(new Dimension(25, 25));
@@ -191,13 +194,29 @@ class RowControlSetX extends JPanel {
 	}
 
 	private void rowKeyPressed(java.awt.event.KeyEvent evt) {
-		System.out.println(KeyEvent.VK_ESCAPE + " " + KeyEvent.VK_DELETE);
-		System.out.println(evt.getKeyChar());
 		if ((evt.getKeyChar() == KeyEvent.VK_ESCAPE)
 				|| (evt.getKeyChar() == KeyEvent.VK_DELETE)) {
 			this.soundControlPanel.deleteRow(row);
 			this.soundControlPanel.repaintButtons(this.soundControlPanel.chief.evaluateListenerResult(row, this.soundControlPanel.rowCount,
 					SoundControlPanel.DELETEBUTTON, this.soundControlPanel.soundscape, this.soundControlPanel.stateMap));
+		} else if (evt.getKeyChar() == 'e') {
+			int value = this.soundControlPanel.volumeControl.getValue();
+			if (value == 100) {
+				//Do nothing, already at max volume.
+			} else if (value > 90) {
+				this.soundControlPanel.volumeControl.setValue(100);
+			} else {
+				this.soundControlPanel.volumeControl.setValue(value + 10);
+			}
+		} else if (evt.getKeyChar() == 'd') {
+			int value = this.soundControlPanel.volumeControl.getValue();
+			if (value == 0) {
+				//Do nothing, already at max volume.
+			} else if (value < 10) {
+				this.soundControlPanel.volumeControl.setValue(0);
+			} else {
+				this.soundControlPanel.volumeControl.setValue(value - 10);
+			}
 		}
 	}
 
@@ -255,51 +274,21 @@ class RowControlSetX extends JPanel {
 			rpFrame.setVisible(true);
 		}
 	}
+	
+	
 
 	public void updateSelectedRowsDisplay(MouseEvent evt) {
 		int position;
 		if (evt.getButton() == 1) {
-			if (row > -1) { // this clears all selections, then makes this
+			if (row > -1) { 
+				// this clears all selections, then makes this
 				// row the only one highlighted
-				for (int count = 0; count < this.soundControlPanel.selectedCells.size(); count++) {
-					this.soundControlPanel.selectedCells.elementAt(count).setBackground(
-							Color.white);
-					this.soundControlPanel.selectedCells.elementAt(count).isSelected = false;
-				}
-				this.soundControlPanel.selectedCells.removeAllElements();
-				this.soundControlPanel.selectedCells.add(this);
-				isSelected = true;
-				this.soundControlPanel.rowsSelectedCount = 1;
-				setBackground(Color.yellow);
-				this.soundControlPanel.masterControl.isSelected = false;
-				this.soundControlPanel.masterControl.setBackground(Color.white);
-				this.soundControlPanel.volumeSliderSystemSetFlag = true;
-				this.soundControlPanel.volumeControl.setValue(this.soundControlPanel.selectedCells.elementAt(0)
-						.getVolume());
-				this.soundControlPanel.volumeControl.setEnabled(true);
+				selectSingleRow();
 				return;
 			}
-
 		}
 		if (row == -1) { // master control clicked
-			if (this.soundControlPanel.masterControl.isSelected == false) {
-				this.soundControlPanel.volumeControl.setEnabled(true);
-				for (int count = 0; count < this.soundControlPanel.selectedCells.size(); count++) {
-					this.soundControlPanel.selectedCells.elementAt(count).setBackground(
-							Color.white);
-					this.soundControlPanel.selectedCells.elementAt(count).isSelected = false;
-				}
-				this.soundControlPanel.selectedCells.removeAllElements();
-				this.soundControlPanel.rowsSelectedCount = 0;
-				this.soundControlPanel.masterControl.setBackground(Color.orange);
-				this.soundControlPanel.masterControl.isSelected = true;
-				this.soundControlPanel.volumeSliderSystemSetFlag = true;
-				this.soundControlPanel.volumeControl.setValue(this.soundControlPanel.masterControl.getVolume());
-			} else {
-				this.soundControlPanel.masterControl.setBackground(Color.white);
-				this.soundControlPanel.masterControl.isSelected = false;
-				this.soundControlPanel.volumeControl.setEnabled(false);
-			}
+			selectMasterRow();
 		} else {
 			if (this.soundControlPanel.masterControl.isSelected == true) {
 				this.soundControlPanel.masterControl.isSelected = false;
@@ -378,6 +367,46 @@ class RowControlSetX extends JPanel {
 
 	}
 
+	public void selectMasterRow() {
+		if (this.soundControlPanel.masterControl.isSelected == false) {
+			this.soundControlPanel.volumeControl.setEnabled(true);
+			for (int count = 0; count < this.soundControlPanel.selectedCells.size(); count++) {
+				this.soundControlPanel.selectedCells.elementAt(count).setBackground(
+						Color.white);
+				this.soundControlPanel.selectedCells.elementAt(count).isSelected = false;
+			}
+			this.soundControlPanel.selectedCells.removeAllElements();
+			this.soundControlPanel.rowsSelectedCount = 0;
+			this.soundControlPanel.masterControl.setBackground(Color.orange);
+			this.soundControlPanel.masterControl.isSelected = true;
+			this.soundControlPanel.volumeSliderSystemSetFlag = true;
+			this.soundControlPanel.volumeControl.setValue(this.soundControlPanel.masterControl.getVolume());
+		} else {
+			this.soundControlPanel.masterControl.setBackground(Color.white);
+			this.soundControlPanel.masterControl.isSelected = false;
+			this.soundControlPanel.volumeControl.setEnabled(false);
+		}
+	}
+
+	private void selectSingleRow() {
+		for (int count = 0; count < this.soundControlPanel.selectedCells.size(); count++) {
+			this.soundControlPanel.selectedCells.elementAt(count).setBackground(
+					Color.white);
+			this.soundControlPanel.selectedCells.elementAt(count).isSelected = false;
+		}
+		this.soundControlPanel.selectedCells.removeAllElements();
+		this.soundControlPanel.selectedCells.add(this);
+		isSelected = true;
+		this.soundControlPanel.rowsSelectedCount = 1;
+		setBackground(Color.yellow);
+		this.soundControlPanel.masterControl.isSelected = false;
+		this.soundControlPanel.masterControl.setBackground(Color.white);
+		this.soundControlPanel.volumeSliderSystemSetFlag = true;
+		this.soundControlPanel.volumeControl.setValue(this.soundControlPanel.selectedCells.elementAt(0)
+				.getVolume());
+		this.soundControlPanel.volumeControl.setEnabled(true);
+	}
+
 	public void updateSelectedRowsDisplay(int clickCount) {
 		int position;
 		// System.out.println("Before Case =" + rowsSelectedCount+ " Vector
@@ -405,24 +434,7 @@ class RowControlSetX extends JPanel {
 
 		}
 		if (row == -1) { // master control clicked
-			if (this.soundControlPanel.masterControl.isSelected == false) {
-				this.soundControlPanel.volumeControl.setEnabled(true);
-				for (int count = 0; count < this.soundControlPanel.selectedCells.size(); count++) {
-					this.soundControlPanel.selectedCells.elementAt(count).setBackground(
-							Color.white);
-					this.soundControlPanel.selectedCells.elementAt(count).isSelected = false;
-				}
-				this.soundControlPanel.selectedCells.removeAllElements();
-				this.soundControlPanel.rowsSelectedCount = 0;
-				this.soundControlPanel.masterControl.setBackground(Color.orange);
-				this.soundControlPanel.masterControl.isSelected = true;
-				this.soundControlPanel.volumeSliderSystemSetFlag = true;
-				this.soundControlPanel.volumeControl.setValue(this.soundControlPanel.masterControl.getVolume());
-			} else {
-				this.soundControlPanel.masterControl.setBackground(Color.white);
-				this.soundControlPanel.masterControl.isSelected = false;
-				this.soundControlPanel.volumeControl.setEnabled(false);
-			}
+			selectMasterRow();
 		} else {
 			if (this.soundControlPanel.masterControl.isSelected == true) {
 				this.soundControlPanel.masterControl.isSelected = false;
