@@ -10,12 +10,16 @@ import java.awt.Insets;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 
 /**
  * Class represents the effects panel which includes a transition sound and 
@@ -70,7 +74,7 @@ public class EffectsPanel extends JPanel {
 	
 	public EffectsPanel(SoundControlPanel panel1, SoundControlPanel panel2){
 		this.panel1 = panel1;
-		this.panel2 = panel1;
+		this.panel2 = panel2;
 		
 		addComponentListener(new ComponentAdapter(){
 			@Override
@@ -200,6 +204,15 @@ public class EffectsPanel extends JPanel {
 		presetAButton.addActionListener(new FadeButtonActionListener(presetAButton));
 		presetBButton.addActionListener(new FadeButtonActionListener(presetBButton));
 		crossfadeButton.addActionListener(new FadeButtonActionListener(crossfadeButton));
+		
+		//Effects Panel
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('a'), "panel1Fade");
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('b'), "panel2Fade");
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('t'), "crossFade");
+		
+		getActionMap().put("panel1Fade", panel1Fade);
+		getActionMap().put("panel2Fade", panel2Fade);
+		getActionMap().put("crossFade", crossFade);
 	}
 	
 	/**
@@ -365,41 +378,82 @@ public class EffectsPanel extends JPanel {
 		@Override
 		public void actionPerformed(ActionEvent e){
 			if (t.scp != null){
-				switch (t.getState()){
-					case FADEIN:
-						t.scp.chief.masterVolumeFadeIn(t.scp, fadeTime);
-						setTransitionButtonState(t, FADEOUT);
-						break;
-					case FADEOUT:
-						t.scp.chief.masterVolumeFadeOut(t.scp, fadeTime);
-						setTransitionButtonState(t, FADEIN);
-						break;
-				}
-				if (presetAButton.state != presetBButton.state && presetAButton.state > 0 && presetBButton.state > 0){
-					setTransitionButtonState(crossfadeButton, CROSSPRESETS);
-				} else {
-					setTransitionButtonState(crossfadeButton, NONE);
-				}
+				performFade(t);
 			} else {
 				switch(t.getState()){
 					case CROSSPRESETS:
-						TransitionButton fadeOut = presetAButton.getState() == FADEOUT ? presetAButton : presetBButton;
-						TransitionButton fadeIn = presetBButton.getState() == FADEIN ? presetBButton : presetAButton;
-						
-						if (fadeOut == fadeIn){
-							throw new Error("Soundscapes should not be crossfaded: states incorrect");
-						}
-						fadeOut.scp.chief.masterVolumeFadeOut(fadeOut.scp, fadeTime);
-						setTransitionButtonState(fadeOut, FADEIN);
-						fadeIn.scp.chief.masterVolumeFadeIn(fadeIn.scp, fadeTime);
-						setTransitionButtonState(fadeIn, FADEOUT);
+						crossFade();
 						break;
 				}
 			}
 		}
 	}
 	
+	private void performFade(TransitionButton t) {
+		switch (t.getState()){
+			case FADEIN:
+				t.scp.chief.masterVolumeFadeIn(t.scp, fadeTime);
+				setTransitionButtonState(t, FADEOUT);
+				break;
+			case FADEOUT:
+				t.scp.chief.masterVolumeFadeOut(t.scp, fadeTime);
+				setTransitionButtonState(t, FADEIN);
+				break;
+		}
+		if (presetAButton.state != presetBButton.state && presetAButton.state > 0 && presetBButton.state > 0){
+			setTransitionButtonState(crossfadeButton, CROSSPRESETS);
+		} else {
+			setTransitionButtonState(crossfadeButton, NONE);
+		}
+	}
+
+	private void crossFade() throws Error {
+		TransitionButton fadeOut = presetAButton.getState() == FADEOUT ? presetAButton : presetBButton;
+		TransitionButton fadeIn = presetBButton.getState() == FADEIN ? presetBButton : presetAButton;
+		
+		if (fadeOut == fadeIn){
+			throw new Error("Soundscapes should not be crossfaded: states incorrect");
+		}
+		fadeOut.scp.chief.masterVolumeFadeOut(fadeOut.scp, fadeTime);
+		setTransitionButtonState(fadeOut, FADEIN);
+		fadeIn.scp.chief.masterVolumeFadeIn(fadeIn.scp, fadeTime);
+		setTransitionButtonState(fadeIn, FADEOUT);
+	}
+	
 	/**
 	 * Action Listener for Crossfade button
 	 */
+	
+	//Actions for input/actions map for the panel.
+	Action panel1Fade = new AbstractAction() {
+		private static final long serialVersionUID = 3698226146712167356L;
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if(presetAButton.scp != null) {
+				performFade(presetAButton);
+			}
+		}
+	};
+
+	Action panel2Fade = new AbstractAction() {
+		private static final long serialVersionUID = -7951544292375381294L;
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if(presetBButton.scp != null) {
+				performFade(presetBButton);
+			}
+		}
+	};
+	
+
+	Action crossFade = new AbstractAction() {
+		private static final long serialVersionUID = 2705722429616247131L;
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			crossFade();
+		}
+	};
 }
