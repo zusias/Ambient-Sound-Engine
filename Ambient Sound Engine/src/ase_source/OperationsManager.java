@@ -374,6 +374,8 @@ public class OperationsManager {
         scp.setPanelName(soundscape.getSSName());
         scp.pushSoundscapeToPanel(soundscape);
         
+        scp.masterControl.requestFocusInWindow();
+        scp.masterControl.selectMasterRow();
      }    
     
     /** 
