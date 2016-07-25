@@ -8,9 +8,12 @@ package ase_source;
 
 import java.util.Vector;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.KeyStroke;
 
 import java.awt.GridBagConstraints;
 import java.awt.Font;
@@ -18,8 +21,11 @@ import java.awt.Dimension;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -34,8 +40,6 @@ public class Gui extends javax.swing.JFrame {
 	private static final long serialVersionUID = -8348843710808859086L;
 	static final int TOP = 1;
 	static final int BOTTOM = 2;
-
-	static boolean shift = false;
 
 	boolean keyLock;
 	boolean previewToggle = false;
@@ -289,6 +293,9 @@ public class Gui extends javax.swing.JFrame {
 		matchList.setFont(new Font("Arial", Font.PLAIN, 12));
 		matchList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
 		matchList.setPreferredSize(null);
+		for(KeyListener listener: matchList.getKeyListeners()){
+			matchList.removeKeyListener(listener);
+		}
 		matchList.addKeyListener(new java.awt.event.KeyAdapter() {
 			public void keyReleased(java.awt.event.KeyEvent evt) {
 				matchListKeyReleased(evt);
@@ -336,13 +343,12 @@ public class Gui extends javax.swing.JFrame {
 		soundScapesList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
 		soundScapesList.setAutoscrolls(false);
 		soundScapesList.setPreferredSize(null);
+		for(KeyListener listener: soundScapesList.getKeyListeners()){
+			soundScapesList.removeKeyListener(listener);
+		}
 		soundScapesList.addKeyListener(new java.awt.event.KeyAdapter() {
 			public void keyPressed(java.awt.event.KeyEvent evt) {
 				soundScapesListKeyPressed(evt);
-			}
-
-			public void keyReleased(java.awt.event.KeyEvent evt) {
-				soundScapesListKeyReleased(evt);
 			}
 		});
 		soundScapesList.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -805,7 +811,9 @@ public class Gui extends javax.swing.JFrame {
 		menuBar.add(helpMenu);
 
 		setJMenuBar(menuBar);
-
+		
+		setupInputMaps();
+		
 		addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentResized(ComponentEvent e) {
@@ -815,29 +823,74 @@ public class Gui extends javax.swing.JFrame {
 		
 		pack();
 	}
-
-	private void soundScapesListKeyReleased(java.awt.event.KeyEvent evt) {
-
-		if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_SHIFT) {
-			shift = false;
-		}
-
+	
+	private void setupInputMaps() {
+		//This could belong to the menu or some other component instead, but it sort of
+		//controls the search panel, so it seemed a good choice to stick it here.
+		
+		//Set up maps from inputs to actions
+		//Search Field
+		searchField.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('s'), "soundscapeSearch");
+		searchField.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_S,KeyEvent.SHIFT_DOWN_MASK), "soundSearch");
+		
+		searchField.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("s"), "doNothing");
+		searchField.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_S,KeyEvent.SHIFT_DOWN_MASK), "doNothing");
+		//These are defined in the EffectsPanel, but still need to be overridden here to do nothing
+		searchField.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("a"), "doNothing");
+		searchField.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("b"), "doNothing");
+		searchField.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("t"), "doNothing");
+		
+		//Set up maps from actions declared previously to their action object.
+		searchField.getActionMap().put("soundscapeSearch", soundscapeSearch);
+		searchField.getActionMap().put("soundSearch", soundSearch);
+		searchField.getActionMap().put("doNothing", doNothing);
 	}
+	
+	/**
+	 * This function acts to override the InputMap on the search field so that
+	 * window-wide key listeners can be ignored.
+	 */
+	Action doNothing = new AbstractAction() {
+		private static final long serialVersionUID = -2887112221019506305L;
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			//Do what your name says
+		}
+	};
+
+	Action soundscapeSearch = new AbstractAction() {
+		private static final long serialVersionUID = -5142902749038530256L;
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			soundScapeRadioButton.setSelected(true);
+			searchField.setText("");
+			searchField.requestFocusInWindow();
+		}
+	};
+
+	Action soundSearch = new AbstractAction() {
+		private static final long serialVersionUID = -1884361458783883659L;
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			soundRadioButton.setSelected(true);
+			searchField.setText("");
+			searchField.requestFocusInWindow();
+		}
+	};
 
 	private void soundScapesListKeyPressed(java.awt.event.KeyEvent evt) {
 
 		try {
-
-			if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_SHIFT) {
-				shift = true;
-			}
 
 			int selectedRow = soundScapesList.getSelectedIndex();
 			int target = opsManager.rowSelectToObjectID(selectedRow);
 
 			if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
 
-				if (shift) {
+				if (evt.isShiftDown()) {
 					if (soundScapeRadioButton.isSelected()){
 						opsManager.sendSoundscapeToPanel(soundControlPanel2,target, soundScapesList.getSelectedValue().toString());
 					} else {
@@ -851,6 +904,16 @@ public class Gui extends javax.swing.JFrame {
 					}
 				}
 
+			} else if (evt.getKeyChar() == 'e') {
+				int index = soundScapesList.getSelectedIndex();
+				if (index > 0){
+					soundScapesList.setSelectedIndex(index-1);
+				}
+			} else if (evt.getKeyChar() == 'd') {
+				int index = soundScapesList.getSelectedIndex();
+				if (index < soundScapesList.getModel().getSize()){
+					soundScapesList.setSelectedIndex(index+1);
+				}
 			}
 		} catch (NullPointerException ex) {
 		}
@@ -1017,6 +1080,16 @@ public class Gui extends javax.swing.JFrame {
 		if (key == java.awt.event.KeyEvent.VK_ENTER) {
 			soundScapesList.requestFocus();
 			soundScapesList.setSelectedIndex(0);
+		} else if (evt.getKeyChar() == 'e') {
+			int index = matchList.getSelectedIndex();
+			if (index > 0){
+				matchList.setSelectedIndex(index-1);
+			}
+		} else if (evt.getKeyChar() == 'd') {
+			int index = matchList.getSelectedIndex();
+			if (index < matchList.getModel().getSize()){
+				matchList.setSelectedIndex(index+1);
+			}
 		}
 	}
 
