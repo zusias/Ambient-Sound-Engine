@@ -10,6 +10,8 @@
 
 package ase_source;
 
+import ase_source.sound_engine.FmodExEngine;
+
 /**
  * 
  * @author David
@@ -52,7 +54,7 @@ public class Main {
 		app.setVisible(true);
 		while (true) {
 			Thread.sleep(500);
-			soundEngine.stage.system.update();
+			soundEngine.getStage().system.update();
 		}
 	}
 

@@ -28,18 +28,8 @@ public class EnvVariables {
     /** Inititalizes the saveto and loadfrom settings, saved in settings.log, these two settings are used in the add file to database window (test class)
      */
     public static void initVars(){
-        BufferedReader in;
         String text;
-        try{
-            in = new BufferedReader(new FileReader("settings.log"));
-        } catch(IOException ioe) {
-            loadFrom = "";
-            saveTo = "";
-            return;
-        }
-        
-        try{
-        	
+        try (BufferedReader in = new BufferedReader(new FileReader("settings.log"))){
             text = in.readLine();
             loadFrom = text;
             text = in.readLine();
@@ -52,7 +42,9 @@ public class EnvVariables {
             }
             in.close();
         } catch(IOException ioe) {
-            System.out.println("IO problem\n");
+        	System.out.println("Unable to read settings from settings.log");
+            loadFrom = "";
+            saveTo = "";
             return;
         }
         

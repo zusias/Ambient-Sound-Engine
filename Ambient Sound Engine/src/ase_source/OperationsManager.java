@@ -7,6 +7,8 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import ase_source.sound_engine.FmodExEngine;
+
 /**
  * The operations manager class handles much of the routing of commands
  * from the GUI to the code that will manages functions.
@@ -30,6 +32,13 @@ import javax.swing.JOptionPane;
  * The single-play thread scheme is buggy as of this date, as I've witnessed
  * single-play sounds repeat endlessly, and separately, I've seen them stop in the middle of their play,
  * only to start back up again minutes later...
+ * 
+ * 2017 Code Reorganization:
+ * Several methods from the SoundEngine and Soundcard classes were made private, screwing up
+ * a lot of access the OperationsManager depended on. The big job of this refactor is to
+ * implement a reasonable member access model. Previously, there were very few private members,
+ * meaning any class could access any member of a member of a member of a nested class. It was
+ * a mess...
  * 
  * @author CKidwell 
  */
@@ -97,8 +106,8 @@ public class OperationsManager {
    public void previewSoundscapeFromMainGuiPanel(int ssID){
 	   Soundscape temp = db.loadSoundscape(ssID,LEFTPANEL);
        preloadSoundscape(temp, LEFTPANEL);
-       soundEngine.preview.phantom.changeVolume(50);
-       soundEngine.preview.phantom.startPlayback();
+       soundEngine.getPreview().phantom.changeVolume(50);
+       soundEngine.getPreview().phantom.startPlayback();
        
    }
     

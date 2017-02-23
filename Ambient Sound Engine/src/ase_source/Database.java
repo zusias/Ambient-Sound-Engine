@@ -28,7 +28,7 @@ import java.util.Vector;
  * @author Lance
  * @author CKidwell
  */
-public class Database { // connects to mySQL database
+public class Database { // connects to sqlLite database
 	private static final String DRIVER = "org.sqlite.JDBC";
 	private static final String DATABASE = "jdbc:sqlite:./soundEngine.db";
 	private Connection connection = null;
