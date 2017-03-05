@@ -63,6 +63,9 @@ import ase_source.Soundscape;
  * for playback and creates data structures to hold sound files in memory.<br>
  * 
  * Javadoc for FMODEx found at http://jerome.jouvie.free.fr/nativefmodex/javadoc/index.html
+ * Documentation for FMOD Ex (C, C++, C#, Javascript) http://www.fmod.org/documentation/#content/generated/lowlevel_api.html
+ * 		NOTE: above FMOD Ex docs likely point to the most recent version, which is not
+ * 				necessarily what the Java NativeFmodeEx.jar implements an interface to
  ******************************************************************************/
 public class FmodExEngine {
 	static final int STAGEBUFFERSIZE = 500; // number of sounds that can be in
