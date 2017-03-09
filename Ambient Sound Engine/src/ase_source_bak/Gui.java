@@ -4,7 +4,7 @@
  * Created on March 6, 2006, 11:13 AM
  */
 
-package ase_source;
+package ase_source_bak;
 
 import java.util.Vector;
 
@@ -181,11 +181,11 @@ public class Gui extends javax.swing.JFrame {
 		indexPreviewButton = new javax.swing.JButton();
 		Consoles = new javax.swing.JPanel();
 		ConsoleOne = new javax.swing.JTabbedPane();
-		soundControlPanel1 = new ase_source.SoundControlPanel();
+		soundControlPanel1 = new ase_source_bak.SoundControlPanel();
 		soundControlPanel1.setMinimumSize(new Dimension(457, 284));
 		//CenterConsole = new javax.swing.JTabbedPane();
 		ConsoleTwo = new javax.swing.JTabbedPane();
-		soundControlPanel2 = new ase_source.SoundControlPanel();
+		soundControlPanel2 = new ase_source_bak.SoundControlPanel();
 		soundControlPanel2.setMinimumSize(new Dimension(457, 284));
 		effectsPanel = new EffectsPanel(soundControlPanel1, soundControlPanel2);
 		menuBar = new javax.swing.JMenuBar();
@@ -1343,8 +1343,8 @@ public class Gui extends javax.swing.JFrame {
 	private javax.swing.JTextField searchField;
 	private javax.swing.JLabel indexSearchLabel;
 	private javax.swing.JPanel searchPanel;
-	private ase_source.SoundControlPanel soundControlPanel1;
-	private ase_source.SoundControlPanel soundControlPanel2;
+	private ase_source_bak.SoundControlPanel soundControlPanel1;
+	private ase_source_bak.SoundControlPanel soundControlPanel2;
 	private javax.swing.JRadioButton soundRadioButton;
 	private javax.swing.JRadioButton soundScapeRadioButton;
 	private javax.swing.JList<String> soundScapesList;

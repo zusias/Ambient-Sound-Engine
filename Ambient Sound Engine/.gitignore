@@ -4,3 +4,5 @@
 *.mp3
 *.db
 /build/
+/doc/
+../doc/

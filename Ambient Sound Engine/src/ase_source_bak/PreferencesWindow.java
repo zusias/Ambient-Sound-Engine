@@ -1,4 +1,4 @@
-package ase_source;
+package ase_source_bak;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -6,25 +6,22 @@ import java.io.File;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public class SoundLocationDialog extends JDialog{
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 6427140318025381072L;
+public class PreferencesWindow extends JFrame {
+	private static final long serialVersionUID = -6167579045413222696L;
 	JLabel saveValueLabel;
 	JLabel saveLabel;
 	JButton saveButton;
-	static int action;
+	int action;
 	private JPanel bottomPanel;
 	private JButton okButton;
 	private JButton cancelButton;
 	
-	public SoundLocationDialog(){
+	public PreferencesWindow() {
 		initComponents();
 	}
 	
@@ -72,12 +69,24 @@ public class SoundLocationDialog extends JDialog{
 		bottomPanel = new JPanel();
 		bottomPanel.add(okButton,BorderLayout.WEST);
 		bottomPanel.add(cancelButton,BorderLayout.EAST);
-		
+
 		this.add(saveLabel, BorderLayout.WEST);
 		this.add(saveValueLabel, BorderLayout.CENTER);
 		this.add(saveButton, BorderLayout.EAST);
 		this.add(bottomPanel, BorderLayout.SOUTH);
+		
 		this.pack();
+	}
+	
+	private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {
+		action = 1;
+		EnvVariables.setSaveTo(saveValueLabel.getText());
+		this.dispose();
+	}
+	
+	private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {
+		action = 0;
+		this.dispose();
 	}
 	
 	private void saveToButtonActionPerformed(java.awt.event.ActionEvent evt) {
@@ -104,23 +113,12 @@ public class SoundLocationDialog extends JDialog{
 		}
 	}
 	
-	private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {
-		action = 1;
-		EnvVariables.setSaveTo(saveValueLabel.getText());
-		this.dispose();
-	}
-	
-	private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {
-		action = 0;
-		this.dispose();
-	}
-	
 	public static void main(String[] args){
 		EnvVariables.initVars();
-		SoundLocationDialog slDialog = new SoundLocationDialog();
-		slDialog.setTitle("Default Sound Save Location");
-		slDialog.setModal(true);
-		slDialog.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-		slDialog.setVisible(true);
+		PreferencesWindow window = new PreferencesWindow();
+		
+		window.setTitle("Testing Preferences");
+		window.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+		window.setVisible(true);
 	}
 }

@@ -25,9 +25,9 @@ import org.jouvieje.FmodEx.System;
 import org.jouvieje.FmodEx.Enumerations.FMOD_RESULT;
 import org.jouvieje.FmodEx.Misc.BufferUtils;
 
-import ase_source.Arg;
-import ase_source.SoundObject;
-import ase_source.Soundscape;
+import ase_source_bak.Arg;
+import ase_source_bak.SoundObject;
+import ase_source_bak.Soundscape;
 
 /**
  * Soundcard class <br>

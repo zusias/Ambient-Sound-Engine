@@ -40,9 +40,9 @@ import org.jouvieje.FmodEx.Enumerations.FMOD_RESULT;
 import org.jouvieje.FmodEx.Exceptions.InitException;
 import org.jouvieje.FmodEx.Misc.BufferUtils;
 
-import ase_source.Arg;
-import ase_source.SoundObject;
-import ase_source.Soundscape;
+import ase_source_bak.Arg;
+import ase_source_bak.SoundObject;
+import ase_source_bak.Soundscape;
 
 /**
  * 2017 Code Reorganization:
@@ -88,6 +88,9 @@ public class FmodExEngine {
 		stage = new Soundcard(cardOne, STAGEBUFFERSIZE);
 		preview = null;
 		previewSoundCardInstalled = false;
+		
+		System s = new System();
+		s.getSoftwareFormat(arg0, arg1, arg2, arg3, arg4, arg5)
 	}
 
 	/** 
