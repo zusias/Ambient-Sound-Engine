@@ -6,23 +6,31 @@ import java.util.Vector;
 //IO
 import java.nio.file.Path;
 
+/**
+ * Immutable data structure to represent a soundscape.
+ * @author Kevin
+ *
+ */
 public class SoundscapeModel implements Iterable<SoundModel> {
 	public final int ssid;
 	public final double masterVolume;
 	private final Vector<SoundModel> sounds;
 	public final boolean isPlaying;
+	public final String name;
 	
 	/**
 	 * 
 	 * @param ssid
 	 * @param masterVolume
 	 * @param sounds
+	 * @param name 
 	 */
-	public SoundscapeModel(int ssid, double masterVolume, Iterable<SoundModel> sounds, boolean isPlaying) {
+	public SoundscapeModel(int ssid, double masterVolume, Iterable<SoundModel> sounds, boolean isPlaying, String name) {
 		this.ssid = ssid;
 		this.masterVolume = masterVolume;
 		this.sounds = new Vector<>();
 		this.isPlaying = isPlaying;
+		this.name = name;
 		
 		for (SoundModel sound : sounds){
 			this.sounds.add(sound);
@@ -38,14 +46,21 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @param ssid
 	 * @param masterVolume
 	 * @param sounds
+	 * @param name 
 	 */
-	private SoundscapeModel(boolean internal, int ssid, double masterVolume, Vector<SoundModel> sounds, boolean isPlaying){
+	private SoundscapeModel(boolean internal, int ssid, double masterVolume, Vector<SoundModel> sounds, boolean isPlaying, String name){
 		this.ssid = ssid;
 		this.masterVolume = masterVolume;
 		this.sounds = sounds;
 		this.isPlaying = isPlaying;
+		this.name = name;
 	}
 	
+	private Vector<SoundModel> cloneVector(){
+		return (Vector<SoundModel>) sounds.clone();
+	}
+	
+	@Override
 	public Iterator<SoundModel> iterator(){
 		return this.sounds.iterator();
 	}
@@ -56,8 +71,11 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @return
 	 */
 	public SoundscapeModel setMasterVolume(double newVolume){
+		if (newVolume < 0.0) newVolume = 0.0;
+		if (newVolume > 1.0) newVolume = 1.0;
+		
 		return newVolume == this.masterVolume ? this : 
-			new SoundscapeModel(true, this.ssid, newVolume, this.sounds, this.isPlaying);
+			new SoundscapeModel(true, this.ssid, newVolume, this.sounds, this.isPlaying, this.name);
 	}
 	
 	/**
@@ -67,7 +85,28 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 */
 	public SoundscapeModel setIsPlaying(boolean isPlaying){
 		return isPlaying == this.isPlaying ? this :
-			new SoundscapeModel(true, this.ssid, this.masterVolume, this.sounds, isPlaying);
+			new SoundscapeModel(true, this.ssid, this.masterVolume, this.sounds, isPlaying, this.name);
+	}
+	
+	/**
+	 * 
+	 * @param newName
+	 * @return
+	 */
+	public SoundscapeModel rename(String newName){
+		return newName == this.name ? this :
+			new SoundscapeModel(true, this.ssid, this.masterVolume, this.sounds, isPlaying, newName);
+	}
+	
+	/**
+	 * ssid should only be set when saving a new soundscape into the database. Otherwise, should always
+	 * pull from the database
+	 * @param ssid
+	 * @return
+	 */
+	public SoundscapeModel setSsid(int ssid){
+		return ssid == this.ssid ? this :
+			new SoundscapeModel(true, ssid, this.masterVolume, this.sounds, this.isPlaying, this.name);
 	}
 	
 	/**
@@ -76,11 +115,11 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @return
 	 */
 	public SoundscapeModel addSound(SoundModel sound){
-		Vector<SoundModel> newSounds = (Vector<SoundModel>)this.sounds.clone();
+		Vector<SoundModel> newSounds = cloneVector();
 		
 		newSounds.add(sound);
 		
-		return new SoundscapeModel(true, this.ssid, this.masterVolume, newSounds, this.isPlaying);
+		return new SoundscapeModel(true, this.ssid, this.masterVolume, newSounds, this.isPlaying, this.name);
 	}
 	
 	/**
@@ -94,11 +133,11 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	public SoundscapeModel addSound(Path filePath, String name, SoundModel.PlayType currentPlayType, boolean isPlaying) {
 		SoundModel newSound = new SoundModel(filePath, name, currentPlayType, isPlaying, 1.0);
 		
-		Vector<SoundModel> newSounds = (Vector<SoundModel>)this.sounds.clone();
+		Vector<SoundModel> newSounds = cloneVector();
 		
 		newSounds.add(newSound);
 		
-		return new SoundscapeModel(true, this.ssid, this.masterVolume, newSounds, this.isPlaying);
+		return new SoundscapeModel(true, this.ssid, this.masterVolume, newSounds, this.isPlaying, this.name);
 	}
 	
 	public SoundscapeModel addSound(Path filePath, String name, SoundModel.PlayType currentPlayType) {
@@ -111,13 +150,13 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @return
 	 */
 	public SoundscapeModel addSounds(Iterable<SoundModel> sounds){
-		Vector<SoundModel> newSounds = (Vector<SoundModel>)this.sounds.clone();
+		Vector<SoundModel> newSounds = cloneVector();
 		
 		for (SoundModel s : sounds){
 			newSounds.add(s);
 		}
 		
-		return new SoundscapeModel(true, this.ssid, this.masterVolume, newSounds, this.isPlaying);
+		return new SoundscapeModel(true, this.ssid, this.masterVolume, newSounds, this.isPlaying, this.name);
 	}
 	
 	/**
@@ -140,20 +179,21 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 			throw new NoMatchFoundException("No match for the sound " + sound.name + " found to remove from Soundscape " + this.ssid);
 		}
 		
-		return new SoundscapeModel(true, this.ssid, this.masterVolume, newSounds, this.isPlaying);
+		return new SoundscapeModel(true, this.ssid, this.masterVolume, newSounds, this.isPlaying, this.name);
 	}
 	
 	/**
 	 * Removes sound at the given index
 	 * @param index
 	 * @return
+	 * @throws ArrayIndexOutOfBoundsException if invalid index
 	 */
-	public SoundscapeModel removeSound(int index){
-		Vector<SoundModel> newSounds = (Vector<SoundModel>)this.sounds.clone();
+	public SoundscapeModel removeSound(int index) throws ArrayIndexOutOfBoundsException {
+		Vector<SoundModel> newSounds = cloneVector();
 		
 		newSounds.remove(index);
 		
-		return new SoundscapeModel(true, this.ssid, this.masterVolume, newSounds, this.isPlaying);
+		return new SoundscapeModel(true, this.ssid, this.masterVolume, newSounds, this.isPlaying, this.name);
 	}
 	
 	/**
@@ -210,56 +250,28 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 		return this.getSoundIndex(sound.name, 1);
 	}
 	
-	public SoundModel getSoundAtIndex(int index){
+	/**
+	 * 
+	 * @param index
+	 * @return
+	 * @throws ArrayIndexOutOfBoundsException if the index is invalid
+	 */
+	public SoundModel getSoundAtIndex(int index) throws ArrayIndexOutOfBoundsException {
 		return this.sounds.elementAt(index);
 	}
 	
-	public SoundscapeModel replaceSound(int index, SoundModel sound){
-		Vector<SoundModel> newSounds = (Vector<SoundModel>)this.sounds.clone();
+	/**
+	 * Replaces a sound at the specified index
+	 * @param index
+	 * @param sound
+	 * @return
+	 * @throws ArrayIndexOutOfBoundsException if the index is invalid
+	 */
+	public SoundscapeModel replaceSound(int index, SoundModel sound) throws ArrayIndexOutOfBoundsException {
+		Vector<SoundModel> newSounds = cloneVector();
 		
 		newSounds.setElementAt(sound, index);
 		
-		return new SoundscapeModel(true, this.ssid, this.masterVolume, newSounds, this.isPlaying);
-	}
-
-	/**
-	 * Modifies the sound model at the given index, possible throwing an IndexOutOfBounds exception.
-	 * @param index
-	 * @param newPlayType
-	 * @param isPlaying
-	 * @param volume
-	 * @return
-	 */
-	public SoundscapeModel modifySound(int index, SoundModel.PlayType newPlayType, boolean isPlaying, double volume){
-		SoundModel s = this.sounds.elementAt(index);
-		SoundModel s2 = s.setAll(isPlaying, newPlayType, volume);
-		
-		if (s == s2) {return this;}
-
-		return replaceSound(index, s2);
-	}
-	public SoundscapeModel modifySound(int index, SoundModel.PlayType newPlayType){
-		SoundModel s = this.sounds.elementAt(index);
-		SoundModel s2 = s.setPlayType(newPlayType);
-		
-		if (s == s2) {return this;}
-		
-		return replaceSound(index, s2);
-	}
-	public SoundscapeModel modifySound(int index, boolean isPlaying){
-		SoundModel s = this.sounds.elementAt(index);
-		SoundModel s2 = s.setPlay(isPlaying);
-		
-		if (s == s2) {return this;}
-		
-		return replaceSound(index, s2);
-	}
-	public SoundscapeModel modifySound(int index, double volume){
-		SoundModel s = this.sounds.elementAt(index);
-		SoundModel s2 = s.setVolume(volume);
-		
-		if (s == s2) {return this;}
-		
-		return replaceSound(index, s2);
+		return new SoundscapeModel(true, this.ssid, this.masterVolume, newSounds, this.isPlaying, this.name);
 	}
 }

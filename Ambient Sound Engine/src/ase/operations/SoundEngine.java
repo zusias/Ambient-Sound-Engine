@@ -1,9 +1,11 @@
 package ase.operations;
 
 /**
- * Abstract interface for a sound engine implementation.
+ * <p>Abstract interface for a sound engine implementation.
  * Defines methods to load Soundscapes and individual sounds
- * to be played by the sound engine implementation.
+ * to be played by the sound engine implementation.</p>
+ * 
+ * TODO: Code a delegation object which subscribes to ops manager and translates changes in the model to SoundEngine methods
  * 
  * @author Kevin C. Gall
  *
@@ -14,7 +16,9 @@ public abstract class SoundEngine {
 	 * Load a soundscape into the engine. Likely a channel or buffer
 	 * of some kind 
 	 * @param ssModel
-	 * @return ID, unique to this runtime instance, for the soundscape
+	 * @return ID: if ssid != -1, will simply return the ssid. If ssid == -1,
+	 * returns a <i>negative</i> number that uniquely identifies the soundscape until
+	 * modifySoundscape is invoked to replace the ssid.
 	 */
 	public abstract int loadSoundscape(SoundscapeModel ssModel);
 	

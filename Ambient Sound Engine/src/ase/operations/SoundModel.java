@@ -61,10 +61,13 @@ public class SoundModel {
 	
 	/**
 	 * 
-	 * @param newVolume
+	 * @param newVolume number between 0.0 and 1.0 inclusive. If outside those bounds, will round to nearest
 	 * @return
 	 */
 	public SoundModel setVolume(double newVolume){
+		if (newVolume < 0.0) newVolume = 0.0;
+		if (newVolume > 1.0) newVolume = 1.0;
+		
 		return newVolume == this.volume ? this :
 			new SoundModel(this.filePath, this.name, this.currentPlayType, this.isPlaying, newVolume);
 	}
