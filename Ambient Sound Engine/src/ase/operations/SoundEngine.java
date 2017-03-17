@@ -16,30 +16,29 @@ public abstract class SoundEngine {
 	 * Load a soundscape into the engine. Likely a channel or buffer
 	 * of some kind 
 	 * @param ssModel
-	 * @return ID: if ssid != -1, will simply return the ssid. If ssid == -1,
-	 * returns a <i>negative</i> number that uniquely identifies the soundscape until
-	 * modifySoundscape is invoked to replace the ssid.
+	 * @throws SoundEngineException
 	 */
-	public abstract int loadSoundscape(SoundscapeModel ssModel);
+	public abstract void loadSoundscape(SoundscapeModel ssModel) throws SoundEngineException;
 	
 	/**
 	 * Modify a Soundscape
 	 * @param ssid Soundscape ID
 	 * @param ssModel
-	 * @return success?
+	 * @throws SoundEngineException
 	 */
-	public abstract boolean modifySoundscape(int ssid, SoundscapeModel ssModel);
+	public abstract void modifySoundscape(int ssid, SoundscapeModel ssModel) throws SoundEngineException;
 	
 	/**
 	 * Load a sound into an existing Soundscape
 	 * @param sModel
 	 * @param ssid Soundscape ID
-	 * @return index within soundscape of new sound. -1 if failure
+	 * @return index within soundscape of new sound.
+	 * @throws SoundEngineException
 	 */
-	public abstract int loadSound(SoundModel sModel, int ssid);
+	public abstract int loadSound(SoundModel sModel, int ssid) throws SoundEngineException;
 	
 	/**
-	 * Modify an existing sound. Must provid the SoundScape id, but the sound model
+	 * Modify an existing sound. Must provide the SoundScape id, but the sound model
 	 * already has a unique name string that the soundscape will use to find the
 	 * exact sound
 	 * 
@@ -47,46 +46,46 @@ public abstract class SoundEngine {
 	 * @param soundIndex The index within the Soundscape as existed in the
 	 * SoundscapeModel or returned from the loadSound method
 	 * @param sModel
-	 * @return success?
+	 * @throws SoundEngineException
 	 */
-	public abstract boolean modifySound(int ssid, int soundIndex, SoundModel sModel);
+	public abstract void modifySound(int ssid, int soundIndex, SoundModel sModel) throws SoundEngineException;
 	
 	/**
 	 * Change the volume of a particular soundscape
 	 * @param ssid Soundscape ID
 	 * @param newVolume Must be a floating point number between 0 and 1 (inclusive).
-	 * If it is not less than or greater than those limits, will round to 0 or 1 
-	 * @return success?
+	 * If it is not less than or greater than those limits, will round to 0 or 1
+	 * @throws SoundEngineException
 	 */
-	public abstract boolean modifyMasterVolume(int ssid, double newVolume);
+	public abstract void modifyMasterVolume(int ssid, double newVolume) throws SoundEngineException;
 	
 	/**
 	 * 
 	 * @param ssid Soundscape ID
-	 * @return success?
+	 * @throws SoundEngineException
 	 */
-	public abstract boolean play(int ssid);
+	public abstract void play(int ssid) throws SoundEngineException;
 
 	/**
 	 * 
 	 * @param ssid Soundscape ID
-	 * @return success?
+	 * @throws SoundEngineException
 	 */
-	public abstract boolean pause(int ssid);
+	public abstract void pause(int ssid) throws SoundEngineException;
 	
 	/**
 	 * 
 	 * @param ssid Soundscape ID
-	 * @return success?
+	 * @throws SoundEngineException
 	 */
-	public abstract boolean stop(int ssid);
+	public abstract void stop(int ssid) throws SoundEngineException;
 	
 	/**
 	 * Clear a soundscape from memory. Empty buffer, clear channel, etc
 	 * @param ssid Soundscape ID
-	 * @return success?
+	 * @throws SoundEngineException
 	 */
-	public abstract boolean clearSoundscape(int ssid);
+	public abstract void clearSoundscape(int ssid) throws SoundEngineException;
 	
 	/**
 	 * Volume doubles must be a floating point number between 0 and 1 (inclusive).
@@ -95,7 +94,7 @@ public abstract class SoundEngine {
 	 * @param startVolume
 	 * @param endVolume
 	 * @param ms Miliseconds for fade
-	 * @return
+	 * @throws SoundEngineException
 	 */
-	public abstract boolean fade(int ssid, double startVolume, double endVolume, int ms);
+	public abstract void fade(int ssid, double startVolume, double endVolume, int ms) throws SoundEngineException;
 }

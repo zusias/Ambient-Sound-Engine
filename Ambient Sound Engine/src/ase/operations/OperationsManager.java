@@ -2,6 +2,8 @@ package ase.operations;
 
 //Utilities
 import java.util.LinkedList;
+
+import ase.operations.SoundscapeModel.PlayState;
 //Other packages
 import ase.sound_engine.FmodExEngine;
 
@@ -15,7 +17,9 @@ import ase.sound_engine.FmodExEngine;
  * 
  * Holds the data models for the full applications and delegates actions
  * to a series of action handlers for given UI elements
- * <br>TODO Assess functionality for any additional hooks. (i.e. Fade?)
+ * <br>TODO Add to the subscriber interface to require it to implement an overload:
+ * <br>The overload should take a SoundModel and runtimeId for the soundscape.
+ * This notify will be invoked when only the Sound has changed
  * @author Kevin
  *
  */
@@ -33,6 +37,9 @@ public class OperationsManager {
 	public final SoundEngine soundEngine;
 	//public final Gui gui;
 	
+	//utility app objects
+	public final Log logger;
+	
 	//Data models
 	private SoundscapeSetModel console1;
 	private SoundscapeSetModel console2;
@@ -49,11 +56,14 @@ public class OperationsManager {
 	private final LinkedList<ISubscriber<SoundscapeModel>> previewSubscribers = new LinkedList<>();
 	
 	//utility properties
-	private static int defaultId = -1;
-	private static SoundscapeModel defaultSs = new SoundscapeModel(defaultId--, 1.0, null, false, "New Soundscape");
+	private static int runtimeId = 1;
+	private static SoundscapeModel defaultSs =
+			new SoundscapeModel(-1, runtimeId++, 1.0, null,
+					"New Soundscape", SoundscapeModel.PlayState.STOPPED, 0);
 	
 	private OperationsManager() {
 		this.soundEngine = new FmodExEngine();
+		this.logger = new Log(Log.LogLevel.DEBUG); //hard code Debug level for now
 		
 		/* initialize soundscapes as empty defaults
 		 * 
@@ -190,13 +200,31 @@ public class OperationsManager {
 		//Will return an SSID, so possibly trigger a change in the models and resulting notification
 	}
 	
+	/*
+	 * TODO Review DB access model, implement
+	 * Below is a stub representing a set of DB access functions.
+	 * May consider exposing a 'create query' method of some kind
+	 * that returns another controller object that crafts a query.<br>
+	 * For instance:
+	 *  - startQuery().Soundscape.bySsid(int ssid).execute()
+	 *  - startQuery().Soundscape.byKeyword(String keyword).execute()
+	 *  - startQuery().Sound.byName(String name).execute()
+	 * etc...
+	 */
+	public SoundscapeModel getSoundscapeFromDb(int ssid){
+		//TODO Implement
+		//This method should retrieve a soundscape from the db
+		
+		return defaultSs;
+	}
+	
 	/**
 	 * Adds a new soundscape to Consoles 1 and 2, clears existing soundscapes in either
 	 * preview or transition
 	 * @param section
 	 */
 	public void newSoundscape(Sections section){
-		SoundscapeModel newSs = defaultSs.setSsid(defaultId--);
+		SoundscapeModel newSs = defaultSs.setSsid(runtimeId++);
 
 		this.addSoundscape(section, newSs);
 	}
@@ -217,7 +245,7 @@ public class OperationsManager {
 		case CONSOLE2:
 		case EFFECTS:
 		case PREVIEW:
-			SoundscapeModel newSs = ss.setSsid(defaultId--);
+			SoundscapeModel newSs = ss.setSsid(runtimeId++);
 			this.addSoundscape(section, newSs);
 			break;
 			
@@ -227,7 +255,7 @@ public class OperationsManager {
 	}
 	
 	/**
-	 * For Consoles 1 and 2, adds a new soundscape to the set. For the Preview and
+	 * For Consoles 1 and 2, adds a new soundscape to the set and makes it active. For the Preview and
 	 * Effects sections, replaces the current soundscape
 	 * @param section
 	 * @param ss
@@ -237,12 +265,12 @@ public class OperationsManager {
 		switch(section){
 		
 		case CONSOLE1:
-			this.console1 = this.console1.addSoundscape(ss);
+			this.console1 = this.console1.addSoundscape(ss).setActiveSoundscape(ss);
 			notify(this.console1, this.console1Subscribers);
 			break;
 			
 		case CONSOLE2:
-			this.console2 = this.console2.addSoundscape(ss);
+			this.console2 = this.console2.addSoundscape(ss).setActiveSoundscape(ss);
 			notify(this.console2, this.console2Subscribers);
 			break;
 			
@@ -262,7 +290,8 @@ public class OperationsManager {
 	}
 	
 	/**
-	 * 
+	 * Toggles play state to either PLAYING or STOPPED, stepping on
+	 * any current fades
 	 * @param section
 	 * @throws IllegalArgumentException if invalid section
 	 */
@@ -272,24 +301,28 @@ public class OperationsManager {
 		switch(section){
 		
 		case CONSOLE1:
-			ss = this.console1.activeSoundscape.setIsPlaying(!this.console1.activeSoundscape.isPlaying);
+			ss = this.console1.activeSoundscape
+				.setIsPlaying(this.console1.activeSoundscape.playState != SoundscapeModel.PlayState.STOPPED);
 			this.console1 = this.console1.replaceSoundscape(ss);
 			this.notify(this.console1, this.console1Subscribers);
 			break;
 			
 		case CONSOLE2:
-			ss = this.console2.activeSoundscape.setIsPlaying(!this.console2.activeSoundscape.isPlaying);
+			ss = this.console2.activeSoundscape
+				.setIsPlaying(this.console2.activeSoundscape.playState != SoundscapeModel.PlayState.STOPPED);
 			this.console2 = this.console2.replaceSoundscape(ss);
 			this.notify(this.console2, this.console2Subscribers);
 			break;
 			
 		case EFFECTS:
-			this.effects = this.effects.setIsPlaying(!this.effects.isPlaying);
+			this.effects = this.effects
+				.setIsPlaying(this.effects.playState != SoundscapeModel.PlayState.STOPPED);
 			this.notify(this.effects, this.effectsSubscribers);
 			break;
 			
 		case PREVIEW:
-			this.preview = this.preview.setIsPlaying(!this.preview.isPlaying);
+			this.preview = this.preview
+				.setIsPlaying(this.preview.playState != SoundscapeModel.PlayState.STOPPED);
 			this.notify(this.preview, this.previewSubscribers);
 			break;
 			
@@ -447,6 +480,60 @@ public class OperationsManager {
 		}
 		
 		return ss.replaceSound(index, sound);
+	}
+	
+	/**
+	 * Initiates a fade. Must be either fade in or fade out
+	 * @param section
+	 * @param fade
+	 * @param durationMs Duration of the fade in milliseconds
+	 * @throws IllegalArgumentException if fade passed as neither FADEIN nor FADEOUT or invalid section
+	 */
+	public void fadeSoundscape(Sections section, SoundscapeModel.PlayState fade, int durationMs) throws IllegalArgumentException {
+		SoundscapeModel ss;
+		
+		switch(section){
+		
+		case CONSOLE1:
+			ss = this.fadeSoundscape(this.console1.activeSoundscape, fade, durationMs);
+			this.console1 = this.console1.replaceSoundscape(ss);
+			this.notify(this.console1, this.console1Subscribers);
+			break;
+			
+		case CONSOLE2:
+			ss = this.fadeSoundscape(this.console2.activeSoundscape, fade, durationMs);
+			this.console2 = this.console2.replaceSoundscape(ss);
+			this.notify(this.console2, this.console2Subscribers);
+			break;
+			
+		case EFFECTS:
+			this.effects = this.fadeSoundscape(this.effects, fade, durationMs);
+			this.notify(this.effects, this.effectsSubscribers);
+			break;
+			
+		case PREVIEW:
+			this.preview = this.fadeSoundscape(this.preview, fade, durationMs);
+			this.notify(this.preview, this.previewSubscribers);
+			break;
+			
+		default:
+			throw new IllegalArgumentException("Invalid section");
+		}
+	}
+	
+	/**
+	 * Sets the fade state for a soundscape
+	 * @param ss
+	 * @param fade
+	 * @param duration
+	 * @return
+	 */
+	private SoundscapeModel fadeSoundscape(SoundscapeModel ss, PlayState fade, int duration){
+		if (fade != PlayState.FADEIN && fade != PlayState.FADEOUT) {
+			throw new IllegalArgumentException("Invalid fade type");
+		}
+		
+		return ss.setFadeState(fade, duration);
 	}
 
 	public static void main(String[] args) {

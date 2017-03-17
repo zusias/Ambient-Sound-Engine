@@ -21,34 +21,13 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 	
 	public final SoundscapeModel activeSoundscape;
 	
-	
 	/**
-	 * Public constructor. Set must have at least one SoundscapeModel object.<br>
+	 * Set must have at least one SoundscapeModel object.<br>
 	 * Sets the active element as the first in the index
 	 * @param set
 	 * @throws IllegalArgumentException if set contains no elements
 	 */
-	public SoundscapeSetModel(Iterable<SoundscapeModel> set) throws IllegalArgumentException {
-		this.set = new Vector<>();
-		for (SoundscapeModel ss : set){
-			this.set.add(ss);
-		}
-		
-		if (this.set.size() == 0){
-			throw new IllegalArgumentException();
-		}
-		
-		this.activeSoundscape = this.set.elementAt(0);
-		this.activeSoundscapeIndex = 0;
-	}
-	
-	/**
-	 * Package constructor. Set must have at least one SoundscapeModel object.<br>
-	 * Sets the active element as the first in the index
-	 * @param set
-	 * @throws IllegalArgumentException if set contains no elements
-	 */
-	SoundscapeSetModel(SoundscapeModel[] set) throws IllegalArgumentException {
+	public SoundscapeSetModel(SoundscapeModel[] set) throws IllegalArgumentException {
 		if (set.length == 0){
 			throw new IllegalArgumentException();
 		}
@@ -140,7 +119,7 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 	 * @return
 	 * @throws ArrayIndexOutOfBoundsException if index invalid
 	 */
-	public SoundscapeSetModel replaceSoundscape(int index, SoundscapeModel ss) throws ArrayIndexOutOfBoundsException{
+	SoundscapeSetModel replaceSoundscape(int index, SoundscapeModel ss) throws ArrayIndexOutOfBoundsException{
 		Vector<SoundscapeModel> newSet = cloneVector();
 		
 		newSet.setElementAt(ss, index);
@@ -156,7 +135,7 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 	 * @param ss The soundscape to replace the active soundscape
 	 * @return
 	 */
-	public SoundscapeSetModel replaceSoundscape(SoundscapeModel ss){
+	SoundscapeSetModel replaceSoundscape(SoundscapeModel ss){
 		return this.replaceSoundscape(this.activeSoundscapeIndex, ss);
 	}
 	
@@ -166,7 +145,7 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 	 * @return
 	 * @throws IllegalArgumentException if the soundscape (with identical ID) is already in the set
 	 */
-	public SoundscapeSetModel addSoundscape(SoundscapeModel ss) throws IllegalArgumentException {
+	SoundscapeSetModel addSoundscape(SoundscapeModel ss) throws IllegalArgumentException {
 		//error check
 		for (SoundscapeModel currentSs : this.set){
 			if (ss.ssid == currentSs.ssid){
@@ -187,7 +166,7 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 	 * @return
 	 * @throws NoMatchFoundException if the soundscape is not in the set
 	 */
-	public SoundscapeSetModel removeSoundscape(SoundscapeModel ss) throws NoMatchFoundException{
+	SoundscapeSetModel removeSoundscape(SoundscapeModel ss) throws NoMatchFoundException{
 		Vector<SoundscapeModel> newSet = new Vector<>();
 		
 		for (SoundscapeModel currentSs : this.set){
@@ -209,7 +188,7 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 	 * @return
 	 * @throws ArrayIndexOutOfBoundsException if index is invalid
 	 */
-	public SoundscapeSetModel removeSoundscape(int index) throws ArrayIndexOutOfBoundsException{
+	SoundscapeSetModel removeSoundscape(int index) throws ArrayIndexOutOfBoundsException{
 		Vector<SoundscapeModel> newSet = cloneVector();
 		
 		newSet.remove(index);
@@ -223,7 +202,7 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 	 * @return
 	 * @throws IllegalArgumentException if the passed soundscape model is not in the set
 	 */
-	public SoundscapeSetModel setActiveSoundscape(SoundscapeModel activeSs) throws IllegalArgumentException {
+	SoundscapeSetModel setActiveSoundscape(SoundscapeModel activeSs) throws IllegalArgumentException {
 		int index = set.indexOf(activeSs);
 		
 		if (index == -1){

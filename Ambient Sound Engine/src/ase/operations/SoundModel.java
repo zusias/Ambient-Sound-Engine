@@ -33,7 +33,7 @@ public class SoundModel {
 		this.volume = volume;
 	}
 	
-	public SoundModel setPlay(boolean isPlaying) {
+	SoundModel setPlay(boolean isPlaying) {
 		return isPlaying == this.isPlaying ? this :
 			this.setPlay(isPlaying, this.currentPlayType);
 	}
@@ -44,7 +44,7 @@ public class SoundModel {
 	 * @param newPlayType
 	 * @return Returns new instance of SoundModel as this is an immutable data structure
 	 */
-	public SoundModel setPlay(boolean isPlaying, PlayType newPlayType){
+	SoundModel setPlay(boolean isPlaying, PlayType newPlayType){
 		return (isPlaying == this.isPlaying && newPlayType == this.currentPlayType) ? this :
 			new SoundModel(this.filePath, this.name, newPlayType, isPlaying, this.volume);
 	}
@@ -54,7 +54,7 @@ public class SoundModel {
 	 * @param newPlayType
 	 * @return Returns new instance of SoundModel as this is an immutable data structure
 	 */
-	public SoundModel setPlayType(PlayType newPlayType){
+	SoundModel setPlayType(PlayType newPlayType){
 		return newPlayType == this.currentPlayType ? this :
 			new SoundModel(this.filePath, this.name, newPlayType, this.isPlaying, this.volume);
 	}
@@ -64,7 +64,7 @@ public class SoundModel {
 	 * @param newVolume number between 0.0 and 1.0 inclusive. If outside those bounds, will round to nearest
 	 * @return
 	 */
-	public SoundModel setVolume(double newVolume){
+	SoundModel setVolume(double newVolume){
 		if (newVolume < 0.0) newVolume = 0.0;
 		if (newVolume > 1.0) newVolume = 1.0;
 		
@@ -82,7 +82,7 @@ public class SoundModel {
 	 * @param newVolume
 	 * @return
 	 */
-	public SoundModel setAll(boolean isPlaying, PlayType newPlayType, double newVolume){
+	SoundModel setAll(boolean isPlaying, PlayType newPlayType, double newVolume){
 		return new SoundModel(this.filePath, this.name, newPlayType, isPlaying, newVolume);
 	}
 }

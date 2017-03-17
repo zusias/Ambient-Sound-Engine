@@ -1,6 +1,7 @@
 package ase.sound_engine;
 
 import ase.operations.SoundEngine;
+import ase.operations.SoundEngineException;
 import ase.operations.SoundModel;
 import ase.operations.SoundscapeModel;
 
@@ -30,7 +31,25 @@ public class FmodExEngine extends SoundEngine {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public int loadSoundscape(SoundscapeModel ssModel) {
+	public void loadSoundscape(SoundscapeModel ssModel) throws SoundEngineException {
+		// TODO Auto-generated method stub
+
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void modifySoundscape(int ssid, SoundscapeModel ssModel) throws SoundEngineException {
+		// TODO Auto-generated method stub
+
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int loadSound(SoundModel sModel, int ssid) throws SoundEngineException {
 		// TODO Auto-generated method stub
 		return 0;
 	}
@@ -39,81 +58,68 @@ public class FmodExEngine extends SoundEngine {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean modifySoundscape(int ssid, SoundscapeModel ssModel) {
+	public void modifySound(int ssid, int soundIndex, SoundModel sModel) throws SoundEngineException {
 		// TODO Auto-generated method stub
-		return false;
+
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public int loadSound(SoundModel sModel, int ssid) {
+	public void modifyMasterVolume(int ssid, double newVolume) throws SoundEngineException {
 		// TODO Auto-generated method stub
-		return 0;
+
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean modifySound(int ssid, int soundIndex, SoundModel sModel) {
+	public void play(int ssid) throws SoundEngineException {
 		// TODO Auto-generated method stub
-		return false;
+
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean modifyMasterVolume(int ssid, double newVolume) {
+	public void pause(int ssid) throws SoundEngineException {
 		// TODO Auto-generated method stub
-		return false;
+
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean play(int ssid) {
+	public void stop(int ssid) throws SoundEngineException {
 		// TODO Auto-generated method stub
-		return false;
+
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean pause(int ssid) {
+	public void clearSoundscape(int ssid) throws SoundEngineException {
 		// TODO Auto-generated method stub
-		return false;
+
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean stop(int ssid) {
+	public void fade(int ssid, double startVolume, double endVolume, int ms) throws SoundEngineException {
 		// TODO Auto-generated method stub
-		return false;
+
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean clearSoundscape(int ssid) {
+	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		return false;
-	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean fade(int ssid, double startVolume, double endVolume, int ms) {
-		// TODO Auto-generated method stub
-		return false;
 	}
 
 }

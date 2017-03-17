@@ -12,24 +12,42 @@ import java.nio.file.Path;
  *
  */
 public class SoundscapeModel implements Iterable<SoundModel> {
-	public final int ssid;
+	public static enum PlayState{
+		FADEIN, FADEOUT, PLAYING, STOPPED
+	}
+	
+	public final int ssid; //database id
+	public final int runtimeId; //runtime id - guaranteed unique each run
 	public final double masterVolume;
 	private final Vector<SoundModel> sounds;
-	public final boolean isPlaying;
+	public final PlayState playState;
+	public final int fadeDuration;
 	public final String name;
 	
 	/**
 	 * 
 	 * @param ssid
+	 * @param runtimeId TODO
 	 * @param masterVolume
 	 * @param sounds
-	 * @param name 
+	 * @param name
+	 * @param playState
+	 * @param fadeDuration Duration of the fade in milliseconds. Defaulted to 0 if invalid
+	 * given playState
 	 */
-	public SoundscapeModel(int ssid, double masterVolume, Iterable<SoundModel> sounds, boolean isPlaying, String name) {
+	public SoundscapeModel(int ssid, int runtimeId,
+			double masterVolume, SoundModel[] sounds, String name, PlayState playState, int fadeDuration) 
+	{	
+		if (playState == PlayState.PLAYING || playState == PlayState.STOPPED || fadeDuration < 0){
+			fadeDuration = 0;
+		}
+		
 		this.ssid = ssid;
+		this.runtimeId = runtimeId;
 		this.masterVolume = masterVolume;
 		this.sounds = new Vector<>();
-		this.isPlaying = isPlaying;
+		this.playState = playState;
+		this.fadeDuration = fadeDuration;
 		this.name = name;
 		
 		for (SoundModel sound : sounds){
@@ -42,17 +60,28 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * of this constructor can either pass its own array of nothing has changed or a new
 	 * array that will never be modified afterwards. Internally, this object manages shared
 	 * arrays but maintains immutability
-	 * @param internal Always set to true. Here to differentiate the argument signature
 	 * @param ssid
+	 * @param runtimeId TODO
 	 * @param masterVolume
 	 * @param sounds
-	 * @param name 
+	 * @param name
+	 * @param playState
+	 * @param fadeDuration Duration of the fade in milliseconds. Defaulted to 0 if invalid
+	 * given playState
 	 */
-	private SoundscapeModel(boolean internal, int ssid, double masterVolume, Vector<SoundModel> sounds, boolean isPlaying, String name){
+	private SoundscapeModel(int ssid, int runtimeId,
+			double masterVolume, Vector<SoundModel> sounds, String name, PlayState playState, int fadeDuration)
+	{
+		if (playState == PlayState.PLAYING || playState == PlayState.STOPPED || fadeDuration < 0){
+			fadeDuration = 0;
+		}
+		
 		this.ssid = ssid;
+		this.runtimeId = runtimeId;
 		this.masterVolume = masterVolume;
 		this.sounds = sounds;
-		this.isPlaying = isPlaying;
+		this.playState = playState;
+		this.fadeDuration = fadeDuration;
 		this.name = name;
 	}
 	
@@ -70,22 +99,41 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @param newVolume
 	 * @return
 	 */
-	public SoundscapeModel setMasterVolume(double newVolume){
+	SoundscapeModel setMasterVolume(double newVolume){
 		if (newVolume < 0.0) newVolume = 0.0;
 		if (newVolume > 1.0) newVolume = 1.0;
 		
 		return newVolume == this.masterVolume ? this : 
-			new SoundscapeModel(true, this.ssid, newVolume, this.sounds, this.isPlaying, this.name);
+			new SoundscapeModel(this.ssid, this.runtimeId, newVolume,
+					this.sounds, this.name, this.playState, this.fadeDuration);
 	}
 	
 	/**
-	 * 
+	 * Sets the isPlaying property <i>and the Fade State (fade property)</i>
 	 * @param isPlaying
 	 * @return
 	 */
-	public SoundscapeModel setIsPlaying(boolean isPlaying){
-		return isPlaying == this.isPlaying ? this :
-			new SoundscapeModel(true, this.ssid, this.masterVolume, this.sounds, isPlaying, this.name);
+	SoundscapeModel setIsPlaying(boolean isPlaying){
+		PlayState playState = isPlaying ? PlayState.PLAYING : PlayState.STOPPED;
+		
+		return playState == this.playState ? this :
+			new SoundscapeModel(this.ssid, this.runtimeId,
+					this.masterVolume, this.sounds, this.name, playState, 0);
+	}
+	
+	/**
+	 * This method is partially redundant with setIsPlaying, but specifically
+	 * allows specifying of a fade duration. This method will not
+	 * throw errors if a non-fade state is passed.
+	 * @param fade
+	 * @param fadeDuration The duration in milliseconds for the fade to execute.
+	 * Defaults to 0 if not an actively fading fade state
+	 * @return
+	 */
+	SoundscapeModel setFadeState(PlayState fade, int fadeDuration) {
+		return fade == this.playState ? this :
+			new SoundscapeModel(this.ssid, this.runtimeId,
+					this.masterVolume, this.sounds, this.name, fade, fadeDuration);
 	}
 	
 	/**
@@ -93,9 +141,10 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @param newName
 	 * @return
 	 */
-	public SoundscapeModel rename(String newName){
+	SoundscapeModel rename(String newName){
 		return newName == this.name ? this :
-			new SoundscapeModel(true, this.ssid, this.masterVolume, this.sounds, isPlaying, newName);
+			new SoundscapeModel(this.ssid, this.runtimeId,
+					this.masterVolume, this.sounds, newName, this.playState, this.fadeDuration);
 	}
 	
 	/**
@@ -104,9 +153,10 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @param ssid
 	 * @return
 	 */
-	public SoundscapeModel setSsid(int ssid){
+	SoundscapeModel setSsid(int ssid){
 		return ssid == this.ssid ? this :
-			new SoundscapeModel(true, ssid, this.masterVolume, this.sounds, this.isPlaying, this.name);
+			new SoundscapeModel(ssid, this.runtimeId,
+					this.masterVolume, this.sounds, this.name, this.playState, this.fadeDuration);
 	}
 	
 	/**
@@ -114,12 +164,13 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @param sound
 	 * @return
 	 */
-	public SoundscapeModel addSound(SoundModel sound){
+	SoundscapeModel addSound(SoundModel sound){
 		Vector<SoundModel> newSounds = cloneVector();
 		
 		newSounds.add(sound);
 		
-		return new SoundscapeModel(true, this.ssid, this.masterVolume, newSounds, this.isPlaying, this.name);
+		return new SoundscapeModel(this.ssid, this.runtimeId,
+				this.masterVolume, newSounds, this.name, this.playState, this.fadeDuration);
 	}
 	
 	/**
@@ -130,17 +181,18 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @param isPlaying
 	 * @return
 	 */
-	public SoundscapeModel addSound(Path filePath, String name, SoundModel.PlayType currentPlayType, boolean isPlaying) {
+	SoundscapeModel addSound(Path filePath, String name, SoundModel.PlayType currentPlayType, boolean isPlaying) {
 		SoundModel newSound = new SoundModel(filePath, name, currentPlayType, isPlaying, 1.0);
 		
 		Vector<SoundModel> newSounds = cloneVector();
 		
 		newSounds.add(newSound);
 		
-		return new SoundscapeModel(true, this.ssid, this.masterVolume, newSounds, this.isPlaying, this.name);
+		return new SoundscapeModel(this.ssid, this.runtimeId,
+				this.masterVolume, newSounds, this.name, this.playState, this.fadeDuration);
 	}
 	
-	public SoundscapeModel addSound(Path filePath, String name, SoundModel.PlayType currentPlayType) {
+	SoundscapeModel addSound(Path filePath, String name, SoundModel.PlayType currentPlayType) {
 		return this.addSound(filePath, name, currentPlayType, true);
 	}
 	
@@ -149,14 +201,15 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @param sounds
 	 * @return
 	 */
-	public SoundscapeModel addSounds(Iterable<SoundModel> sounds){
+	SoundscapeModel addSounds(SoundModel[] sounds){
 		Vector<SoundModel> newSounds = cloneVector();
 		
 		for (SoundModel s : sounds){
 			newSounds.add(s);
 		}
 		
-		return new SoundscapeModel(true, this.ssid, this.masterVolume, newSounds, this.isPlaying, this.name);
+		return new SoundscapeModel(this.ssid, this.runtimeId,
+				this.masterVolume, newSounds, this.name, this.playState, this.fadeDuration);
 	}
 	
 	/**
@@ -166,7 +219,7 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @return
 	 * @throws NoMatchFoundException
 	 */
-	public SoundscapeModel removeSound(SoundModel sound) throws NoMatchFoundException {
+	SoundscapeModel removeSound(SoundModel sound) throws NoMatchFoundException {
 		Vector<SoundModel> newSounds = new Vector<>();
 		
 		for (SoundModel oldSound : this.sounds){
@@ -179,7 +232,8 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 			throw new NoMatchFoundException("No match for the sound " + sound.name + " found to remove from Soundscape " + this.ssid);
 		}
 		
-		return new SoundscapeModel(true, this.ssid, this.masterVolume, newSounds, this.isPlaying, this.name);
+		return new SoundscapeModel(this.ssid, this.runtimeId,
+				this.masterVolume, newSounds, this.name, this.playState, this.fadeDuration);
 	}
 	
 	/**
@@ -188,12 +242,13 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @return
 	 * @throws ArrayIndexOutOfBoundsException if invalid index
 	 */
-	public SoundscapeModel removeSound(int index) throws ArrayIndexOutOfBoundsException {
+	SoundscapeModel removeSound(int index) throws ArrayIndexOutOfBoundsException {
 		Vector<SoundModel> newSounds = cloneVector();
 		
 		newSounds.remove(index);
 		
-		return new SoundscapeModel(true, this.ssid, this.masterVolume, newSounds, this.isPlaying, this.name);
+		return new SoundscapeModel(this.ssid, this.runtimeId,
+				this.masterVolume, newSounds, this.name, this.playState, this.fadeDuration);
 	}
 	
 	/**
@@ -267,11 +322,12 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @return
 	 * @throws ArrayIndexOutOfBoundsException if the index is invalid
 	 */
-	public SoundscapeModel replaceSound(int index, SoundModel sound) throws ArrayIndexOutOfBoundsException {
+	SoundscapeModel replaceSound(int index, SoundModel sound) throws ArrayIndexOutOfBoundsException {
 		Vector<SoundModel> newSounds = cloneVector();
 		
 		newSounds.setElementAt(sound, index);
 		
-		return new SoundscapeModel(true, this.ssid, this.masterVolume, newSounds, this.isPlaying, this.name);
+		return new SoundscapeModel(this.ssid, this.runtimeId,
+				this.masterVolume, newSounds, this.name, this.playState, this.fadeDuration);
 	}
 }
