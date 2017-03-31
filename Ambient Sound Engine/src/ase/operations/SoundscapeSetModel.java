@@ -1,7 +1,7 @@
 package ase.operations;
 
-import java.util.Vector;
 import java.util.Iterator;
+import java.util.Vector;
 
 /**
  * Immutable data structure representing a set of soundscape objects
@@ -17,7 +17,7 @@ import java.util.Iterator;
  */
 public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 	private final Vector<SoundscapeModel> set;
-	private final int activeSoundscapeIndex; //maybe get rid of this? It's a convenience, not a necessity...
+	public final int activeSoundscapeIndex; //maybe get rid of this? It's a convenience, not a necessity...
 	
 	public final SoundscapeModel activeSoundscape;
 	
@@ -110,6 +110,10 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 		}
 		
 		throw new NoMatchFoundException();
+	}
+	
+	public int getTotalSoundscapes(){
+		return this.set.size();
 	}
 	
 	/**

@@ -26,6 +26,9 @@ public class SoundModel {
 	 * @param isPlaying
 	 */
 	public SoundModel(Path filePath, String name, PlayType currentPlayType, boolean isPlaying, double volume){
+		if (volume < 0.0) volume = 0.0;
+		if (volume > 1.0) volume = 1.0;
+		
 		this.filePath = filePath;
 		this.name = name;
 		this.currentPlayType = currentPlayType;
@@ -65,9 +68,6 @@ public class SoundModel {
 	 * @return
 	 */
 	SoundModel setVolume(double newVolume){
-		if (newVolume < 0.0) newVolume = 0.0;
-		if (newVolume > 1.0) newVolume = 1.0;
-		
 		return newVolume == this.volume ? this :
 			new SoundModel(this.filePath, this.name, this.currentPlayType, this.isPlaying, newVolume);
 	}

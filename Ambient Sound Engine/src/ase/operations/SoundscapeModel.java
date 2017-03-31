@@ -1,10 +1,10 @@
 package ase.operations;
 
+//IO
+import java.nio.file.Path;
 //Utils
 import java.util.Iterator;
 import java.util.Vector;
-//IO
-import java.nio.file.Path;
 
 /**
  * Immutable data structure to represent a soundscape.
@@ -16,8 +16,15 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 		FADEIN, FADEOUT, PLAYING, STOPPED
 	}
 	
-	public final int ssid; //database id
-	public final int runtimeId; //runtime id - guaranteed unique each run
+	/**
+	 * Database id: persistent unique id, but may not exist for
+	 * new soundscapes, in which case set to -1
+	 */
+	public final int ssid;
+	/**
+	 * Guaranteed unique identifier for each runtime instance of this program
+	 */
+	public final int runtimeId;
 	public final double masterVolume;
 	private final Vector<SoundModel> sounds;
 	public final PlayState playState;
@@ -27,20 +34,24 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	/**
 	 * 
 	 * @param ssid
-	 * @param runtimeId TODO
-	 * @param masterVolume
+	 * @param runtimeId
+	 * @param masterVolume Must be a value between 0.0 and 1.0 inclusive. If not,
+	 * the passed number will be rounded
 	 * @param sounds
 	 * @param name
 	 * @param playState
 	 * @param fadeDuration Duration of the fade in milliseconds. Defaulted to 0 if invalid
 	 * given playState
 	 */
-	public SoundscapeModel(int ssid, int runtimeId,
+	SoundscapeModel(int ssid, int runtimeId,
 			double masterVolume, SoundModel[] sounds, String name, PlayState playState, int fadeDuration) 
 	{	
 		if (playState == PlayState.PLAYING || playState == PlayState.STOPPED || fadeDuration < 0){
 			fadeDuration = 0;
 		}
+		
+		if (masterVolume < 0.0) {masterVolume = 0.0;}
+		if (masterVolume > 1.0) {masterVolume = 1.0;}
 		
 		this.ssid = ssid;
 		this.runtimeId = runtimeId;
@@ -50,8 +61,10 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 		this.fadeDuration = fadeDuration;
 		this.name = name;
 		
-		for (SoundModel sound : sounds){
-			this.sounds.add(sound);
+		if (sounds != null){
+			for (SoundModel sound : sounds){
+				this.sounds.add(sound);
+			}
 		}
 	}
 	
@@ -75,6 +88,9 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 		if (playState == PlayState.PLAYING || playState == PlayState.STOPPED || fadeDuration < 0){
 			fadeDuration = 0;
 		}
+		
+		if (masterVolume < 0.0) {masterVolume = 0.0;}
+		if (masterVolume > 1.0) {masterVolume = 1.0;}
 		
 		this.ssid = ssid;
 		this.runtimeId = runtimeId;
@@ -100,9 +116,6 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @return
 	 */
 	SoundscapeModel setMasterVolume(double newVolume){
-		if (newVolume < 0.0) newVolume = 0.0;
-		if (newVolume > 1.0) newVolume = 1.0;
-		
 		return newVolume == this.masterVolume ? this : 
 			new SoundscapeModel(this.ssid, this.runtimeId, newVolume,
 					this.sounds, this.name, this.playState, this.fadeDuration);
@@ -159,6 +172,11 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 					this.masterVolume, this.sounds, this.name, this.playState, this.fadeDuration);
 	}
 	
+	SoundscapeModel copy(int runtimeId){
+		return new SoundscapeModel(this.ssid, runtimeId, this.masterVolume,
+				this.sounds, this.name, this.playState, this.fadeDuration);
+	}
+	
 	/**
 	 * Add a single sound to the soundscape
 	 * @param sound
@@ -194,22 +212,6 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	
 	SoundscapeModel addSound(Path filePath, String name, SoundModel.PlayType currentPlayType) {
 		return this.addSound(filePath, name, currentPlayType, true);
-	}
-	
-	/**
-	 * Add multiple sounds to the soundscape
-	 * @param sounds
-	 * @return
-	 */
-	SoundscapeModel addSounds(SoundModel[] sounds){
-		Vector<SoundModel> newSounds = cloneVector();
-		
-		for (SoundModel s : sounds){
-			newSounds.add(s);
-		}
-		
-		return new SoundscapeModel(this.ssid, this.runtimeId,
-				this.masterVolume, newSounds, this.name, this.playState, this.fadeDuration);
 	}
 	
 	/**
@@ -313,6 +315,14 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 */
 	public SoundModel getSoundAtIndex(int index) throws ArrayIndexOutOfBoundsException {
 		return this.sounds.elementAt(index);
+	}
+	
+	/**
+	 * 
+	 * @return Total sounds in soundscape
+	 */
+	public int getTotalSounds(){
+		return this.sounds.size();
 	}
 	
 	/**

@@ -7,11 +7,14 @@ package ase.operations;
  * 	<li>Production</li>
  * 	<li>Development</li>
  * </ul>
+ * 
+ * Right now, logs are printed to Standard Out. Will change to out stream so that
+ * it can be set by the programmer
  * @author KevinCGall
  *
  */
 public class Log {
-	static enum LogLevel{
+	public static enum LogLevel{
 		DEBUG, DEV, PROD
 	}
 	

@@ -201,9 +201,6 @@ public class FmodExEngine {
  * central bank in this class. A basic memory manager swap sound files out of
  * memory as needed.
  * 
- * 2017 Code Reorganization:
- * This class was extracted from FmodExEngine.java into its own file for ease of
- * maintenance / readability.
  */
 class Soundcard {
 	static final int LOOPPLAY = 0;
