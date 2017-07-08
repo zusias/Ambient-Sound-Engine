@@ -1,6 +1,11 @@
 package ase.operations;
 
 
+//Java
+import java.nio.file.Path;
+import java.io.IOException;
+import java.nio.file.Files;
+
 //Utilities
 import java.util.LinkedList;
 
@@ -69,6 +74,13 @@ public class OperationsManager {
 	private static int runtimeId;
 	private static SoundscapeModel defaultSs;
 	
+	//utility static methods
+	public static long getFileSize(Path filePath) throws IOException {
+		String sizeString = Files.getAttribute(filePath, "size").toString();
+		
+		return Long.parseLong(sizeString, 10);
+	}
+	
 	private OperationsManager() {
 		//init static variables
 		runtimeId = 1;
@@ -76,7 +88,7 @@ public class OperationsManager {
 						"New Soundscape", SoundscapeModel.PlayState.STOPPED, 0);
 		this.logger = new Log(DEBUG); //hard code Debug level for now
 		
-		logger.log(DEBUG, "Logger active");
+		logger.log(DEV, "Logger active");
 		
 		/* initialize soundscapes as empty defaults
 		 * 

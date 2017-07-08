@@ -134,7 +134,7 @@ public class SoundEngineManager {
 				//new sound appended
 				//Sound engine should handle all other state if loading
 				if (lastSound == null) {
-					soundEngine.loadSound(sound, ss.runtimeId);
+					soundSymbols.add(soundEngine.loadSound(sound, ss.runtimeId));
 					return;
 				}
 				

@@ -1,7 +1,13 @@
-package ase.sound_engine;
+package ase.fmodex_sound_engine;
 
-//Java lang/library imports
+//Java imports
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.io.File;
+import java.io.IOException;
+
+import static java.lang.System.exit;
 
 //ASE imports
 import ase.bridge.SoundEngine;
@@ -9,6 +15,12 @@ import ase.bridge.SoundEngineException;
 import ase.operations.SoundModel;
 import ase.operations.SoundModel.PlayType;
 import ase.operations.SoundscapeModel;
+
+//ASE Logger
+import static ase.operations.OperationsManager.opsMgr;
+import static ase.operations.Log.LogLevel.DEBUG;
+import static ase.operations.Log.LogLevel.DEV;
+import static ase.operations.Log.LogLevel.PROD;
 
 //FmodEx imports
 import org.jouvieje.FmodEx.System;
@@ -18,14 +30,21 @@ import org.jouvieje.FmodEx.FmodEx;
 import org.jouvieje.FmodEx.Init;
 import org.jouvieje.FmodEx.Enumerations.FMOD_RESULT;
 import org.jouvieje.FmodEx.Exceptions.InitException;
+import org.jouvieje.FmodEx.ChannelGroup;
+import org.jouvieje.FmodEx.Channel;
+import org.jouvieje.FmodEx.Sound;
 import static org.jouvieje.FmodEx.Defines.FMOD_INITFLAGS.FMOD_INIT_NORMAL;
 import static org.jouvieje.FmodEx.Defines.FMOD_MODE.FMOD_HARDWARE;
 import static org.jouvieje.FmodEx.Defines.FMOD_MODE.FMOD_LOOP_NORMAL;
 import static org.jouvieje.FmodEx.Defines.FMOD_MODE.FMOD_LOOP_OFF;
 import static org.jouvieje.FmodEx.Defines.FMOD_MODE.FMOD_SOFTWARE;
+import static org.jouvieje.FmodEx.Enumerations.FMOD_CHANNELINDEX.FMOD_CHANNEL_FREE;
 import static org.jouvieje.FmodEx.Defines.VERSIONS.FMOD_VERSION;
 import static org.jouvieje.FmodEx.Defines.VERSIONS.NATIVEFMODEX_JAR_VERSION;
 import static org.jouvieje.FmodEx.Defines.VERSIONS.NATIVEFMODEX_LIBRARY_VERSION;
+
+//Test imports
+import ase.operations.TestDataProvider;
 
 /**
  * <p>Implementation of the SoundEngine abstract class. This implementation
@@ -49,13 +68,38 @@ public class FmodExEngine extends SoundEngine {
 	private static int driverCount = 0;
 	private static boolean startupSuccess = true;
 	private static String initFailMessage = null;
+	private final static int SOUND_BANK_CAPACITY = 1000;
+	private final static int STREAM_THRESHOLD_BYTES = 500000;
 	
 	//private variables
 	private final System system;
 	
+	/*
+	 * TESTING PURPOSES:
+	 * To get a working prototype of the sound engine,
+	 * one channel group and one array of sounds has been added.
+	 * These sounds are not properly accessible after loading, but
+	 * instead meant as a way to test the functionality of the
+	 * sound engine
+	 */
+	
+	//TODO:
+	//need a set of ChannelGroups. Each channelGroup will have a collection of
+	//channels, each representing a Sound.
+	//The "ChannelGroup"s correspond to Soundscapes, and the "Channel"s correspond
+	//to individual sounds
+	private ChannelGroup channelGroup;
+	private Channel[] sounds = new Channel[100];
+	private int currentSoundIndex = 0;
+	
+	//public constants
+	public final int driverId;
+	public final String driverName;
+	
 	//initial load of FmodEx library
 	static {
 		try {
+			opsMgr.logger.log(DEV, "Loading FmodEx Library");
 			Init.loadLibraries(INIT_MODES.INIT_FMOD_EX);
 		} catch (InitException e){
 			initFailMessage = e.getMessage();
@@ -105,35 +149,94 @@ public class FmodExEngine extends SoundEngine {
 		
 		//initialize system object
 		system = new System();
-		FmodEx.System_Create(system);
+		fmodErrCheck(FmodEx.System_Create(system));
 		
 		//discover number of available drivers and compare with initialized sound cards
 		ByteBuffer buffer = BufferUtils.newByteBuffer(256);
-		system.getNumDrivers(buffer.asIntBuffer());
+		fmodErrCheck(system.getNumDrivers(buffer.asIntBuffer()));
 		int numDrivers = buffer.getInt(0);
 		
 		if (driverCount >= numDrivers){
 			throw new SoundEngineException("Driver already initialized");
 		}
 		
+		//set system driver with 0-based driver id
+		this.driverId = driverCount;
+		fmodErrCheck(system.setDriver(driverCount));
+		ByteBuffer nameBuffer = BufferUtils.newByteBuffer(256);
+		fmodErrCheck(system.getDriverName(driverCount, nameBuffer, 256));
+		
+		this.driverName = BufferUtils.toString(nameBuffer);
+		
+		//init the system
+		fmodErrCheck(system.init(32, FMOD_INIT_NORMAL, null));
+		
 		driverCount++;
+	}
+	
+	private static void fmodErrCheck(FMOD_RESULT result) {
+		if (result != FMOD_RESULT.FMOD_OK) {
+			opsMgr.logger.log(PROD, "Error with Sound Engine");
+			opsMgr.logger.log(DEV, "FMOD Error! "
+									+ result.asInt()
+									+ " "
+									+ FmodEx.FMOD_ErrorString(result));
+			exit(-1);
+		}
+	}
+	
+	private void shutdown(){
+		opsMgr.logger.log(DEV, "Shutting down FmodEx Engine");
+		fmodErrCheck(system.close());
+		fmodErrCheck(system.release());
+		opsMgr.logger.log(DEV, "FmodEx Engine shutdown complete");
 	}
 	
 	/**
 	 * {@inheritDoc}
+	 * <br><b>NOTE 7/8/17:</b> This is a prototype implementation. Does not fulfull abstract spec,
+	 * and invokes currently incomplete loadSound method
 	 */
 	@Override
 	public String[] loadSoundscape(SoundscapeModel ssModel) throws SoundEngineException {
-		// TODO Auto-generated method stub
+		opsMgr.logger.log(DEV, "Loading Soundscape " + ssModel.runtimeId + " " + ssModel.name);
+		
+		channelGroup = new ChannelGroup();
+		
+		for (SoundModel sModel : ssModel){
+			loadSound(sModel, ssModel.runtimeId);
+		}
+		
+		channelGroup.setVolume((float)ssModel.masterVolume);
+
 		return null;
 	}
 
 	/**
 	 * {@inheritDoc}
+	 * 
+	 * <br/><b>NOTE 7/8/17:</b> id Parameter does nothing right now for testing purposes. Only one channel group, so
+	 * only one Soundscape
 	 */
 	@Override
 	public String loadSound(SoundModel sModel, int id) throws SoundEngineException {
-		// TODO Auto-generated method stub
+		Channel soundChannel = new Channel();
+		Sound newSound = new Sound();
+		
+		
+		if (sModel.sizeInBytes >= STREAM_THRESHOLD_BYTES) {
+			fmodErrCheck(system.createStream(sModel.filePath.toString(), FMOD_SOFTWARE, null, newSound));
+		} else {
+			fmodErrCheck(system.createSound(sModel.filePath.toString(), FMOD_SOFTWARE,  null,  newSound));
+		}
+		
+		system.playSound(FMOD_CHANNEL_FREE, newSound, !sModel.isPlaying, soundChannel);
+		
+		soundChannel.setVolume((float)sModel.volume);
+		soundChannel.setChannelGroup(channelGroup);
+		
+		sounds[currentSoundIndex++] = soundChannel;
+		
 		return null;
 	}
 
@@ -245,4 +348,36 @@ public class FmodExEngine extends SoundEngine {
 
 	}
 
+	public static void main(String[] args){
+		opsMgr.logger.log(DEV, "starting main");
+		FmodExEngine soundCard1, soundCard2, soundCard3, soundCard4, soundCard5, soundCard6
+		
+		try {
+			soundCard1 = new FmodExEngine();
+			
+			opsMgr.logger.log(DEV, "Initialized Driver 1; Name: " + soundCard1.driverName);
+			
+			soundCard2 = new FmodExEngine();
+			opsMgr.logger.log(DEV, "Initialized Driver 2; Name: " + soundCard2.driverName);
+			
+			soundCard3 = new FmodExEngine();
+			opsMgr.logger.log(DEV, "Initialized Driver 3; Name: " + soundCard3.driverName);
+			
+			soundCard4 = new FmodExEngine();
+			opsMgr.logger.log(DEV, "Initialized Driver 4; Name: " + soundCard4.driverName);
+			
+			soundCard5 = new FmodExEngine();
+			opsMgr.logger.log(DEV, "Initialized Driver 5; Name: " + soundCard5.driverName);
+			
+			soundCard6 = new FmodExEngine();
+			opsMgr.logger.log(DEV, "Initialized Driver 6; Name: " + soundCard6.driverName);
+		} catch (SoundEngineException e) {
+			opsMgr.logger.log(PROD, "Error Initializing FmodExEngine!");
+			opsMgr.logger.log(DEV, e.getMessage());
+		}
+		
+		SoundscapeModel ss = TestDataProvider.testSoundscape(new String[] {".\\sounds\\ocean waves.mp3"});
+		
+		soundCard1.loadSoundscape(ss);
+	}
 }

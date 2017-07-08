@@ -2,8 +2,8 @@ package ase.main;
 
 import ase.bridge.SoundEngine;
 import ase.bridge.SoundEngineManager;
+import ase.fmodex_sound_engine.FmodExEngine;
 import ase.bridge.SoundEngineException;
-import ase.sound_engine.FmodExEngine;
 import ase.operations.Log;
 import static ase.operations.OperationsManager.opsMgr;
 import static ase.operations.Log.LogLevel.PROD;
@@ -11,8 +11,6 @@ import static ase.operations.Log.LogLevel.DEV;
 import static ase.operations.Log.LogLevel.DEBUG;
 
 import java.util.Scanner;
-
-import com.sun.media.jfxmedia.logging.Logger;
 
 /**
  * Entry point into the Ambient Sound Engine.
@@ -26,7 +24,8 @@ import com.sun.media.jfxmedia.logging.Logger;
  */
 public class Main {
 	public static void main(String[] args) {
-		SoundEngine stage = null, preview = null;
+		SoundEngine stage = null;
+		SoundEngine preview = null;
 		Log logger = opsMgr.logger;
 		logger.log(DEBUG, "In main");
 		

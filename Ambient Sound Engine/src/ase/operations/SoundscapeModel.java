@@ -199,8 +199,8 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @param isPlaying
 	 * @return
 	 */
-	SoundscapeModel addSound(Path filePath, String name, SoundModel.PlayType currentPlayType, boolean isPlaying) {
-		SoundModel newSound = new SoundModel(filePath, name, currentPlayType, isPlaying, 1.0);
+	SoundscapeModel addSound(Path filePath, String name, SoundModel.PlayType currentPlayType, boolean isPlaying, long sizeInBytes) {
+		SoundModel newSound = new SoundModel(filePath, name, currentPlayType, isPlaying, 1.0, sizeInBytes);
 		
 		Vector<SoundModel> newSounds = cloneVector();
 		
@@ -210,8 +210,8 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 				this.masterVolume, newSounds, this.name, this.playState, this.fadeDuration);
 	}
 	
-	SoundscapeModel addSound(Path filePath, String name, SoundModel.PlayType currentPlayType) {
-		return this.addSound(filePath, name, currentPlayType, true);
+	SoundscapeModel addSound(Path filePath, String name, SoundModel.PlayType currentPlayType, long sizeInBytes) {
+		return this.addSound(filePath, name, currentPlayType, true, sizeInBytes);
 	}
 	
 	/**

@@ -1,5 +1,6 @@
 package ase.operations;
 
+//java imports
 import java.nio.file.Path;
 
 /**
@@ -13,6 +14,7 @@ public class SoundModel {
 	}
 	
 	public final Path filePath;
+	public final long sizeInBytes;
 	public final String name;
 	public final PlayType currentPlayType;
 	public final boolean isPlaying;
@@ -24,16 +26,26 @@ public class SoundModel {
 	 * @param name
 	 * @param currentPlayType
 	 * @param isPlaying
+	 * @param volume
+	 * @param sizeInBytes
 	 */
-	public SoundModel(Path filePath, String name, PlayType currentPlayType, boolean isPlaying, double volume){
-		if (volume < 0.0) volume = 0.0;
-		if (volume > 1.0) volume = 1.0;
+	public SoundModel(
+			Path filePath,
+			String name,
+			PlayType currentPlayType,
+			boolean isPlaying,
+			double volume,
+			long sizeInBytes) {
+		double normalizedVolume = volume;
+		if (volume < 0.0) normalizedVolume = 0.0;
+		if (volume > 1.0) normalizedVolume = 1.0;
 		
 		this.filePath = filePath;
+		this.sizeInBytes = sizeInBytes;
 		this.name = name;
 		this.currentPlayType = currentPlayType;
 		this.isPlaying = isPlaying;
-		this.volume = volume;
+		this.volume = normalizedVolume;
 	}
 	
 	SoundModel setPlay(boolean isPlaying) {
@@ -49,7 +61,7 @@ public class SoundModel {
 	 */
 	SoundModel setPlay(boolean isPlaying, PlayType newPlayType){
 		return (isPlaying == this.isPlaying && newPlayType == this.currentPlayType) ? this :
-			new SoundModel(this.filePath, this.name, newPlayType, isPlaying, this.volume);
+			new SoundModel(this.filePath, this.name, newPlayType, isPlaying, this.volume, this.sizeInBytes);
 	}
 	
 	/**
@@ -59,7 +71,7 @@ public class SoundModel {
 	 */
 	SoundModel setPlayType(PlayType newPlayType){
 		return newPlayType == this.currentPlayType ? this :
-			new SoundModel(this.filePath, this.name, newPlayType, this.isPlaying, this.volume);
+			new SoundModel(this.filePath, this.name, newPlayType, this.isPlaying, this.volume, this.sizeInBytes);
 	}
 	
 	/**
@@ -69,7 +81,7 @@ public class SoundModel {
 	 */
 	SoundModel setVolume(double newVolume){
 		return newVolume == this.volume ? this :
-			new SoundModel(this.filePath, this.name, this.currentPlayType, this.isPlaying, newVolume);
+			new SoundModel(this.filePath, this.name, this.currentPlayType, this.isPlaying, newVolume, this.sizeInBytes);
 	}
 	
 	/**
@@ -83,6 +95,6 @@ public class SoundModel {
 	 * @return
 	 */
 	SoundModel setAll(boolean isPlaying, PlayType newPlayType, double newVolume){
-		return new SoundModel(this.filePath, this.name, newPlayType, isPlaying, newVolume);
+		return new SoundModel(this.filePath, this.name, newPlayType, isPlaying, newVolume, this.sizeInBytes);
 	}
 }
