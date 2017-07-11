@@ -31,16 +31,16 @@ public class SoundEngineManager {
 	 * @param preview
 	 */
 	public SoundEngineManager(SoundEngine stage, SoundEngine preview){
-		this.console1Subscriber = new SoundscapeSubscriber(stage);
+		this.console1Subscriber = new SoundscapeSubscriber(stage, Sections.CONSOLE1);
 		OperationsManager.opsMgr.subscribeToActiveSoundscape(Sections.CONSOLE1, this.console1Subscriber);
 
-		this.console2Subscriber = new SoundscapeSubscriber(stage);
+		this.console2Subscriber = new SoundscapeSubscriber(stage, Sections.CONSOLE2);
 		OperationsManager.opsMgr.subscribeToActiveSoundscape(Sections.CONSOLE2, this.console2Subscriber);
 
-		this.effectsSubscriber = new SoundscapeSubscriber(stage);
+		this.effectsSubscriber = new SoundscapeSubscriber(stage, Sections.EFFECTS);
 		OperationsManager.opsMgr.subscribeToEffects(this.effectsSubscriber);
 
-		this.previewSubscriber = new SoundscapeSubscriber(preview);
+		this.previewSubscriber = new SoundscapeSubscriber(preview, Sections.PREVIEW);
 		OperationsManager.opsMgr.subscribeToPreview(this.previewSubscriber);	
 	}
 	
@@ -53,13 +53,15 @@ public class SoundEngineManager {
 		private SoundscapeModel lastSs = null;
 		private final SoundEngine soundEngine;
 		private final Vector<String> soundSymbols = new Vector<>();
+		private final Sections section;
 		
-		public SoundscapeSubscriber(SoundEngine soundEngine) {
+		public SoundscapeSubscriber(SoundEngine soundEngine, Sections section) {
 			this.soundEngine = soundEngine;
+			this.section = section;
 		}
 		
 		@Override
-		public void notify(SoundscapeModel ss, int removedIndex){
+		public void notifySubscriber(SoundscapeModel ss, int removedIndex){
 			if (ss == lastSs || soundEngine == null){
 				return;
 			}
@@ -72,7 +74,7 @@ public class SoundEngineManager {
 				if (lastSs == null || lastSs.runtimeId != ss.runtimeId){
 					//completely new soundscape
 					if (lastSs != null) soundEngine.clearSoundscape(lastSs.runtimeId);
-					String[] symbols = soundEngine.loadSoundscape(ss);
+					String[] symbols = soundEngine.loadSoundscape(ss, this.section);
 					loadSymbols(symbols);
 					//returns because loadSoundscape should act according to appropriate
 					//state on its own
@@ -115,7 +117,7 @@ public class SoundEngineManager {
 		}
 		
 		@Override
-		public void notify(int index, SoundscapeModel ss, SoundModel sound){
+		public void notifySubscriber(int index, SoundscapeModel ss, SoundModel sound){
 			//could be null for non-existant preview soundcard
 			if (soundEngine == null){
 				return;
@@ -134,7 +136,7 @@ public class SoundEngineManager {
 				//new sound appended
 				//Sound engine should handle all other state if loading
 				if (lastSound == null) {
-					soundSymbols.add(soundEngine.loadSound(sound, ss.runtimeId));
+					soundSymbols.add(soundEngine.loadSound(ss.runtimeId, sound));
 					return;
 				}
 				

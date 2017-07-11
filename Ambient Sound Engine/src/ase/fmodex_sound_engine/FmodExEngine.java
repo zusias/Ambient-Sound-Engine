@@ -6,6 +6,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.io.File;
 import java.io.IOException;
+import java.util.TreeMap;
+import java.util.Map;
 
 import static java.lang.System.exit;
 
@@ -15,6 +17,8 @@ import ase.bridge.SoundEngineException;
 import ase.operations.SoundModel;
 import ase.operations.SoundModel.PlayType;
 import ase.operations.SoundscapeModel;
+import ase.operations.OperationsManager.Sections;
+import static ase.operations.OperationsManager.Sections.*;
 
 //ASE Logger
 import static ase.operations.OperationsManager.opsMgr;
@@ -33,6 +37,7 @@ import org.jouvieje.FmodEx.Exceptions.InitException;
 import org.jouvieje.FmodEx.ChannelGroup;
 import org.jouvieje.FmodEx.Channel;
 import org.jouvieje.FmodEx.Sound;
+import org.jouvieje.FmodEx.Callbacks.FMOD_CHANNEL_CALLBACK;
 import static org.jouvieje.FmodEx.Defines.FMOD_INITFLAGS.FMOD_INIT_NORMAL;
 import static org.jouvieje.FmodEx.Defines.FMOD_MODE.FMOD_HARDWARE;
 import static org.jouvieje.FmodEx.Defines.FMOD_MODE.FMOD_LOOP_NORMAL;
@@ -42,6 +47,7 @@ import static org.jouvieje.FmodEx.Enumerations.FMOD_CHANNELINDEX.FMOD_CHANNEL_FR
 import static org.jouvieje.FmodEx.Defines.VERSIONS.FMOD_VERSION;
 import static org.jouvieje.FmodEx.Defines.VERSIONS.NATIVEFMODEX_JAR_VERSION;
 import static org.jouvieje.FmodEx.Defines.VERSIONS.NATIVEFMODEX_LIBRARY_VERSION;
+import static org.jouvieje.FmodEx.Enumerations.FMOD_CHANNEL_CALLBACKTYPE.FMOD_CHANNEL_CALLBACKTYPE_END;
 
 //Test imports
 import ase.operations.TestDataProvider;
@@ -74,23 +80,12 @@ public class FmodExEngine extends SoundEngine {
 	//private variables
 	private final System system;
 	
-	/*
-	 * TESTING PURPOSES:
-	 * To get a working prototype of the sound engine,
-	 * one channel group and one array of sounds has been added.
-	 * These sounds are not properly accessible after loading, but
-	 * instead meant as a way to test the functionality of the
-	 * sound engine
-	 */
-	
 	//TODO:
 	//need a set of ChannelGroups. Each channelGroup will have a collection of
 	//channels, each representing a Sound.
 	//The "ChannelGroup"s correspond to Soundscapes, and the "Channel"s correspond
 	//to individual sounds
-	private ChannelGroup channelGroup;
-	private Channel[] sounds = new Channel[100];
-	private int currentSoundIndex = 0;
+	private Map<Integer, ChannelGroupWrapper> channelGroups = new TreeMap<>();
 	
 	//public constants
 	public final int driverId;
@@ -174,13 +169,14 @@ public class FmodExEngine extends SoundEngine {
 		driverCount++;
 	}
 	
-	private static void fmodErrCheck(FMOD_RESULT result) {
+	static void fmodErrCheck(FMOD_RESULT result) {
 		if (result != FMOD_RESULT.FMOD_OK) {
 			opsMgr.logger.log(PROD, "Error with Sound Engine");
 			opsMgr.logger.log(DEV, "FMOD Error! "
 									+ result.asInt()
 									+ " "
 									+ FmodEx.FMOD_ErrorString(result));
+			
 			exit(-1);
 		}
 	}
@@ -198,46 +194,88 @@ public class FmodExEngine extends SoundEngine {
 	 * and invokes currently incomplete loadSound method
 	 */
 	@Override
-	public String[] loadSoundscape(SoundscapeModel ssModel) throws SoundEngineException {
+	public String[] loadSoundscape(SoundscapeModel ssModel, Sections section) throws SoundEngineException {
 		opsMgr.logger.log(DEV, "Loading Soundscape " + ssModel.runtimeId + " " + ssModel.name);
 		
-		channelGroup = new ChannelGroup();
+		//Allocate and initialize new channel group
+		ChannelGroupWrapper chGrp = new ChannelGroupWrapper(section);
+		channelGroups.put(ssModel.runtimeId, chGrp);
+		fmodErrCheck(system.createChannelGroup(ssModel.name, chGrp.channelGroup));
+		
+		String[] soundNames = new String[ssModel.getTotalSounds()];
+		int count = 0;
 		
 		for (SoundModel sModel : ssModel){
-			loadSound(sModel, ssModel.runtimeId);
+			soundNames[count++] = loadSound(ssModel.runtimeId, sModel);
 		}
 		
-		channelGroup.setVolume((float)ssModel.masterVolume);
+		opsMgr.logger.log(DEBUG, "Setting master volume for channel group");
+		chGrp.channelGroup.setVolume((float)ssModel.masterVolume);
 
-		return null;
+		opsMgr.logger.log(DEBUG, "Soundscape fully loaded");
+		return soundNames;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * <br/><b>NOTE 7/8/17:</b> id Parameter does nothing right now for testing purposes. Only one channel group, so
-	 * only one Soundscape
+	 * <p>TODO: <b>7/11/17</b> You've run into the issue when trying
+	 * to add a callback to a newly constructed channel:<br/>
+	 * The callback needs to inform the OperationsManager that the sound has
+	 * stopped playing, but currently it has no way of updating the right
+	 * sound.
+	 * <br/>You're looking at guava's bimap so that the SoundEngineManager
+	 * can track symbols vs. indices. You should also consider changing the
+	 * OperationsManager interface to allow for a more stable way of accessing
+	 * sounds other than index.<br/>
+	 * You will also need to update ChannelGroupWrapper to accomodate things</p> 
 	 */
 	@Override
-	public String loadSound(SoundModel sModel, int id) throws SoundEngineException {
+	public String loadSound(int id, SoundModel sModel) throws SoundEngineException {
+		opsMgr.logger.log(DEV, "Loading sound " + sModel.name);
+		
 		Channel soundChannel = new Channel();
 		Sound newSound = new Sound();
 		
 		
 		if (sModel.sizeInBytes >= STREAM_THRESHOLD_BYTES) {
+			opsMgr.logger.log(DEBUG, "Creating sound stream");
 			fmodErrCheck(system.createStream(sModel.filePath.toString(), FMOD_SOFTWARE, null, newSound));
 		} else {
+			opsMgr.logger.log(DEBUG, "Creating sound without streaming");
 			fmodErrCheck(system.createSound(sModel.filePath.toString(), FMOD_SOFTWARE,  null,  newSound));
 		}
 		
-		system.playSound(FMOD_CHANNEL_FREE, newSound, !sModel.isPlaying, soundChannel);
+		opsMgr.logger.log(DEBUG, "Setting system to play sound");
+		fmodErrCheck(system.playSound(FMOD_CHANNEL_FREE, newSound, !sModel.isPlaying, soundChannel));
 		
-		soundChannel.setVolume((float)sModel.volume);
-		soundChannel.setChannelGroup(channelGroup);
+		//channel callback
+		FMOD_CHANNEL_CALLBACK endCallback = new ChannelEndCallback();
+		fmodErrCheck(soundChannel.setCallback(FMOD_CHANNEL_CALLBACKTYPE_END, endCallback, 1));
 		
-		sounds[currentSoundIndex++] = soundChannel;
+		opsMgr.logger.log(DEBUG,  "Setting sound volume");
+		fmodErrCheck(soundChannel.setVolume((float)sModel.volume));
 		
-		return null;
+		ChannelGroupWrapper chGrp = this.channelGroups.get(id);
+		
+		opsMgr.logger.log(DEBUG,  "Setting sound channel's group");
+		fmodErrCheck(soundChannel.setChannelGroup(chGrp.channelGroup));
+		
+		//add channel to map of channels, ensuring
+		//a unique name within this group if already taken
+		String soundName = sModel.name;
+		
+		int copies = 0;
+		while (chGrp.channels.get(soundName) != null) {
+			copies++;
+		}
+		if (copies > 0){
+			soundName += copies;
+		}
+		
+		chGrp.channels.put(soundName, soundChannel);
+		
+		return sModel.name;
 	}
 
 	/**
@@ -245,8 +283,16 @@ public class FmodExEngine extends SoundEngine {
 	 */
 	@Override
 	public void clearSound(int id, String symbol) throws SoundEngineException {
-		// TODO Auto-generated method stub
-
+		opsMgr.logger.log(DEV, "Clearing sound " + symbol);
+		
+		ChannelGroupWrapper chGrp = channelGroups.get(id);
+		
+		Channel channel = chGrp.channels.get(symbol);
+		
+		//stop the sound
+		//TODO: Ensure no random play threads can start up again
+		channel.stop();
+		chGrp.channels.remove(symbol);
 	}
 
 	/**
@@ -254,8 +300,16 @@ public class FmodExEngine extends SoundEngine {
 	 */
 	@Override
 	public void playSound(int id, String symbol) throws SoundEngineException {
-		// TODO Auto-generated method stub
-
+		opsMgr.logger.log(DEV, "Playing sound " + symbol);
+		
+		ChannelGroupWrapper chGrp = channelGroups.get(id);
+		Channel channel = chGrp.channels.get(symbol);
+		
+		ByteBuffer buffer = BufferUtils.newByteBuffer(256);
+		fmodErrCheck(channel.setPosition(0, 1));
+		fmodErrCheck(channel.setPaused(false));
+		fmodErrCheck(channel.getPaused(buffer));
+		opsMgr.logger.log(DEBUG, "Is paused: " + buffer.getInt(0));
 	}
 
 	/**
@@ -348,9 +402,9 @@ public class FmodExEngine extends SoundEngine {
 
 	}
 
-	public static void main(String[] args){
+	public static void main(String[] args) throws InterruptedException, SoundEngineException{
 		opsMgr.logger.log(DEV, "starting main");
-		FmodExEngine soundCard1, soundCard2, soundCard3, soundCard4, soundCard5, soundCard6
+		FmodExEngine soundCard1, soundCard2, soundCard3, soundCard4, soundCard5, soundCard6;
 		
 		try {
 			soundCard1 = new FmodExEngine();
@@ -374,10 +428,32 @@ public class FmodExEngine extends SoundEngine {
 		} catch (SoundEngineException e) {
 			opsMgr.logger.log(PROD, "Error Initializing FmodExEngine!");
 			opsMgr.logger.log(DEV, e.getMessage());
+			return;
 		}
 		
-		SoundscapeModel ss = TestDataProvider.testSoundscape(new String[] {".\\sounds\\ocean waves.mp3"});
+		SoundscapeModel ss = TestDataProvider.testSoundscape(
+				new String[] {".\\sounds\\walla, crowd in hall.mp3",".\\sounds\\ocean waves.mp3", ".\\sounds\\klaxon alarm aoogah.mp3"});
 		
-		soundCard1.loadSoundscape(ss);
+		try {
+			soundCard1.loadSoundscape(ss, CONSOLE1);
+		} catch (SoundEngineException seEx) {
+			opsMgr.logger.log(DEV, "Error loading soundscape");
+			return;
+		}
+		
+		int count = 0;
+		while (true) {
+			Thread.sleep(500);
+			soundCard1.system.update();
+			
+//			if (count == 10){
+//				soundCard1.clearSound(ss.runtimeId, "test1");
+//			}
+			if (count == 5) {
+				soundCard1.playSound(ss.runtimeId, "test2");
+			}
+			
+			count++;
+		}
 	}
 }

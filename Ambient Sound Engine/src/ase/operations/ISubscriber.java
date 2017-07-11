@@ -10,7 +10,7 @@ public interface ISubscriber<D extends Iterable<I>, I> {
 	 * @param data
 	 * @param index The index of the element removed. If none, -1 
 	 */
-	public void notify(D data, int index);
+	public void notifySubscriber(D data, int index);
 	
 	/**
 	 * This method is called when one of the data elements changes.
@@ -21,5 +21,5 @@ public interface ISubscriber<D extends Iterable<I>, I> {
 	 * @param data
 	 * @param subData
 	 */
-	public void notify(int index, D data, I subData);
+	public void notifySubscriber(int index, D data, I subData);
 }

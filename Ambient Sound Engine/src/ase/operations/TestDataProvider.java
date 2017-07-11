@@ -20,6 +20,7 @@ import static ase.operations.SoundscapeModel.PlayState.*;
  *
  */
 public class TestDataProvider {
+	private static int count = 0;
 	public static SoundscapeModel testSoundscape(String[] fileNames) {
 		SoundModel[] sounds = new SoundModel[fileNames.length];
 		int testCount = 0;
@@ -44,7 +45,7 @@ public class TestDataProvider {
 		
 		return new SoundscapeModel(
 				1,
-				1,
+				count++,
 				1.0,
 				sounds,
 				"Test Soundscape",
