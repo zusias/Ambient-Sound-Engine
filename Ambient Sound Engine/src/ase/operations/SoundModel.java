@@ -19,6 +19,7 @@ public class SoundModel {
 	public final PlayType currentPlayType;
 	public final boolean isPlaying;
 	public final double volume;
+	public final RandomPlaySettings randomSettings;
 	
 	/**
 	 * 
@@ -28,6 +29,7 @@ public class SoundModel {
 	 * @param isPlaying
 	 * @param volume
 	 * @param sizeInBytes
+	 * @param randomSettings
 	 */
 	public SoundModel(
 			Path filePath,
@@ -35,7 +37,8 @@ public class SoundModel {
 			PlayType currentPlayType,
 			boolean isPlaying,
 			double volume,
-			long sizeInBytes) {
+			long sizeInBytes,
+			RandomPlaySettings randomSettings) {
 		double normalizedVolume = volume;
 		if (volume < 0.0) normalizedVolume = 0.0;
 		if (volume > 1.0) normalizedVolume = 1.0;
@@ -46,6 +49,7 @@ public class SoundModel {
 		this.currentPlayType = currentPlayType;
 		this.isPlaying = isPlaying;
 		this.volume = normalizedVolume;
+		this.randomSettings = randomSettings;
 	}
 	
 	SoundModel setPlay(boolean isPlaying) {
@@ -61,7 +65,7 @@ public class SoundModel {
 	 */
 	SoundModel setPlay(boolean isPlaying, PlayType newPlayType){
 		return (isPlaying == this.isPlaying && newPlayType == this.currentPlayType) ? this :
-			new SoundModel(this.filePath, this.name, newPlayType, isPlaying, this.volume, this.sizeInBytes);
+			new SoundModel(this.filePath, this.name, newPlayType, isPlaying, this.volume, this.sizeInBytes, this.randomSettings);
 	}
 	
 	/**
@@ -71,7 +75,7 @@ public class SoundModel {
 	 */
 	SoundModel setPlayType(PlayType newPlayType){
 		return newPlayType == this.currentPlayType ? this :
-			new SoundModel(this.filePath, this.name, newPlayType, this.isPlaying, this.volume, this.sizeInBytes);
+			new SoundModel(this.filePath, this.name, newPlayType, this.isPlaying, this.volume, this.sizeInBytes, this.randomSettings);
 	}
 	
 	/**
@@ -81,7 +85,15 @@ public class SoundModel {
 	 */
 	SoundModel setVolume(double newVolume){
 		return newVolume == this.volume ? this :
-			new SoundModel(this.filePath, this.name, this.currentPlayType, this.isPlaying, newVolume, this.sizeInBytes);
+			new SoundModel(this.filePath, this.name, this.currentPlayType, this.isPlaying, newVolume, this.sizeInBytes, this.randomSettings);
+	}
+	
+	/**
+	 * @param randomSettings A new random settings object
+	 */
+	SoundModel setRandomPlaySettings(RandomPlaySettings randomSettings) {
+		return randomSettings == this.randomSettings ? this :
+			new SoundModel(this.filePath, this.name, this.currentPlayType, this.isPlaying, this.volume, this.sizeInBytes, randomSettings);
 	}
 	
 	/**
@@ -92,9 +104,10 @@ public class SoundModel {
 	 * @param isPlaying
 	 * @param newPlayType
 	 * @param newVolume
+	 * @param randomSettings
 	 * @return
 	 */
-	SoundModel setAll(boolean isPlaying, PlayType newPlayType, double newVolume){
-		return new SoundModel(this.filePath, this.name, newPlayType, isPlaying, newVolume, this.sizeInBytes);
+	SoundModel setAll(boolean isPlaying, PlayType newPlayType, double newVolume, RandomPlaySettings randomSettings){
+		return new SoundModel(this.filePath, this.name, newPlayType, isPlaying, newVolume, this.sizeInBytes, randomSettings);
 	}
 }

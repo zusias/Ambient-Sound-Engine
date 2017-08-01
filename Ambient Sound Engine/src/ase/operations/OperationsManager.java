@@ -9,6 +9,8 @@ import java.nio.file.Files;
 //Utilities
 import java.util.LinkedList;
 
+import com.google.common.eventbus.EventBus;
+
 import ase.operations.SoundscapeModel.PlayState;
 import static ase.operations.Log.LogLevel.DEBUG;
 import static ase.operations.Log.LogLevel.DEV;
@@ -33,6 +35,9 @@ import static ase.operations.Log.LogLevel.PROD;
  * 	<li>Write Fmodex implementation of SoundEngine</li>
  * </ul>
  * 
+ * NOTE: Consider altering Subject / Observer in favor of an event bus.
+ * Perhaps v5.1 or v6.0
+ * 
  * @author Kevin C. Gall
  *
  */
@@ -47,11 +52,10 @@ public class OperationsManager {
 	
 	//Main app objects
 	//public final Database db;
-	//public final SoundEngine soundEngine;
-	//public final Gui gui;
 	
 	//utility app objects
 	public final Log logger;
+	public final EventBus eventBus = new EventBus();
 	
 	//Data models
 	private SoundscapeSetModel console1;
@@ -63,12 +67,12 @@ public class OperationsManager {
 	
 	//Subscriber sets
 	//Chose linked list because iteration is cheap, growing is cheap, insertion will not be needed, and deletion is unlikely
-	private final LinkedList<ISubscriber<SoundscapeSetModel, SoundscapeModel>> console1Subscribers = new LinkedList<>();
-	private final LinkedList<ISubscriber<SoundscapeSetModel, SoundscapeModel>> console2Subscribers = new LinkedList<>();
-	private final LinkedList<ISubscriber<SoundscapeModel, SoundModel>> console1ActiveSsSubscribers = new LinkedList<>();
-	private final LinkedList<ISubscriber<SoundscapeModel, SoundModel>> console2ActiveSsSubscribers = new LinkedList<>();
-	private final LinkedList<ISubscriber<SoundscapeModel, SoundModel>> effectsSubscribers = new LinkedList<>();
-	private final LinkedList<ISubscriber<SoundscapeModel, SoundModel>> previewSubscribers = new LinkedList<>();
+	private final LinkedList<IIterableSubscriber<SoundscapeSetModel, SoundscapeModel>> console1Subscribers = new LinkedList<>();
+	private final LinkedList<IIterableSubscriber<SoundscapeSetModel, SoundscapeModel>> console2Subscribers = new LinkedList<>();
+	private final LinkedList<IIterableSubscriber<SoundscapeModel, SoundModel>> console1ActiveSsSubscribers = new LinkedList<>();
+	private final LinkedList<IIterableSubscriber<SoundscapeModel, SoundModel>> console2ActiveSsSubscribers = new LinkedList<>();
+	private final LinkedList<IIterableSubscriber<SoundscapeModel, SoundModel>> effectsSubscribers = new LinkedList<>();
+	private final LinkedList<IIterableSubscriber<SoundscapeModel, SoundModel>> previewSubscribers = new LinkedList<>();
 	
 	//utility properties
 	private static int runtimeId;
@@ -114,14 +118,14 @@ public class OperationsManager {
 	 * @param console
 	 * @param subscribers
 	 */
-	private void notifyConsoleSubscribers(SoundscapeSetModel console, int removedIndex, LinkedList<ISubscriber<SoundscapeSetModel, SoundscapeModel>> subscribers){
-		for (ISubscriber<SoundscapeSetModel, SoundscapeModel> subscriber : subscribers){
+	private void publishConsole(SoundscapeSetModel console, int removedIndex, LinkedList<IIterableSubscriber<SoundscapeSetModel, SoundscapeModel>> subscribers){
+		for (IIterableSubscriber<SoundscapeSetModel, SoundscapeModel> subscriber : subscribers){
 			subscriber.notifySubscriber(console, removedIndex);
 		}
 	}
 	
-	private void notifyConsoleSubscribers(int index, SoundscapeSetModel console, SoundscapeModel ss, LinkedList<ISubscriber<SoundscapeSetModel, SoundscapeModel>> subscribers) {
-		for (ISubscriber<SoundscapeSetModel, SoundscapeModel> subscriber : subscribers){
+	private void publishConsole(int index, SoundscapeSetModel console, SoundscapeModel ss, LinkedList<IIterableSubscriber<SoundscapeSetModel, SoundscapeModel>> subscribers) {
+		for (IIterableSubscriber<SoundscapeSetModel, SoundscapeModel> subscriber : subscribers){
 			subscriber.notifySubscriber(index, console, ss);
 		}
 	}
@@ -131,14 +135,14 @@ public class OperationsManager {
 	 * @param ss
 	 * @param subscribers
 	 */
-	private void notifyPanelSubscribers(SoundscapeModel ss, int removedIndex, LinkedList<ISubscriber<SoundscapeModel, SoundModel>> subscribers){
-		for (ISubscriber<SoundscapeModel, SoundModel> subscriber : subscribers){
+	private void publishPanel(SoundscapeModel ss, int removedIndex, LinkedList<IIterableSubscriber<SoundscapeModel, SoundModel>> subscribers){
+		for (IIterableSubscriber<SoundscapeModel, SoundModel> subscriber : subscribers){
 			subscriber.notifySubscriber(ss, removedIndex);
 		}
 	}
 	
-	private void notifyPanelSubscribers(int index, SoundscapeModel ss, SoundModel sound, LinkedList<ISubscriber<SoundscapeModel, SoundModel>> subscribers){
-		for (ISubscriber<SoundscapeModel, SoundModel> subscriber : subscribers){
+	private void publishPanel(int index, SoundscapeModel ss, SoundModel sound, LinkedList<IIterableSubscriber<SoundscapeModel, SoundModel>> subscribers){
+		for (IIterableSubscriber<SoundscapeModel, SoundModel> subscriber : subscribers){
 			subscriber.notifySubscriber(index, ss, sound);
 		}
 	}
@@ -148,7 +152,7 @@ public class OperationsManager {
 	 * @param c
 	 * @param subscriber
 	 */
-	public void subscribeToConsole(Sections c, ISubscriber<SoundscapeSetModel, SoundscapeModel> subscriber){
+	public void subscribeToConsole(Sections c, IIterableSubscriber<SoundscapeSetModel, SoundscapeModel> subscriber){
 		switch (c){
 		case CONSOLE1:
 			this.console1Subscribers.add(subscriber);
@@ -166,7 +170,7 @@ public class OperationsManager {
 	 * @param c
 	 * @param subscriber
 	 */
-	public void subscribeToActiveSoundscape(Sections c, ISubscriber<SoundscapeModel, SoundModel> subscriber){
+	public void subscribeToActiveSoundscape(Sections c, IIterableSubscriber<SoundscapeModel, SoundModel> subscriber){
 		switch(c){
 		case CONSOLE1:
 			this.console1ActiveSsSubscribers.add(subscriber);
@@ -183,7 +187,7 @@ public class OperationsManager {
 	 * 
 	 * @param subscriber
 	 */
-	public void subscribeToEffects(ISubscriber<SoundscapeModel, SoundModel> subscriber){
+	public void subscribeToEffects(IIterableSubscriber<SoundscapeModel, SoundModel> subscriber){
 		this.effectsSubscribers.add(subscriber);
 	}
 	
@@ -191,7 +195,7 @@ public class OperationsManager {
 	 * 
 	 * @param subscriber
 	 */
-	public void subscribeToPreview(ISubscriber<SoundscapeModel, SoundModel> subscriber){
+	public void subscribeToPreview(IIterableSubscriber<SoundscapeModel, SoundModel> subscriber){
 		this.previewSubscribers.add(subscriber);
 	}
 	
@@ -209,19 +213,19 @@ public class OperationsManager {
 	public void setActiveSoundscape(Sections console, int ssid) throws IllegalArgumentException, NoMatchFoundException {
 		if (console == OperationsManager.Sections.CONSOLE1){
 			this.console1 = this.console1.setActiveSoundscape(this.console1.getSoundscapeBySsid(ssid));
-			this.notifyConsoleSubscribers(this.console1, -1, this.console1Subscribers);
-			this.notifyPanelSubscribers(this.console1.activeSoundscape, -1, this.console1ActiveSsSubscribers);
+			this.publishConsole(this.console1, -1, this.console1Subscribers);
+			this.publishPanel(this.console1.activeSoundscape, -1, this.console1ActiveSsSubscribers);
 		} else if (console == OperationsManager.Sections.CONSOLE2){
 			this.console2 = this.console2.setActiveSoundscape(this.console2.getSoundscapeBySsid(ssid));
-			this.notifyConsoleSubscribers(this.console2, -1, this.console2Subscribers);
-			this.notifyPanelSubscribers(this.console2.activeSoundscape, -1, this.console2ActiveSsSubscribers);
+			this.publishConsole(this.console2, -1, this.console2Subscribers);
+			this.publishPanel(this.console2.activeSoundscape, -1, this.console2ActiveSsSubscribers);
 		} else{
 			throw new IllegalArgumentException("Invalid section passed");
 		}
 	}
 	
 	/* All below methods operate on the active soundscape. In order for a soundscape
-	 * to be modified by the gui, it must be active
+	 * to be modified by any observers, it must be active
 	 */
 	
 	/**
@@ -235,24 +239,24 @@ public class OperationsManager {
 		
 		case CONSOLE1:
 			this.console1 = setSoundscapeVolume(this.console1, volume);
-			notifyConsoleSubscribers(this.console1.activeSoundscapeIndex, this.console1, this.console1.activeSoundscape, this.console1Subscribers);
-			notifyPanelSubscribers(this.console1.activeSoundscape, -1, this.console1ActiveSsSubscribers);
+			publishConsole(this.console1.activeSoundscapeIndex, this.console1, this.console1.activeSoundscape, this.console1Subscribers);
+			publishPanel(this.console1.activeSoundscape, -1, this.console1ActiveSsSubscribers);
 			break;
 			
 		case CONSOLE2:
 			this.console2 = setSoundscapeVolume(this.console2, volume);
-			notifyConsoleSubscribers(this.console2.activeSoundscapeIndex, this.console2, this.console2.activeSoundscape, this.console2Subscribers);
-			notifyPanelSubscribers(this.console2.activeSoundscape, -1, this.console2ActiveSsSubscribers);
+			publishConsole(this.console2.activeSoundscapeIndex, this.console2, this.console2.activeSoundscape, this.console2Subscribers);
+			publishPanel(this.console2.activeSoundscape, -1, this.console2ActiveSsSubscribers);
 			break;
 			
 		case EFFECTS:
 			this.effects = this.effects.setMasterVolume(volume);
-			notifyPanelSubscribers(this.effects, -1, this.effectsSubscribers);
+			publishPanel(this.effects, -1, this.effectsSubscribers);
 			break;
 			
 		case PREVIEW:
 			this.preview = this.preview.setMasterVolume(volume);
-			notifyPanelSubscribers(this.preview, -1, this.previewSubscribers);
+			publishPanel(this.preview, -1, this.previewSubscribers);
 			break;
 			
 		default:
@@ -340,24 +344,24 @@ public class OperationsManager {
 		
 		case CONSOLE1:
 			this.console1 = this.console1.addSoundscape(ss).setActiveSoundscape(ss);
-			notifyConsoleSubscribers(this.console1.getTotalSoundscapes() - 1, this.console1, ss, this.console1Subscribers);
-			notifyPanelSubscribers(this.console1.activeSoundscape, -1, this.console1ActiveSsSubscribers);
+			publishConsole(this.console1.getTotalSoundscapes() - 1, this.console1, ss, this.console1Subscribers);
+			publishPanel(this.console1.activeSoundscape, -1, this.console1ActiveSsSubscribers);
 			break;
 			
 		case CONSOLE2:
 			this.console2 = this.console2.addSoundscape(ss).setActiveSoundscape(ss);
-			notifyConsoleSubscribers(this.console2.getTotalSoundscapes() - 1, this.console2, ss, this.console2Subscribers);
-			notifyPanelSubscribers(this.console2.activeSoundscape, -1, this.console2ActiveSsSubscribers);
+			publishConsole(this.console2.getTotalSoundscapes() - 1, this.console2, ss, this.console2Subscribers);
+			publishPanel(this.console2.activeSoundscape, -1, this.console2ActiveSsSubscribers);
 			break;
 			
 		case EFFECTS:
 			this.effects = ss;
-			notifyPanelSubscribers(this.effects, -1, this.effectsSubscribers);
+			publishPanel(this.effects, -1, this.effectsSubscribers);
 			break;
 			
 		case PREVIEW:
 			this.preview = ss;
-			notifyPanelSubscribers(this.preview, -1, this.previewSubscribers);
+			publishPanel(this.preview, -1, this.previewSubscribers);
 			break;
 			
 		default:
@@ -378,30 +382,68 @@ public class OperationsManager {
 		
 		case CONSOLE1:
 			ss = this.console1.activeSoundscape
-				.setIsPlaying(this.console1.activeSoundscape.playState != SoundscapeModel.PlayState.STOPPED);
+				.setIsPlaying(this.console1.activeSoundscape.playState == SoundscapeModel.PlayState.STOPPED);
 			this.console1 = this.console1.replaceSoundscape(ss);
-			this.notifyConsoleSubscribers(this.console1.activeSoundscapeIndex, this.console1, this.console1.activeSoundscape, this.console1Subscribers);
-			this.notifyPanelSubscribers(this.console1.activeSoundscape, -1, this.console1ActiveSsSubscribers);
+			this.publishConsole(this.console1.activeSoundscapeIndex, this.console1, this.console1.activeSoundscape, this.console1Subscribers);
+			this.publishPanel(this.console1.activeSoundscape, -1, this.console1ActiveSsSubscribers);
 			break;
 			
 		case CONSOLE2:
 			ss = this.console2.activeSoundscape
-				.setIsPlaying(this.console2.activeSoundscape.playState != SoundscapeModel.PlayState.STOPPED);
+				.setIsPlaying(this.console2.activeSoundscape.playState == SoundscapeModel.PlayState.STOPPED);
 			this.console2 = this.console2.replaceSoundscape(ss);
-			this.notifyConsoleSubscribers(this.console2.activeSoundscapeIndex, this.console2, this.console2.activeSoundscape, this.console2Subscribers);
-			this.notifyPanelSubscribers(this.console2.activeSoundscape, -1, this.console2ActiveSsSubscribers);
+			this.publishConsole(this.console2.activeSoundscapeIndex, this.console2, this.console2.activeSoundscape, this.console2Subscribers);
+			this.publishPanel(this.console2.activeSoundscape, -1, this.console2ActiveSsSubscribers);
 			break;
 			
 		case EFFECTS:
 			this.effects = this.effects
-				.setIsPlaying(this.effects.playState != SoundscapeModel.PlayState.STOPPED);
-			this.notifyPanelSubscribers(this.effects, -1, this.effectsSubscribers);
+				.setIsPlaying(this.effects.playState == SoundscapeModel.PlayState.STOPPED);
+			this.publishPanel(this.effects, -1, this.effectsSubscribers);
 			break;
 			
 		case PREVIEW:
 			this.preview = this.preview
-				.setIsPlaying(this.preview.playState != SoundscapeModel.PlayState.STOPPED);
-			this.notifyPanelSubscribers(this.preview, -1, this.previewSubscribers);
+				.setIsPlaying(this.preview.playState == SoundscapeModel.PlayState.STOPPED);
+			this.publishPanel(this.preview, -1, this.previewSubscribers);
+			break;
+			
+		default:
+			throw new IllegalArgumentException("Invalid section");
+		}
+	}
+	
+	public void setSoundscapeIsPlaying(Sections section, boolean isPlaying) {
+		SoundscapeModel ss;
+		
+		switch(section){
+		
+		case CONSOLE1:
+			ss = this.console1.activeSoundscape
+				.setIsPlaying(isPlaying);
+			this.console1 = this.console1.replaceSoundscape(ss);
+			this.publishConsole(this.console1.activeSoundscapeIndex, this.console1, this.console1.activeSoundscape, this.console1Subscribers);
+			this.publishPanel(this.console1.activeSoundscape, -1, this.console1ActiveSsSubscribers);
+			break;
+			
+		case CONSOLE2:
+			ss = this.console2.activeSoundscape
+				.setIsPlaying(isPlaying);
+			this.console2 = this.console2.replaceSoundscape(ss);
+			this.publishConsole(this.console2.activeSoundscapeIndex, this.console2, this.console2.activeSoundscape, this.console2Subscribers);
+			this.publishPanel(this.console2.activeSoundscape, -1, this.console2ActiveSsSubscribers);
+			break;
+			
+		case EFFECTS:
+			this.effects = this.effects
+				.setIsPlaying(isPlaying);
+			this.publishPanel(this.effects, -1, this.effectsSubscribers);
+			break;
+			
+		case PREVIEW:
+			this.preview = this.preview
+				.setIsPlaying(isPlaying);
+			this.publishPanel(this.preview, -1, this.previewSubscribers);
 			break;
 			
 		default:
@@ -417,25 +459,25 @@ public class OperationsManager {
 		case CONSOLE1:
 			ss = this.console1.activeSoundscape.addSound(sound);
 			this.console1 = this.console1.replaceSoundscape(ss);
-			this.notifyConsoleSubscribers(this.console1.activeSoundscapeIndex, this.console1, this.console1.activeSoundscape, this.console1Subscribers);
-			this.notifyPanelSubscribers(this.console1.activeSoundscape.getSoundIndex(sound), this.console1.activeSoundscape, sound, this.console1ActiveSsSubscribers);
+			this.publishConsole(this.console1.activeSoundscapeIndex, this.console1, this.console1.activeSoundscape, this.console1Subscribers);
+			this.publishPanel(this.console1.activeSoundscape.getSoundIndex(sound), this.console1.activeSoundscape, sound, this.console1ActiveSsSubscribers);
 			break;
 			
 		case CONSOLE2:
 			ss = this.console2.activeSoundscape.addSound(sound);
 			this.console2 = this.console2.replaceSoundscape(ss);
-			this.notifyConsoleSubscribers(this.console2.activeSoundscapeIndex, this.console2, this.console2.activeSoundscape, this.console2Subscribers);
-			this.notifyPanelSubscribers(this.console2.activeSoundscape.getSoundIndex(sound), this.console2.activeSoundscape, sound, this.console2ActiveSsSubscribers);
+			this.publishConsole(this.console2.activeSoundscapeIndex, this.console2, this.console2.activeSoundscape, this.console2Subscribers);
+			this.publishPanel(this.console2.activeSoundscape.getSoundIndex(sound), this.console2.activeSoundscape, sound, this.console2ActiveSsSubscribers);
 			break;
 			
 		case EFFECTS:
 			this.effects = this.effects.addSound(sound);
-			this.notifyPanelSubscribers(this.effects.getSoundIndex(sound), this.effects, sound, this.effectsSubscribers);
+			this.publishPanel(this.effects.getSoundIndex(sound), this.effects, sound, this.effectsSubscribers);
 			break;
 			
 		case PREVIEW:
 			this.preview = this.preview.addSound(sound);
-			this.notifyPanelSubscribers(this.preview.getSoundIndex(sound), this.preview, sound, this.previewSubscribers);
+			this.publishPanel(this.preview.getSoundIndex(sound), this.preview, sound, this.previewSubscribers);
 			break;
 			
 		default:
@@ -451,25 +493,25 @@ public class OperationsManager {
 		case CONSOLE1:
 			ss = this.console1.activeSoundscape.removeSound(index);
 			this.console1 = this.console1.replaceSoundscape(ss);
-			this.notifyConsoleSubscribers(this.console1.activeSoundscapeIndex, this.console1, this.console1.activeSoundscape, this.console1Subscribers);
-			this.notifyPanelSubscribers(this.console1.activeSoundscape, index, this.console1ActiveSsSubscribers);
+			this.publishConsole(this.console1.activeSoundscapeIndex, this.console1, this.console1.activeSoundscape, this.console1Subscribers);
+			this.publishPanel(this.console1.activeSoundscape, index, this.console1ActiveSsSubscribers);
 			break;
 			
 		case CONSOLE2:
 			ss = this.console2.activeSoundscape.removeSound(index);
 			this.console2 = this.console2.replaceSoundscape(ss);
-			this.notifyConsoleSubscribers(this.console2.activeSoundscapeIndex, this.console2, this.console2.activeSoundscape, this.console2Subscribers);
-			this.notifyPanelSubscribers(this.console2.activeSoundscape, index, this.console2ActiveSsSubscribers);
+			this.publishConsole(this.console2.activeSoundscapeIndex, this.console2, this.console2.activeSoundscape, this.console2Subscribers);
+			this.publishPanel(this.console2.activeSoundscape, index, this.console2ActiveSsSubscribers);
 			break;
 			
 		case EFFECTS:
 			this.effects = this.effects.removeSound(index);
-			this.notifyPanelSubscribers(this.effects, index, this.effectsSubscribers);
+			this.publishPanel(this.effects, index, this.effectsSubscribers);
 			break;
 			
 		case PREVIEW:
 			this.preview = this.preview.removeSound(index);
-			this.notifyPanelSubscribers(this.preview, index, this.previewSubscribers);
+			this.publishPanel(this.preview, index, this.previewSubscribers);
 			break;
 			
 		default:
@@ -498,25 +540,25 @@ public class OperationsManager {
 		case CONSOLE1:
 			ss = modifySound(this.console1.activeSoundscape, index, playType, isPlaying, volume);
 			this.console1 = this.console1.replaceSoundscape(ss);
-			this.notifyConsoleSubscribers(this.console1.activeSoundscapeIndex, this.console1, this.console1.activeSoundscape, this.console1Subscribers);
-			this.notifyPanelSubscribers(index, this.console1.activeSoundscape, this.console1.activeSoundscape.getSoundAtIndex(index), this.console1ActiveSsSubscribers);
+			this.publishConsole(this.console1.activeSoundscapeIndex, this.console1, this.console1.activeSoundscape, this.console1Subscribers);
+			this.publishPanel(index, this.console1.activeSoundscape, this.console1.activeSoundscape.getSoundAtIndex(index), this.console1ActiveSsSubscribers);
 			break;
 			
 		case CONSOLE2:
 			ss = modifySound(this.console2.activeSoundscape, index, playType, isPlaying, volume);
 			this.console2 = this.console2.replaceSoundscape(ss);
-			this.notifyConsoleSubscribers(this.console2.activeSoundscapeIndex, this.console2, this.console2.activeSoundscape, this.console2Subscribers);
-			this.notifyPanelSubscribers(index, this.console2.activeSoundscape, this.console2.activeSoundscape.getSoundAtIndex(index), this.console2ActiveSsSubscribers);
+			this.publishConsole(this.console2.activeSoundscapeIndex, this.console2, this.console2.activeSoundscape, this.console2Subscribers);
+			this.publishPanel(index, this.console2.activeSoundscape, this.console2.activeSoundscape.getSoundAtIndex(index), this.console2ActiveSsSubscribers);
 			break;
 			
 		case EFFECTS:
 			this.effects = modifySound(this.effects, index, playType, isPlaying, volume);
-			this.notifyPanelSubscribers(index, this.effects, this.effects.getSoundAtIndex(index), this.effectsSubscribers);
+			this.publishPanel(index, this.effects, this.effects.getSoundAtIndex(index), this.effectsSubscribers);
 			break;
 			
 		case PREVIEW:
 			this.preview = modifySound(this.preview, index, playType, isPlaying, volume);
-			this.notifyPanelSubscribers(index, this.preview, this.preview.getSoundAtIndex(index), this.previewSubscribers);
+			this.publishPanel(index, this.preview, this.preview.getSoundAtIndex(index), this.previewSubscribers);
 			break;
 			
 		default:
@@ -554,7 +596,7 @@ public class OperationsManager {
 		}
 		
 		if (changes > 1){
-			sound = sound.setAll(isPlaying, playType, volume);
+			sound = sound.setAll(isPlaying, playType, volume, sound.randomSettings);
 		} else if (p){
 			sound = sound.setPlayType(playType);
 		} else if (iP){
@@ -562,6 +604,70 @@ public class OperationsManager {
 		} else if (v){
 			sound = sound.setVolume(volume);
 		}
+		
+		return ss.replaceSound(index, sound);
+	}
+	
+	/**
+	 * Modify the random play settings for a sound
+	 * @param section
+	 * @param index of the sound in the soundscape
+	 * @param minDelay
+	 * @param maxDelay
+	 * @param minRepeats
+	 * @param maxRepeats
+	 */
+	public void modifySoundRandomPlaySettings(
+			Sections section,
+			int index,
+			int minDelay,
+			int maxDelay,
+			int minRepeats,
+			int maxRepeats) {
+		RandomPlaySettings newSettings = new RandomPlaySettings(minDelay, maxDelay, minRepeats, maxRepeats);
+		SoundscapeModel ss;
+		
+		switch(section){
+		
+		case CONSOLE1:
+			ss = modifySoundRandomPlaySettings(this.console1.activeSoundscape, index, newSettings);
+			this.console1 = this.console1.replaceSoundscape(ss);
+			this.publishConsole(this.console1.activeSoundscapeIndex, this.console1, this.console1.activeSoundscape, this.console1Subscribers);
+			this.publishPanel(index, this.console1.activeSoundscape, this.console1.activeSoundscape.getSoundAtIndex(index), this.console1ActiveSsSubscribers);
+			break;
+			
+		case CONSOLE2:
+			ss = modifySoundRandomPlaySettings(this.console2.activeSoundscape, index, newSettings);
+			this.console2 = this.console2.replaceSoundscape(ss);
+			this.publishConsole(this.console2.activeSoundscapeIndex, this.console2, this.console2.activeSoundscape, this.console2Subscribers);
+			this.publishPanel(index, this.console2.activeSoundscape, this.console2.activeSoundscape.getSoundAtIndex(index), this.console2ActiveSsSubscribers);
+			break;
+			
+		case EFFECTS:
+			this.effects = modifySoundRandomPlaySettings(this.effects, index, newSettings);
+			this.publishPanel(index, this.effects, this.effects.getSoundAtIndex(index), this.effectsSubscribers);
+			break;
+			
+		case PREVIEW:
+			this.preview = modifySoundRandomPlaySettings(this.preview, index, newSettings);
+			this.publishPanel(index, this.preview, this.preview.getSoundAtIndex(index), this.previewSubscribers);
+			break;
+			
+		default:
+			throw new IllegalArgumentException("Invalid section");
+		}
+	}
+	
+	/**
+	 * Private helper method for modifySoundRandomPlaySettings
+	 * @param ss
+	 * @param index
+	 * @param randomSettings
+	 * @return
+	 */
+	private SoundscapeModel modifySoundRandomPlaySettings(SoundscapeModel ss, int index, RandomPlaySettings randomSettings) {
+		SoundModel sound = ss.getSoundAtIndex(index);
+		sound = sound.setRandomPlaySettings(randomSettings);
 		
 		return ss.replaceSound(index, sound);
 	}
@@ -581,25 +687,25 @@ public class OperationsManager {
 		case CONSOLE1:
 			ss = this.fadeSoundscape(this.console1.activeSoundscape, fade, durationMs);
 			this.console1 = this.console1.replaceSoundscape(ss);
-			this.notifyConsoleSubscribers(this.console1.activeSoundscapeIndex, this.console1, this.console1.activeSoundscape, this.console1Subscribers);
-			this.notifyPanelSubscribers(this.console1.activeSoundscape, -1, this.console1ActiveSsSubscribers);
+			this.publishConsole(this.console1.activeSoundscapeIndex, this.console1, this.console1.activeSoundscape, this.console1Subscribers);
+			this.publishPanel(this.console1.activeSoundscape, -1, this.console1ActiveSsSubscribers);
 			break;
 			
 		case CONSOLE2:
 			ss = this.fadeSoundscape(this.console2.activeSoundscape, fade, durationMs);
 			this.console2 = this.console2.replaceSoundscape(ss);
-			this.notifyConsoleSubscribers(this.console2.activeSoundscapeIndex, this.console2, this.console2.activeSoundscape, this.console2Subscribers);
-			this.notifyPanelSubscribers(this.console2.activeSoundscape, -1, this.console2ActiveSsSubscribers);
+			this.publishConsole(this.console2.activeSoundscapeIndex, this.console2, this.console2.activeSoundscape, this.console2Subscribers);
+			this.publishPanel(this.console2.activeSoundscape, -1, this.console2ActiveSsSubscribers);
 			break;
 			
 		case EFFECTS:
 			this.effects = this.fadeSoundscape(this.effects, fade, durationMs);
-			this.notifyPanelSubscribers(this.effects, -1, this.effectsSubscribers);
+			this.publishPanel(this.effects, -1, this.effectsSubscribers);
 			break;
 			
 		case PREVIEW:
 			this.preview = this.fadeSoundscape(this.preview, fade, durationMs);
-			this.notifyPanelSubscribers(this.preview, -1, this.previewSubscribers);
+			this.publishPanel(this.preview, -1, this.previewSubscribers);
 			break;
 			
 		default:

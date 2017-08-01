@@ -3,27 +3,45 @@ package ase.fmodex_sound_engine;
 //Java imports
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Vector;
 
-//ASE imports
-import ase.operations.OperationsManager.Sections;
 
 //Native FmodEx Imports
 import org.jouvieje.FmodEx.ChannelGroup;
-import org.jouvieje.FmodEx.Channel;
+
+import ase.operations.ISubscriber;
 
 /**
- * Simple wrapper class that wraps ChannelGroup and contains a
- * HashMap to its associated sounds (channels)
+ * Wrapper class that wraps ChannelGroup and contains a
+ * HashMap to its associated sounds (channels).<br/>
+ * Also contains vectors for subscribers to the soundscape
+ * represented by this channel group.
  * Package scope as only FmodExEngine should access
  * @author Kevin C. Gall
  *
  */
 class ChannelGroupWrapper {
 	public final ChannelGroup channelGroup = new ChannelGroup();
-	public final Sections section;
-	public final Map<String, Channel> channels = new HashMap<>();
+	public final Map<String, PlaybackObject> playbackObjects = new HashMap<>();
+	public final Vector<ISubscriber<Boolean>> fadeEndSubscribers = new Vector<>();
+	public final Vector<ISubscriber<String>> soundEndSubscribers = new Vector<>();
+	public final Map<String, RandomPlayRunner> activeRandomPlayers = new HashMap<>();
 	
-	public ChannelGroupWrapper (Sections section) {
-		this.section = section;
+	private boolean isPlaying = false;
+	private boolean isFading = false;
+	
+	public boolean isPlaying() {
+		return isPlaying;
+	}
+	public void setPlaying(boolean isPlaying) {
+		this.isPlaying = isPlaying;
+	}
+	
+	public boolean isFading() {
+		return isFading;
+	}
+	
+	public void setFading(boolean isFading) {
+		this.isFading = isFading;
 	}
 }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import ase.operations.SoundModel.PlayType;
 
 import static java.lang.System.exit;
 
@@ -38,8 +39,18 @@ public class TestDataProvider {
 				exit(-1);
 				return null;
 			}
+			PlayType playType;
+			if (testCount % 3 == 0) {
+				playType = SINGLE;
+			} else if (testCount % 3 == 1) {
+				playType = LOOP;
+			} else {
+				playType = RANDOM;
+			}
 			
-			SoundModel newSound = new SoundModel(filePath, "test" + testCount, SINGLE, true, 1, size);
+			RandomPlaySettings randomSettings = new RandomPlaySettings(0, 10, 0, 5);
+			
+			SoundModel newSound = new SoundModel(filePath, "test" + testCount, playType, true, 1, size, randomSettings);
 			sounds[testCount++] = newSound;
 		}
 		

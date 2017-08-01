@@ -74,7 +74,7 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * array that will never be modified afterwards. Internally, this object manages shared
 	 * arrays but maintains immutability
 	 * @param ssid
-	 * @param runtimeId TODO
+	 * @param runtimeId
 	 * @param masterVolume
 	 * @param sounds
 	 * @param name
@@ -197,10 +197,18 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @param name
 	 * @param currentPlayType
 	 * @param isPlaying
+	 * @param sizeInBytes
+	 * @param randomSettings
 	 * @return
 	 */
-	SoundscapeModel addSound(Path filePath, String name, SoundModel.PlayType currentPlayType, boolean isPlaying, long sizeInBytes) {
-		SoundModel newSound = new SoundModel(filePath, name, currentPlayType, isPlaying, 1.0, sizeInBytes);
+	SoundscapeModel addSound(
+			Path filePath,
+			String name,
+			SoundModel.PlayType currentPlayType,
+			boolean isPlaying,
+			long sizeInBytes,
+			RandomPlaySettings randomSettings) {
+		SoundModel newSound = new SoundModel(filePath, name, currentPlayType, isPlaying, 1.0, sizeInBytes, randomSettings);
 		
 		Vector<SoundModel> newSounds = cloneVector();
 		
@@ -210,8 +218,20 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 				this.masterVolume, newSounds, this.name, this.playState, this.fadeDuration);
 	}
 	
-	SoundscapeModel addSound(Path filePath, String name, SoundModel.PlayType currentPlayType, long sizeInBytes) {
-		return this.addSound(filePath, name, currentPlayType, true, sizeInBytes);
+	/**
+	 * Adds a sound with random play settings defaulted and set as playing
+	 * @param filePath
+	 * @param name
+	 * @param currentPlayType
+	 * @param sizeInBytes
+	 * @return
+	 */
+	SoundscapeModel addSound(
+			Path filePath,
+			String name,
+			SoundModel.PlayType currentPlayType,
+			long sizeInBytes) {
+		return this.addSound(filePath, name, currentPlayType, true, sizeInBytes, new RandomPlaySettings(1, 9999, 1, 9999));
 	}
 	
 	/**

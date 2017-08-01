@@ -5,6 +5,8 @@ import ase.bridge.SoundEngineManager;
 import ase.fmodex_sound_engine.FmodExEngine;
 import ase.bridge.SoundEngineException;
 import ase.operations.Log;
+import ase.views.Gui;
+
 import static ase.operations.OperationsManager.opsMgr;
 import static ase.operations.Log.LogLevel.PROD;
 import static ase.operations.Log.LogLevel.DEV;
@@ -23,7 +25,7 @@ import java.util.Scanner;
  *
  */
 public class Main {
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		SoundEngine stage = null;
 		SoundEngine preview = null;
 		Log logger = opsMgr.logger;
@@ -47,14 +49,22 @@ public class Main {
 		logger.log(DEBUG, "Initializing SoundEngineManager");
 		SoundEngineManager seMgr = new SoundEngineManager(stage, preview);
 		logger.log(DEBUG,  "SoundEngineManager initialized");
-		//Test code!
-		Scanner scan = new Scanner(System.in);
-		String s = scan.next();
-		while (!s.equals("q")) {
-			logger.log(DEBUG, "getting user input");
-			s = scan.next();
-			logger.log(DEBUG,  "got " + s);
-		}
-	}
 
+		logger.log(DEBUG, "Initializing GUI");
+		Gui app = new Gui();
+		
+		//TODO: Keep an eye out here. This might block UI interaction. Not sure
+		//exactly how Swing works in that regard...
+		while (app.isOpen()) {
+			Thread.sleep(500);
+		}
+		
+		try {
+			stage.shutdown();
+			preview.shutdown();
+		} catch (NullPointerException e) {
+			logger.log(DEBUG, e.getMessage());
+		}
+		logger.log(DEBUG, "Closing application");
+	}
 }

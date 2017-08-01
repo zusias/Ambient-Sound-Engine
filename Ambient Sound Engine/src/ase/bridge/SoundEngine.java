@@ -2,7 +2,9 @@ package ase.bridge;
 
 import ase.operations.SoundModel;
 import ase.operations.SoundscapeModel;
+import ase.operations.ISubscriber;
 import ase.operations.OperationsManager.Sections;
+import ase.operations.RandomPlaySettings;
 
 /**
  * <p>Abstract interface for a sound engine implementation.
@@ -110,6 +112,24 @@ public abstract class SoundEngine {
 	public abstract void setSoundPlaytype(int id, String symbol, SoundModel.PlayType playType) throws SoundEngineException;
 	
 	/**
+	 * Sets the play type of the sound. The sound engine implements the mechanics of the different types.
+	 * <br><br>
+	 * As of 3/24/17, there are 3 play types:
+	 * <ul>
+	 * 	<li>SINGLE</li>
+	 * 	<li>LOOP</li>
+	 * 	<li>RANDOM</li>
+	 * </ul>
+	 * This method updates the Random Play Settings stored with the sound
+	 * @param id Soundscape ID
+	 * @param symbol The symbol returned by the SoundEngine uniquely identifying the sound
+	 * @param playType
+	 * @param randomSettings The settings object attached to a sound
+	 * @throws SoundEngineException
+	 */
+	public abstract void setSoundPlaytype(int id, String symbol, SoundModel.PlayType playType, RandomPlaySettings randomSettings) throws SoundEngineException;
+	
+	/**
 	 * Change the volume of a particular soundscape
 	 * @param id Soundscape ID
 	 * @param newVolume Floating point between 0 and 1 inclusive. If not within limits,
@@ -148,7 +168,8 @@ public abstract class SoundEngine {
 	
 	/**
 	 * Volume doubles are floating point values between 0 and 1 inclusive. If not within limits,
-	 * will be rounded to the nearest valid value
+	 * will be rounded to the nearest valid value<br/>
+	 * NOTE: This method is not responsible for stopping a soundscape when a fade out is over.
 	 * @param id Soundscape Id
 	 * @param startVolume
 	 * @param endVolume
@@ -156,4 +177,30 @@ public abstract class SoundEngine {
 	 * @throws SoundEngineException
 	 */
 	public abstract void fadeSoundscape(int id, double startVolume, double endVolume, int ms) throws SoundEngineException;
+	
+	/**
+	 * Register a subscriber for when sounds are finished playing.
+	 * When a sound finishes, the subscriber will be notified that the sound whose
+	 * unique symbol is passed to the notifySubscriber method has stopped playing
+	 * @param id Soundscape ID
+	 * @param subscriber
+	 */
+	public abstract void subscribeToFinishedSounds(int id, ISubscriber<String> subscriber) throws SoundEngineException;
+	
+	/**
+	 * Register a subscriber for when a soundscape finishes fading.
+	 * The subscriber will be passed a PlayState indicating whether the
+	 * soundscape has stopped or is now playing.<br/>
+	 * If the fade is interrupted by another contradictory call to
+	 * the engine, the fade will be interrupted, and the subscriber will
+	 * never be notified that the fade has stopped, as it did not complete.
+	 * @param id Soundscape ID
+	 * @param subscriber
+	 */
+	public abstract void subscribeToFinishedFade(int id, ISubscriber<Boolean> subscriber) throws SoundEngineException;
+	
+	/**
+	 * Shuts down the sound engine, releasing any relevant resources
+	 */
+	public abstract void shutdown();
 }
