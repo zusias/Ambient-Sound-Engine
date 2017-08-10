@@ -1,15 +1,15 @@
 package ase.views.navigation.events;
 
-import java.awt.event.ActionEvent;
+import java.awt.AWTEvent;
 
 public abstract class NavigationEvent {
-	private final ActionEvent e;
+	private final AWTEvent e;
 	
-	public ActionEvent getEvent() {
+	public AWTEvent getEvent() {
 		return e;
 	}
 	
-	public NavigationEvent (ActionEvent e) {
+	public NavigationEvent (AWTEvent e) {
 		this.e = e;
 	}
 	

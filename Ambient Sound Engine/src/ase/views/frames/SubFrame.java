@@ -12,11 +12,12 @@ import java.util.Map;
 import javax.swing.JFrame;
 
 import ase.views.GuiSettings;
+import ase.views.events.SettingsEvent;
 
 public abstract class SubFrame extends JFrame {
 	private static final long serialVersionUID = 6347968712410658454L;
 	private static final Map<Class<? extends SubFrame>, SubFrame> currentFrames = new HashMap<>();
-	protected final GuiSettings settings;
+	protected GuiSettings settings;
 	
 	private final Class<? extends SubFrame> type;
 
@@ -43,6 +44,9 @@ public abstract class SubFrame extends JFrame {
 			try {
 				Constructor<? extends SubFrame> frameConstructor = type.getDeclaredConstructor(GuiSettings.class);
 				currentFrames.put(type, frameConstructor.newInstance(settings));
+				
+				//ensure that settings are applied to the new frame
+				opsMgr.eventBus.post(new SettingsEvent());
 			} catch (ReflectiveOperationException  ex) {
 				opsMgr.logger.log(PROD, "Critical failure in launching window");
 				opsMgr.logger.log(DEV, "Improper implementation of SubFrame. Error " + ex.getMessage());
@@ -62,5 +66,11 @@ public abstract class SubFrame extends JFrame {
 		}
 		
 		currentFrames.clear();
+	}
+	
+	protected void applySettings(SettingsEvent e) {
+		if (e.getNewSettings() != null) {
+			this.settings = e.getNewSettings();
+		}
 	}
 }

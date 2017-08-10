@@ -25,13 +25,27 @@ public class Log {
 	}
 	
 	public void log(LogLevel lv, String message){
-		if (this.lv == LogLevel.PROD && lv != LogLevel.PROD){
-			return;
-		}
-		if (this.lv == LogLevel.DEV && lv == LogLevel.DEBUG) {
-			return;
-		}
+		if (!shouldLog(lv)) {return;}
 		
 		System.out.println(message);
+	}
+	
+	public void log(LogLevel lv, StackTraceElement[] stackTrace) {
+		if (!shouldLog(lv)) {return;}
+		
+		for (StackTraceElement stackLine : stackTrace) {
+			System.out.println(stackLine.toString());
+		}
+	}
+	
+	private boolean shouldLog(LogLevel lv) {
+		if (this.lv == LogLevel.PROD && lv != LogLevel.PROD){
+			return false;
+		}
+		if (this.lv == LogLevel.DEV && lv == LogLevel.DEBUG) {
+			return false;
+		}
+		
+		return true;
 	}
 }

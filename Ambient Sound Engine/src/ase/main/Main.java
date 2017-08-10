@@ -6,6 +6,7 @@ import ase.fmodex_sound_engine.FmodExEngine;
 import ase.bridge.SoundEngineException;
 import ase.operations.Log;
 import ase.views.Gui;
+import ase.views.navigation.events.QuitEvent;
 
 import static ase.operations.OperationsManager.opsMgr;
 import static ase.operations.Log.LogLevel.PROD;
@@ -13,6 +14,8 @@ import static ase.operations.Log.LogLevel.DEV;
 import static ase.operations.Log.LogLevel.DEBUG;
 
 import java.util.Scanner;
+
+import com.google.common.eventbus.Subscribe;
 
 /**
  * Entry point into the Ambient Sound Engine.
@@ -25,12 +28,11 @@ import java.util.Scanner;
  *
  */
 public class Main {
-	public static void main(String[] args) throws InterruptedException {
-		SoundEngine stage = null;
-		SoundEngine preview = null;
-		Log logger = opsMgr.logger;
-		logger.log(DEBUG, "In main");
-		
+	private SoundEngine stage = null;
+	private SoundEngine preview = null;
+	private final Log logger = opsMgr.logger;
+	
+	public Main () {
 		try {
 			stage = new FmodExEngine();
 		} catch (SoundEngineException e){
@@ -51,20 +53,25 @@ public class Main {
 		logger.log(DEBUG,  "SoundEngineManager initialized");
 
 		logger.log(DEBUG, "Initializing GUI");
-		Gui app = new Gui();
+		Gui app = Gui.initGui();
 		
-		//TODO: Keep an eye out here. This might block UI interaction. Not sure
-		//exactly how Swing works in that regard...
-		while (app.isOpen()) {
-			Thread.sleep(500);
-		}
-		
+		opsMgr.eventBus.register(this);
+	}
+	
+	@Subscribe public void shutdownOnQuit(QuitEvent e) {
 		try {
 			stage.shutdown();
 			preview.shutdown();
-		} catch (NullPointerException e) {
-			logger.log(DEBUG, e.getMessage());
+		} catch (NullPointerException npe) {
+			opsMgr.logger.log(DEBUG, npe.getMessage());
 		}
-		logger.log(DEBUG, "Closing application");
+		opsMgr.logger.log(DEBUG, "Closing application");
+	}
+	
+	public static void main(String[] args) throws InterruptedException {
+		opsMgr.logger.log(DEBUG, "In main");
+		
+		//bootstrap
+		Main main = new Main();
 	}
 }

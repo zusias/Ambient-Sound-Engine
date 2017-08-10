@@ -6,7 +6,10 @@ import static ase.operations.Log.LogLevel.*;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
+import com.google.common.eventbus.Subscribe;
+
 import ase.views.GuiSettings;
+import ase.views.events.SettingsEvent;
 import ase.views.frames.AboutFrame;
 import ase.views.frames.HelpFrame;
 import ase.views.frames.SubFrame;
@@ -16,7 +19,7 @@ public class HelpMenu extends JMenu {
 	
 	private final JMenuItem help;
 	private final JMenuItem about;
-	private final GuiSettings settings;
+	private GuiSettings settings;
 	
 	public HelpMenu(GuiSettings settings) {
 		super("Help");
@@ -43,7 +46,11 @@ public class HelpMenu extends JMenu {
 		opsMgr.eventBus.register(this);
 	}
 
-	public void applySettings() {
+	@Subscribe public void applySettings(SettingsEvent e) {
+		if (e.getNewSettings() != null) {
+			settings = e.getNewSettings();
+		}
+		
 		this.setFont(settings.smallFont);
 		
 		help.setFont(settings.smallFont);

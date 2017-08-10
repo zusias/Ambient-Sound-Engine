@@ -110,6 +110,8 @@ public class OperationsManager {
 		this.effects = defaultEffects;
 		this.preview = defaultPreview;
 		
+		eventBus.register(this);
+		
 		logger.log(DEBUG, "Ending Ops Constructor");
 	}
 	

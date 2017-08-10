@@ -63,7 +63,7 @@ class SoundscapeSubscriberComposite {
 						soundEngine.setSoundscapeVolume(currentSoundscape.runtimeId, currentSoundscape.masterVolume);
 					} catch (SoundEngineException seEx) {
 						logger.log(LogLevel.DEV, "The sound engine has failed: " + seEx.getMessage());
-						logger.log(LogLevel.DEBUG, seEx.getStackTrace().toString());
+						logger.log(LogLevel.DEBUG, seEx.getStackTrace());
 					}
 				};
 	}
@@ -133,7 +133,7 @@ class SoundscapeSubscriberComposite {
 				}
 			} catch (SoundEngineException seEx){
 				logger.log(LogLevel.DEV, "The sound engine has failed: " + seEx.getMessage());
-				logger.log(LogLevel.DEBUG, seEx.getStackTrace().toString());
+				logger.log(LogLevel.DEBUG, seEx.getStackTrace());
 			} finally {
 				currentSoundscape = ss;
 			}
@@ -187,7 +187,7 @@ class SoundscapeSubscriberComposite {
 
 			} catch (SoundEngineException seEx) {
 				logger.log(Log.LogLevel.DEV, "The sound engine has failed: " + seEx.getMessage());
-				logger.log(Log.LogLevel.DEBUG, seEx.getStackTrace().toString());
+				logger.log(Log.LogLevel.DEBUG, seEx.getStackTrace());
 			} finally {
 				currentSoundscape = ss;
 			}

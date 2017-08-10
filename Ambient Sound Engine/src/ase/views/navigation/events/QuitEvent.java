@@ -1,9 +1,9 @@
 package ase.views.navigation.events;
 
-import java.awt.event.ActionEvent;
+import java.awt.AWTEvent;
 
 public class QuitEvent extends NavigationEvent {
-	public QuitEvent(ActionEvent e) {
+	public QuitEvent(AWTEvent e) {
 		super(e);
 	}
 	

@@ -88,7 +88,7 @@ public class FadeRunner implements Runnable {
 				soundEngine.playSoundscape(soundscapeId);
 			} catch (SoundEngineException seEx) {
 				logger.log(DEV, "Play soundscape failed!");
-				logger.log(DEBUG, seEx.getStackTrace().toString());
+				logger.log(DEBUG, seEx.getStackTrace());
 			}
 		}
 		
@@ -110,14 +110,14 @@ public class FadeRunner implements Runnable {
 					soundEngine.stopSoundscape(soundscapeId);
 				} catch(SoundEngineException seEx) {
 					logger.log(DEV, "Stop soundscape failed");
-					logger.log(DEBUG, seEx.getStackTrace().toString());
+					logger.log(DEBUG, seEx.getStackTrace());
 				}
 			}
 			
 			soundEngine.publishFinishedFade(soundscapeId, isPlaying);
 		} catch (InterruptedException interruptedEx) {
 			logger.log(DEV, "Fade runner interrupted!");
-			logger.log(DEBUG, interruptedEx.getStackTrace().toString());
+			logger.log(DEBUG, interruptedEx.getStackTrace());
 		}
 
 	}
