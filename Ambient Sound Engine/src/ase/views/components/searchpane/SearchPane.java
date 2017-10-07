@@ -1,8 +1,11 @@
-package ase.views.components.search_pane;
+package ase.views.components.searchpane;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
+import java.awt.Image;
 
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
@@ -15,7 +18,6 @@ import static ase.operations.OperationsManager.opsMgr;
 public class SearchPane extends JTabbedPane {
 	private static final long serialVersionUID = 4305458399682847468L;
 	private GuiSettings settings;
-
 	//Search Panel
 	private final JPanel searchPanel;
 	
@@ -30,6 +32,7 @@ public class SearchPane extends JTabbedPane {
 		
 		searchPanel = new SearchTab(settings);
 		addTab("Search", searchPanel);
+		
 		
 		historyPanel = new HistoryTab(settings);
 		addTab("History", historyPanel);

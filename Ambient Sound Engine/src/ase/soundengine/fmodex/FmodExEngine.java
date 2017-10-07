@@ -1,4 +1,4 @@
-package ase.fmodex_sound_engine;
+package ase.soundengine.fmodex;
 
 //Java imports
 import java.nio.ByteBuffer;
@@ -12,14 +12,13 @@ import java.util.concurrent.Executors;
 
 import static java.lang.System.exit;
 
-//ASE imports
-import ase.bridge.SoundEngine;
-import ase.bridge.SoundEngineException;
 import ase.operations.ISubscriber;
 import ase.operations.SoundModel;
 import ase.operations.SoundModel.PlayType;
 import ase.operations.SoundscapeModel;
 import ase.operations.SoundscapeModel.PlayState;
+import ase.soundengine.SoundEngine;
+import ase.soundengine.SoundEngineException;
 import ase.operations.OperationsManager;
 import ase.operations.OperationsManager.Sections;
 import ase.operations.RandomPlaySettings;

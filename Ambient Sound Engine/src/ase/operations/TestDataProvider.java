@@ -34,7 +34,7 @@ public class TestDataProvider {
 				size = OperationsManager.getFileSize(filePath);
 			} catch (IOException e){
 				OperationsManager.opsMgr.logger.log(DEV, "IO Error: " + e.getMessage());
-				OperationsManager.opsMgr.logger.log(DEBUG, e.getStackTrace().toString());
+				OperationsManager.opsMgr.logger.log(DEBUG, e.getStackTrace());
 				
 				exit(-1);
 				return null;

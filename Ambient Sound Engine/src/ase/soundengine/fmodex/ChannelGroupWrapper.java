@@ -1,4 +1,4 @@
-package ase.fmodex_sound_engine;
+package ase.soundengine.fmodex;
 
 //Java imports
 import java.util.HashMap;

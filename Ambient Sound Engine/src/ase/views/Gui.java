@@ -4,8 +4,8 @@ import javax.swing.ImageIcon;
 //GUI imports
 import javax.swing.JFrame;
 
-import ase.views.components.ConsolePane;
-import ase.views.components.search_pane.SearchPane;
+import ase.views.components.consolepane.ConsolePane;
+import ase.views.components.searchpane.SearchPane;
 import ase.views.events.SettingsEvent;
 import ase.views.frames.SubFrame;
 //ASE Views

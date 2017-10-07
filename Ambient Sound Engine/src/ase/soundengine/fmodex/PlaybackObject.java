@@ -1,4 +1,4 @@
-package ase.fmodex_sound_engine;
+package ase.soundengine.fmodex;
 
 //ASE imports
 import ase.operations.SoundModel.PlayType;

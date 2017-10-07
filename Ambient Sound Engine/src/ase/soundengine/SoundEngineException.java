@@ -1,4 +1,4 @@
-package ase.bridge;
+package ase.soundengine;
 
 /**
  * This exception class is meant to be extended by the implementing sound engine

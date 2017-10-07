@@ -1,9 +1,10 @@
-package ase.fmodex_sound_engine;
+package ase.soundengine.fmodex;
 
-import ase.bridge.SoundEngineException;
 import ase.operations.RandomPlaySettings;
-import static ase.fmodex_sound_engine.FmodExEngine.logger;
+import ase.soundengine.SoundEngineException;
+
 import static ase.operations.Log.LogLevel.*;
+import static ase.soundengine.fmodex.FmodExEngine.logger;
 
 import org.jouvieje.FmodEx.Channel;
 import org.jouvieje.FmodEx.Callbacks.FMOD_CHANNEL_CALLBACK;

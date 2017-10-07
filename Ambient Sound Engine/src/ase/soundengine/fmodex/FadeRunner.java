@@ -1,14 +1,13 @@
-package ase.fmodex_sound_engine;
+package ase.soundengine.fmodex;
 
-//Package imports
-import static ase.fmodex_sound_engine.FmodExEngine.fmodErrCheck;
-import static ase.fmodex_sound_engine.FmodExEngine.logger;
 import static ase.operations.Log.LogLevel.*;
+import static ase.soundengine.fmodex.FmodExEngine.fmodErrCheck;
+import static ase.soundengine.fmodex.FmodExEngine.logger;
 
 //Native FmodEx Imports
 import org.jouvieje.FmodEx.ChannelGroup;
 
-import ase.bridge.SoundEngineException;
+import ase.soundengine.SoundEngineException;
 
 /**
  * Runnable that fades a soundscape by setting the volume in

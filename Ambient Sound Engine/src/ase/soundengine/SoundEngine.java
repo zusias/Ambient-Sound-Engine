@@ -1,4 +1,4 @@
-package ase.bridge;
+package ase.soundengine;
 
 import ase.operations.SoundModel;
 import ase.operations.SoundscapeModel;

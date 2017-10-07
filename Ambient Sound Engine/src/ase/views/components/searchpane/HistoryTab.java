@@ -1,10 +1,13 @@
-package ase.views.components.search_pane;
+package ase.views.components.searchpane;
 
 import static ase.operations.OperationsManager.opsMgr;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 
 import com.google.common.eventbus.Subscribe;
 
@@ -29,7 +32,6 @@ public class HistoryTab extends SearchPaneTab {
 		add(soundscapeRadioButton, soundscapeRadioButtonGbc);
 		
 		add(soundRadioButton, soundRadioButtonGbc);
-		
 		
 		list1Label.setText("History");
 		add(list1Label, list1LabelGbc);

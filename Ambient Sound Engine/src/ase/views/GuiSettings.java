@@ -14,11 +14,18 @@ import java.util.Map;
  *
  */
 public class GuiSettings {
-	//General Settings
+	/* General Settings */
+	//Fonts / Text
 	public final Font smallFont;
 	public final Font mediumFont;
+	public final Font largeFont;
+	public final Color lightText;
+	
 	public final Color backgroundColor;
 	public final Color foregroundColor;
+	public final Color white;
+
+	/* Window Sizing */
 	
 	public final Dimension minimumWindowSize;
 	
@@ -40,23 +47,33 @@ public class GuiSettings {
 	//AboutFrame settings
 	public final Dimension aboutFrameDefaultSize;
 	
+	/* Buttons */
+	public final Dimension buttonSize;
+	
 	private GuiSettings(
 		Font smallFont,
 		Font mediumFont,
+		Font largeFont,
+		Color lightText,
 		Color backgroundColor,
 		Color foregroundColor,
+		Color white,
 		Dimension minimumWindowSize,
 		Dimension addSoundFrameDefaultSize,
 		Dimension manageFrameDefaultSize,
 		Dimension metadataFrameDefaultSize,
 		Dimension preferencesFrameDefaultSize,
 		Dimension helpFrameDefaultSize,
-		Dimension aboutFrameDefaultSize
+		Dimension aboutFrameDefaultSize,
+		Dimension buttonSize
 	) {
 		this.smallFont = smallFont;
 		this.mediumFont = mediumFont;
+		this.largeFont = largeFont;
+		this.lightText = lightText;
 		this.backgroundColor = backgroundColor;
 		this.foregroundColor = foregroundColor;
+		this.white = white;
 		this.minimumWindowSize = minimumWindowSize;
 		this.addSoundFrameDefaultSize = addSoundFrameDefaultSize;
 		this.manageFrameDefaultSize = manageFrameDefaultSize;
@@ -64,21 +81,26 @@ public class GuiSettings {
 		this.preferencesFrameDefaultSize = preferencesFrameDefaultSize;
 		this.helpFrameDefaultSize = helpFrameDefaultSize;
 		this.aboutFrameDefaultSize = aboutFrameDefaultSize;
+		this.buttonSize = buttonSize;
 	}
 	
 	public SettingsBuilder modifySettings() {
 		return new SettingsBuilder()
 				.setSmallFont(smallFont)
 				.setMediumFont(mediumFont)
+				.setLargeFont(largeFont)
+				.setLightText(lightText)
 				.setBackgroundColor(backgroundColor)
 				.setForegroundColor(foregroundColor)
+				.setWhite(white)
 				.setMinimumWindowSize(minimumWindowSize)
 				.setAddSoundFrameDefaultSize(addSoundFrameDefaultSize)
 				.setManageFrameDefaultSize(manageFrameDefaultSize)
 				.setMetadataFrameDefaultSize(metadataFrameDefaultSize)
 				.setPreferencesFrameDefaultSize(preferencesFrameDefaultSize)
 				.setHelpFrameDefaultSize(helpFrameDefaultSize)
-				.setAboutFrameDefaultSize(aboutFrameDefaultSize);
+				.setAboutFrameDefaultSize(aboutFrameDefaultSize)
+				.setButtonSize(buttonSize);
 	}
 	
 	public static class SettingsBuilder {
@@ -89,8 +111,11 @@ public class GuiSettings {
 		public SettingsBuilder() {
 			fonts.put("smallFont", new Font("Arial", 0, 12));
 			fonts.put("mediumFont", new Font("Tahoma", 0, 16));
+			fonts.put("largeFont", new Font("Tahoma", 0, 22));
+			colors.put("lightText", new Color(220,220,220));
 			colors.put("backgroundColor", new Color(100,100,100));
 			colors.put("foregroundColor", new Color(240,240,255));
+			colors.put("white", new Color(255,255,255));
 			dimensions.put("minimumWindowSize", new Dimension(815, 781));
 			dimensions.put("addSoundFrameDefaultSize", new Dimension(800, 900));
 			dimensions.put("manageFrameDefaultSize", new Dimension(1000, 600));
@@ -98,6 +123,7 @@ public class GuiSettings {
 			dimensions.put("preferencesFrameDefaultSize", new Dimension(550, 300));
 			dimensions.put("helpFrameDefaultSize", new Dimension(200, 200));
 			dimensions.put("aboutFrameDefaultSize", new Dimension(200, 400));
+			dimensions.put("buttonSize", new Dimension(25, 25));
 		}
 		
 		public SettingsBuilder setSmallFont (Font f) {
@@ -110,6 +136,16 @@ public class GuiSettings {
 			return this;
 		}
 		
+		public SettingsBuilder setLargeFont (Font f) {
+			fonts.put("largeFont", f);
+			return this;
+		}
+		
+		public SettingsBuilder setLightText (Color c) {
+			colors.put("lightText", c);
+			return this;
+		}
+		
 		public SettingsBuilder setBackgroundColor(Color c) {
 			colors.put("backgroundColor", c);
 			return this;
@@ -117,6 +153,11 @@ public class GuiSettings {
 		
 		public SettingsBuilder setForegroundColor(Color c) {
 			colors.put("foregroundColor", c);
+			return this;
+		}
+		
+		public SettingsBuilder setWhite(Color c) {
+			colors.put("white", c);
 			return this;
 		}
 		
@@ -155,19 +196,28 @@ public class GuiSettings {
 			return this;
 		}
 		
+		public SettingsBuilder setButtonSize(Dimension d) {
+			dimensions.put("buttonSize", d);
+			return this;
+		}
+		
 		public GuiSettings build() {
 			return new GuiSettings(
 				fonts.get("smallFont"),
 				fonts.get("mediumFont"),
+				fonts.get("largeFont"),
+				colors.get("lightText"),
 				colors.get("backgroundColor"),
 				colors.get("foregroundColor"),
+				colors.get("white"),
 				dimensions.get("minimumWindowSize"),
 				dimensions.get("addSoundFrameDefaultSize"),
 				dimensions.get("manageFrameDefaultSize"),
 				dimensions.get("metadataFrameDefaultSize"),
 				dimensions.get("preferencesFrameDefaultSize"),
 				dimensions.get("helpFrameDefaultSize"),
-				dimensions.get("aboutFrameDefaultSize")
+				dimensions.get("aboutFrameDefaultSize"),
+				dimensions.get("buttonSize")
 			);
 		}
 	}

@@ -1,4 +1,4 @@
-package ase.views.components.search_pane;
+package ase.views.components.searchpane;
 
 import static ase.operations.OperationsManager.opsMgr;
 import static ase.operations.Log.LogLevel.*;

@@ -1,10 +1,10 @@
 package ase.main;
 
-import ase.bridge.SoundEngine;
-import ase.bridge.SoundEngineManager;
-import ase.fmodex_sound_engine.FmodExEngine;
-import ase.bridge.SoundEngineException;
 import ase.operations.Log;
+import ase.soundengine.SoundEngine;
+import ase.soundengine.SoundEngineException;
+import ase.soundengine.SoundEngineManager;
+import ase.soundengine.fmodex.FmodExEngine;
 import ase.views.Gui;
 import ase.views.navigation.events.QuitEvent;
 
