@@ -10,8 +10,8 @@ public class SoundscapeControlRow extends ConsoleControlRow {
 	
 	private SoundscapeModel soundscape;
 	
-	public SoundscapeControlRow(GuiSettings settings, SoundscapeModel soundscape, int rowIndex, EventBus consoleEventBus, EventBus tabEventBus) {
-		super(settings, rowIndex, consoleEventBus, tabEventBus);
+	public SoundscapeControlRow(GuiSettings settings, SoundscapeModel soundscape, int rowIndex, EventBus tabEventBus) {
+		super(settings, rowIndex, tabEventBus);
 		
 		this.soundscape = soundscape;
 		
@@ -26,11 +26,14 @@ public class SoundscapeControlRow extends ConsoleControlRow {
 		this.soundscape = soundscape;
 		
 		volumeBar.setValue(getVolume());
+		
 		if (soundscape.playState == STOPPED) {
 			this.playButton.setIcon(SPEAKER_OFF_ICON);
 		} else {
 			this.playButton.setIcon(SPEAKER_ON_ICON);
 		}
+		
+		title.setText(soundscape.name);
 	}
 	
 	@Override

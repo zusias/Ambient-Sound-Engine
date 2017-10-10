@@ -6,6 +6,8 @@ import javax.swing.JPanel;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
+import ase.operations.OperationsManager.Sections;
+import ase.operations.events.ChangedSoundscapeSetEvent;
 import ase.views.GuiSettings;
 import ase.views.events.SettingsEvent;
 import static ase.operations.OperationsManager.opsMgr;
@@ -34,10 +36,6 @@ public class ConsolePane extends JPanel {
 	private final Console console2;
 	private final GridBagConstraints console2Gbc = new GridBagConstraints();
 	
-	//Console event busses. Allows the console to direct Ops Manager events
-	private final EventBus console1EventBus = new EventBus();
-	private final EventBus console2EventBus = new EventBus();
-	
 	public ConsolePane(GuiSettings settings) {
 		this.settings = settings;
 		
@@ -53,7 +51,7 @@ public class ConsolePane extends JPanel {
 		
 		add(console1Label, console1LabelGbc);
 		
-		console1 = new Console(settings, console1EventBus);
+		console1 = new Console(settings, Sections.CONSOLE1, opsMgr.getConsole1());
 		add(console1, console1Gbc);
 		
 		//Effects Panel Placeholder
@@ -63,7 +61,7 @@ public class ConsolePane extends JPanel {
 		
 		add(console2Label, console2LabelGbc);
 		
-		console2 = new Console(settings, console2EventBus);
+		console2 = new Console(settings, Sections.CONSOLE2, opsMgr.getConsole2());
 		add(console2, console2Gbc);
 		
 		opsMgr.eventBus.register(this);
@@ -117,9 +115,5 @@ public class ConsolePane extends JPanel {
 		console1Label.setForeground(settings.lightText);
 		console2Label.setFont(settings.largeFont);
 		console2Label.setForeground(settings.lightText);
-		
-		//broadcast event to sub-components
-		console1EventBus.post(e);
-		console2EventBus.post(e);
 	}
 }

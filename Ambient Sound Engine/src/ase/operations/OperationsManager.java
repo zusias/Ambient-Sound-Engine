@@ -62,17 +62,23 @@ public class OperationsManager {
 	
 	//Data models
 	private SoundscapeSetModel console1;
+	public SoundscapeSetModel getConsole1() {
+		return console1;
+	}
 	private SoundscapeSetModel console2;
+	public SoundscapeSetModel getConsole2() {
+		return console2;
+	}
 	private SoundscapeModel effects;
+	public SoundscapeModel getEffects(){
+		return effects;
+	}
 	
 	//This data model is not rendered in the UI except by a preview button
 	private SoundscapeModel preview;
-	
-	//Subscriber sets
-	private final LinkedList<IIterableSubscriber<SoundscapeModel, SoundModel>> console1ActiveSsSubscribers = new LinkedList<>();
-	private final LinkedList<IIterableSubscriber<SoundscapeModel, SoundModel>> console2ActiveSsSubscribers = new LinkedList<>();
-	private final LinkedList<IIterableSubscriber<SoundscapeModel, SoundModel>> effectsSubscribers = new LinkedList<>();
-	private final LinkedList<IIterableSubscriber<SoundscapeModel, SoundModel>> previewSubscribers = new LinkedList<>();
+	public SoundscapeModel getPreview() {
+		return preview;
+	}
 	
 	//utility properties
 	private static int runtimeId;

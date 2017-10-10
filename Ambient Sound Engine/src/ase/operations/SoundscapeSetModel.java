@@ -178,12 +178,16 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 				newSet.add(currentSs);
 			}
 		}
-		
 		if (newSet.size() == this.set.size()){
 			throw new NoMatchFoundException();
 		}
 		
-		return new SoundscapeSetModel(newSet, this.activeSoundscape, this.activeSoundscapeIndex);
+		int newActiveIndex = this.activeSoundscapeIndex;
+		if (newActiveIndex == newSet.size()){
+			newActiveIndex--;
+		}
+		
+		return new SoundscapeSetModel(newSet, this.activeSoundscape, newActiveIndex);
 	}
 	
 	/**
@@ -197,6 +201,11 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 		
 		newSet.remove(index);
 		
+		int newActiveIndex = this.activeSoundscapeIndex;
+		if (newActiveIndex == newSet.size()){
+			newActiveIndex--;
+		}
+		
 		return new SoundscapeSetModel(newSet, this.activeSoundscape, this.activeSoundscapeIndex);
 	}
 	
@@ -209,7 +218,7 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 	SoundscapeSetModel setActiveSoundscape(SoundscapeModel activeSs) throws IllegalArgumentException {
 		int index = set.indexOf(activeSs);
 		
-		if (index == -1){
+		if (index < 0){
 			throw new IllegalArgumentException();
 		}
 		

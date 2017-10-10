@@ -26,19 +26,15 @@ public class SoundControlRow extends ConsoleControlRow {
 	
 	private SoundModel sound;
 	
-	public SoundControlRow(GuiSettings settings, SoundModel sound, int rowIndex,  EventBus consoleEventBus, EventBus tabEventBus) {
-		super(settings, rowIndex, consoleEventBus, tabEventBus);
-
-		this.sound = sound;
+	public SoundControlRow(GuiSettings settings, SoundModel sound, int rowIndex, EventBus tabEventBus) {
+		super(settings, rowIndex, tabEventBus);
 		
 		setupMoreGridBagConstraints();
-		
-		title.setText(sound.name);
 		
 		playModeButton.setToolTipText("Set Play Mode");
 		add(playModeButton, playModeButtonGbc);
 		
-		this.volumeBar.setValue(getVolume());
+		updateModel(sound);
 	}
 	
 	public SoundModel getModel() {
@@ -49,6 +45,8 @@ public class SoundControlRow extends ConsoleControlRow {
 		this.sound = sound;
 		
 		volumeBar.setValue(getVolume());
+		
+		title.setText(sound.name);
 		
 		if (sound.isPlaying) {
 			playButton.setIcon(SPEAKER_ON_ICON);

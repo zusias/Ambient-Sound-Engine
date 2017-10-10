@@ -9,8 +9,13 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
 import ase.operations.SoundscapeModel;
+import ase.operations.SoundscapeSetModel;
 import ase.operations.TestDataProvider;
+import ase.main.Main;
+import ase.operations.OperationsManager.Sections;
+import ase.operations.events.ChangedSoundscapeSetEvent;
 import ase.views.GuiSettings;
+import ase.views.InvalidModelException;
 import ase.views.events.SettingsEvent;
 import ase.views.navigation.events.QuitEvent;
 
@@ -23,56 +28,78 @@ public class Console extends JTabbedPane {
 	private static final long serialVersionUID = 2059540762779066181L;
 
 	private GuiSettings settings;
-	private final JPanel blankPanel = new JPanel();
-	private final JLabel blankPanelLabel = new JLabel("No Soundscape Loaded");
+	public final Sections section;
 	
-	private final EventBus eventBus;
+	private SoundscapeSetModel soundscapeSet;
 	
-	public Console(GuiSettings settings, EventBus eventBus) {
+	public Console(GuiSettings settings, Sections section, SoundscapeSetModel soundscapeSet) {
 		this.settings = settings;
-		this.eventBus = eventBus;
+		this.section = section;
+		this.soundscapeSet = soundscapeSet;
 
 		setMinimumSize(new java.awt.Dimension(460, 200));
 		setPreferredSize(new java.awt.Dimension(460, 260));
 		
-		//initialize with a blank panel
-		blankPanel.add(blankPanelLabel);
+		initTabs();
 		
-		this.add("", blankPanel);
-		
-		eventBus.register(this);
+		opsMgr.eventBus.register(this);
 	}
 	
+	private void initTabs() {
+		for (SoundscapeModel ss : soundscapeSet) {
+			SoundscapeTab newTab = new SoundscapeTab(settings,ss, section);
+			add(ss.name, newTab);
+		}
+		
+		setSelectedIndex(soundscapeSet.activeSoundscapeIndex);
+	}
+	//Listening to Operations
 	@Subscribe public void applySettings(SettingsEvent e) {
 		if (e.getNewSettings() != null) {
 			this.settings = e.getNewSettings();
 		}
 		
-		blankPanel.setBackground(settings.foregroundColor);
+		setBackground(settings.foregroundColor);
+	}
+	
+	@Subscribe public void changedSoundscapeSetListener(ChangedSoundscapeSetEvent evt) {
+		if (evt.section != section) {return;}
+		
+		SoundscapeSetModel oldModel = soundscapeSet;
+		soundscapeSet = evt.console;
+		
+		if (oldModel == soundscapeSet) {
+			return;
+		}
+		
+		if (evt.soundscape == null && evt.ssIndex > -1) {
+			SoundscapeTab deadTab = (SoundscapeTab) getTabComponentAt(evt.ssIndex);
+			deadTab.destroy();
+			remove(evt.ssIndex);
+			
+		} else if (evt.soundscape != null && evt.ssIndex == oldModel.getTotalSoundscapes()) { //Check to see if there is a new soundscape
+			SoundscapeTab newTab = new SoundscapeTab(settings, evt.soundscape, section);
+			add(evt.soundscape.name, newTab);
+			
+			newTab.applySettings(new SettingsEvent());
+			
+		} else if (evt.soundscape != null) {
+			setTitleAt(evt.ssIndex, evt.soundscape.name);
+		}
+		
+		//Each individual tab is in charge of handling updated soundscapes
+		//with the ChangedSoundscapeEvent
+		
+		setSelectedIndex(soundscapeSet.activeSoundscapeIndex);
 	}
 	
 	public static void main(String[] args) throws InterruptedException {
-		JFrame testFrame = new JFrame();
-		JTabbedPane testPane = new JTabbedPane();
 		
 		SoundscapeModel ss = TestDataProvider.testSoundscape(
 				new String[] {".\\03_Waves.mp3", ".\\klaxon alarm aoogah.mp3", ".\\bowling ambience.mp3"});
 		
-		EventBus eventBus = new EventBus();
-		testPane.add(ss.name, new SoundscapeTab(new GuiSettings.SettingsBuilder().build(), ss, eventBus));
+		Main m = new Main();
 		
-		testFrame.add(testPane);
-		
-		testFrame.addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowClosing (WindowEvent e) {
-				System.exit(0);
-			}
-		});
-		
-		testFrame.setVisible(true);
-		testFrame.setSize(500, 500);
-		
-		eventBus.post(new SettingsEvent());
+		opsMgr.addSoundscape(Sections.CONSOLE1, ss);
 	}
 }

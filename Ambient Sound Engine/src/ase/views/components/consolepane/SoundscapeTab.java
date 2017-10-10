@@ -14,16 +14,21 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.SwingConstants;
+import javax.swing.event.ChangeEvent;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
+import ase.operations.OperationsManager.Sections;
 import ase.operations.SoundModel;
 import ase.operations.SoundscapeModel;
+import ase.operations.SoundscapeModel.PlayState;
+import ase.operations.events.ChangedSoundscapeEvent;
 import ase.views.GuiSettings;
 import ase.views.components.consolepane.events.RowClickedEvent;
 import ase.views.events.SettingsEvent;
 import static ase.operations.OperationsManager.opsMgr;
+import static ase.operations.Log.LogLevel.*;
 
 public class SoundscapeTab extends JPanel {
 	private static final long serialVersionUID = 7911673691113487122L;
@@ -40,7 +45,6 @@ public class SoundscapeTab extends JPanel {
 	
 	private final GridBagLayout layout = new GridBagLayout();
 	
-	private final EventBus consoleEventBus; //passed from ConsolePane
 	private final EventBus tabEventBus = new EventBus(); //passed to row controllers
 	
 	//Soundscape control components
@@ -56,8 +60,11 @@ public class SoundscapeTab extends JPanel {
 	private final GridBagConstraints soundRowScrollerGbc = new GridBagConstraints();
 	private final JPanel soundRowPanel = new JPanel();
 	private final GridLayout soundRowPanelLayout = new GridLayout(0, 1);
+	
 	private final JSlider volumeController = new JSlider(0, 1000, 0);
 	private final GridBagConstraints volumeControllerGbc = new GridBagConstraints();
+	private boolean ignoreVolumeControl = false;
+	
 	private final JPanel buttonPanel = new JPanel();
 	private final GridBagLayout buttonPanelLayout = new GridBagLayout();
 	private final GridBagConstraints buttonPanelGbc = new GridBagConstraints();
@@ -73,11 +80,21 @@ public class SoundscapeTab extends JPanel {
 	
 	//data model
 	private SoundscapeModel soundscape;
+	private Sections section; //so that this tab can inform Ops Mgr of changes without going up through hierarchy
+	private boolean loadedInPreview = false;
+	/**
+	 * Access the model this tab represents. This is to help verify which tabs correspond
+	 * with which soundscapes
+	 * @return The SoundscapeModel this tab represents
+	 */
+	public SoundscapeModel getModel() {
+		return soundscape;
+	}
 	
-	public SoundscapeTab(GuiSettings settings, SoundscapeModel soundscape, EventBus consoleEventBus) {
+	public SoundscapeTab(GuiSettings settings, SoundscapeModel soundscape, Sections section) {
 		this.settings = settings;
 		this.soundscape = soundscape;
-		this.consoleEventBus = consoleEventBus;
+		this.section = section;
 		
 		setMinimumSize(new Dimension(450, 280));
 		setMaximumSize(new Dimension(600, 390));
@@ -99,8 +116,9 @@ public class SoundscapeTab extends JPanel {
 		soundscapeControlPane.setLayout(soundscapeControlPaneLayout);
 		add(soundscapeControlPane, soundscapeControlPaneGbc);
 
-		soundscapeController = new SoundscapeControlRow(settings, soundscape, -1, consoleEventBus, tabEventBus);
+		soundscapeController = new SoundscapeControlRow(settings, soundscape, -1, tabEventBus);
 		soundscapeControlPane.add(soundscapeController);
+		soundscapeController.applySettings(new SettingsEvent());
 
 		buttonPanelLayout.columnWidths = new int[]{16, 16, 16};
 		buttonPanel.setLayout(buttonPanelLayout);
@@ -124,9 +142,14 @@ public class SoundscapeTab extends JPanel {
 		volumeController.setOrientation(SwingConstants.VERTICAL);
 		volumeController.setMaximumSize(new Dimension(32767, 50));
 		volumeController.setEnabled(false);
+		volumeController.setMajorTickSpacing(100);
+		volumeController.setMinorTickSpacing(10);
+		volumeController.setPaintTicks(true);
 		add(volumeController, volumeControllerGbc);
 		
-		consoleEventBus.register(this);
+		volumeController.addChangeListener(this::handleVolumeChange);
+		
+		opsMgr.eventBus.register(this);
 		
 		//register to own event bus to listen to row controller events
 		tabEventBus.register(this);
@@ -135,13 +158,13 @@ public class SoundscapeTab extends JPanel {
 	private void initializeSoundControllers() {
 		int i = 0;
 		for (SoundModel sound : soundscape) {
-			SoundControlRow soundController = new SoundControlRow(settings, sound, i++, consoleEventBus, tabEventBus);
+			SoundControlRow soundController = new SoundControlRow(settings, sound, i++, tabEventBus);
 			
 			soundController.setMinimumSize(minimumSoundControllerSize);
-			
 			soundControllers.addElement(soundController);
-			
 			soundRowPanel.add(soundController);
+			
+			soundController.applySettings(new SettingsEvent());
 		}
 	}
 	
@@ -189,7 +212,31 @@ public class SoundscapeTab extends JPanel {
 		volumeControllerGbc.weightx = 0;
 	}
 	
+	public void destroy() {
+		opsMgr.eventBus.unregister(this);
+		tabEventBus.unregister(this);
+		
+		soundscapeController.destroy();
+		for (SoundControlRow row : soundControllers) {
+			row.destroy();
+		}
+	}
+	
 	//handle various events
+	
+	//Swing Events - Subscriber Model
+	public void handleVolumeChange(ChangeEvent evt) {
+		if (ignoreVolumeControl) {return;}
+		
+		double newVolume = (double) volumeController.getValue() / 1000.0;
+		opsMgr.logger.log(DEBUG, "Setting Volume to " + newVolume);
+		
+		if (selectedRows.size() == 0) {
+			opsMgr.setSoundscapeVolume(section, newVolume);
+		} else {
+			//calculate volume diff for each sound
+		}
+	}
 	
 	//Operations events
 	@Subscribe public void applySettings(SettingsEvent e) {
@@ -199,6 +246,7 @@ public class SoundscapeTab extends JPanel {
 		
 		setBackground(settings.foregroundColor);
 		buttonPanel.setBackground(settings.foregroundColor);
+		volumeController.setBackground(settings.foregroundColor);
 		
 		//buttons
 		newSoundscapeButton.setMaximumSize(settings.buttonSize);
@@ -212,6 +260,71 @@ public class SoundscapeTab extends JPanel {
 		copySoundscapeButton.setMaximumSize(settings.buttonSize);
 		copySoundscapeButton.setMinimumSize(settings.buttonSize);
 		copySoundscapeButton.setPreferredSize(settings.buttonSize);
+	}
+	
+	@Subscribe public void handleChangedSoundscape(ChangedSoundscapeEvent evt) {
+		//handle when it is a preview
+		if (evt.section == Sections.PREVIEW) {
+			handlePreview(evt);
+			return;
+		} else if (evt.soundscape.runtimeId != soundscape.runtimeId) {
+			return;
+		}
+		
+		soundscape = evt.soundscape;
+		soundscapeController.updateModel(evt.soundscape);
+		
+		//check for specific sound update
+		if (evt.sound != null) {
+			if (evt.soundIndex == soundControllers.size()) {
+				SoundControlRow soundController = new SoundControlRow(settings, evt.sound, evt.soundIndex, tabEventBus);
+				
+				soundController.setMinimumSize(minimumSoundControllerSize);
+				soundControllers.addElement(soundController);
+				soundRowPanel.add(soundController);
+				
+				soundController.applySettings(new SettingsEvent());
+			} else {
+				soundControllers.get(evt.soundIndex).updateModel(evt.sound);
+			}
+		} else if (evt.soundIndex != -1) {
+			//removed sound
+			SoundControlRow deadRow = soundControllers.remove(evt.soundIndex);
+			soundRowPanel.remove(deadRow);
+			deadRow.destroy();
+		}
+	}
+	
+	private void handlePreview(ChangedSoundscapeEvent evt) {
+		if (loadedInPreview && evt.soundscape.runtimeId != soundscape.runtimeId) {
+			loadedInPreview = false;
+			soundscapeController.setPreviewOff();
+			
+			for (SoundControlRow row : soundControllers) {
+				row.setPreviewOff();
+			}
+		} else if (!loadedInPreview && evt.soundscape.runtimeId == soundscape.runtimeId) {
+			loadedInPreview = true;
+		}
+		
+		//now turn on the buttons if necessary
+		if (loadedInPreview) {
+			if (evt.soundscape.playState == PlayState.PLAYING) {
+				soundscapeController.setPreviewOn();
+			}
+			
+			int count = 0;
+			for (SoundModel sound : evt.soundscape) {
+				if (sound.isPlaying) {
+					soundControllers.get(count).setPreviewOn();
+				} else {
+					soundControllers.get(count).setPreviewOff();
+				}
+				count++;
+			}
+		}
+		
+		
 	}
 	
 	//ConsolePane events
@@ -236,6 +349,7 @@ public class SoundscapeTab extends JPanel {
 		
 		volumeController.setValue(row.getVolume());
 		volumeController.setEnabled(true);
+		ignoreVolumeControl = false;
 	}
 	
 	private void setMultiRowFocus(ConsoleControlRow row, int index) {
@@ -254,8 +368,10 @@ public class SoundscapeTab extends JPanel {
 			
 			selectedRows.addElement(row);
 			row.setBackground(MULTI_SELECT_COLOR);
-			
+
+			ignoreVolumeControl = true;
 			volumeController.setValue(getAverageSelectedSoundVolume());
+			ignoreVolumeControl = false;
 		}
 	}
 	
@@ -277,7 +393,8 @@ public class SoundscapeTab extends JPanel {
 
 		selectedRows.clear();
 		
-		volumeController.setValue(0);
+		ignoreVolumeControl = true;
 		volumeController.setEnabled(false);
+		volumeController.setValue(0);
 	}
 }

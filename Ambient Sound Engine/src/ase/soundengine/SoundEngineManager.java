@@ -1,9 +1,13 @@
 package ase.soundengine;
 
+import com.google.common.eventbus.Subscribe;
+
 //ASE imports
 import ase.operations.Log;
-import ase.operations.OperationsManager;
 import ase.operations.OperationsManager.Sections;
+import ase.operations.events.ChangedSoundscapeEvent;
+
+import static ase.operations.OperationsManager.opsMgr;
 
 /**
  * This class is a bridge between the SoundEngine interface and the OperationsManager's
@@ -13,12 +17,12 @@ import ase.operations.OperationsManager.Sections;
  *
  */
 public class SoundEngineManager {
-	static Log logger = OperationsManager.opsMgr.logger;
+	static Log logger = opsMgr.logger;
 	
-	private final SoundscapeSubscriberComposite console1Subscriber;
-	private final SoundscapeSubscriberComposite console2Subscriber;
-	private final SoundscapeSubscriberComposite effectsSubscriber;
-	private final SoundscapeSubscriberComposite previewSubscriber;
+	private final SoundscapeEventHandler console1Subscriber;
+	private final SoundscapeEventHandler console2Subscriber;
+	private final SoundscapeEventHandler effectsSubscriber;
+	private final SoundscapeEventHandler previewSubscriber;
 	
 	/**
 	 * Takes 2 instances of Sound Engine: one for each sound card you support.
@@ -28,16 +32,36 @@ public class SoundEngineManager {
 	 * @param preview
 	 */
 	public SoundEngineManager(SoundEngine stage, SoundEngine preview){
-		this.console1Subscriber = new SoundscapeSubscriberComposite(stage, Sections.CONSOLE1);
-		OperationsManager.opsMgr.subscribeToActiveSoundscape(Sections.CONSOLE1, this.console1Subscriber.opsSubscriber);
-
-		this.console2Subscriber = new SoundscapeSubscriberComposite(stage, Sections.CONSOLE2);
-		OperationsManager.opsMgr.subscribeToActiveSoundscape(Sections.CONSOLE2, this.console2Subscriber.opsSubscriber);
-
-		this.effectsSubscriber = new SoundscapeSubscriberComposite(stage, Sections.EFFECTS);
-		OperationsManager.opsMgr.subscribeToEffects(this.effectsSubscriber.opsSubscriber);
-
-		this.previewSubscriber = new SoundscapeSubscriberComposite(preview, Sections.PREVIEW);
-		OperationsManager.opsMgr.subscribeToPreview(this.previewSubscriber.opsSubscriber);
+		this.console1Subscriber = new SoundscapeEventHandler(stage, Sections.CONSOLE1);
+		this.console2Subscriber = new SoundscapeEventHandler(stage, Sections.CONSOLE2);
+		this.effectsSubscriber = new SoundscapeEventHandler(stage, Sections.EFFECTS);
+		this.previewSubscriber = new SoundscapeEventHandler(preview, Sections.PREVIEW);
+		
+		opsMgr.eventBus.register(this);
+	}
+	
+	@Subscribe public void soundscapeChangeListener(ChangedSoundscapeEvent evt) {
+		SoundscapeEventHandler handler = null;
+		
+		switch(evt.section) {
+			case CONSOLE1:
+				handler = console1Subscriber;
+				break;
+			case CONSOLE2:
+				handler = console2Subscriber;
+				break;
+			case EFFECTS:
+				handler = effectsSubscriber;
+				break;
+			case PREVIEW:
+				handler = previewSubscriber;
+				break;
+		}
+		
+		if (evt.sound == null) {
+			handler.handleSoundscapeChange(evt.soundscape, evt.soundIndex);
+		} else {
+			handler.handleSoundChange(evt.soundscape, evt.sound, evt.soundIndex);
+		}
 	}
 }

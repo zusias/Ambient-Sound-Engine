@@ -47,7 +47,6 @@ public abstract class ConsoleControlRow extends JPanel {
 	protected final GridBagLayout layout = new GridBagLayout();
 	
 	protected int rowIndex;
-	protected final EventBus consoleEventBus;
 	protected final EventBus tabEventBus;
 	
 	//Buttons
@@ -63,9 +62,8 @@ public abstract class ConsoleControlRow extends JPanel {
 	protected final JLabel title = new JLabel();
 	protected final GridBagConstraints titleGbc = new GridBagConstraints();
 	
-	public ConsoleControlRow(GuiSettings settings, int rowIndex, EventBus consoleEventBus,  EventBus tabEventBus) {
+	public ConsoleControlRow(GuiSettings settings, int rowIndex,  EventBus tabEventBus) {
 		this.settings = settings;
-		this.consoleEventBus = consoleEventBus;
 		this.tabEventBus = tabEventBus;
 		this.rowIndex = rowIndex;
 		
@@ -99,11 +97,24 @@ public abstract class ConsoleControlRow extends JPanel {
 		
 		initListeners();
 		
-		consoleEventBus.register(this); //"Global" bus
+		opsMgr.eventBus.register(this); //"Global" bus
 		tabEventBus.register(this); //inter-tab communication
 	}
 	
 	public abstract int getVolume();
+	
+	public void destroy(){
+		opsMgr.eventBus.unregister(this);
+		tabEventBus.unregister(this);
+	}
+	
+	public void setPreviewOn(){
+		this.previewButton.setIcon(SPEAKER_ON_ICON);
+	}
+	
+	public void setPreviewOff() {
+		this.previewButton.setIcon(SPEAKER_OFF_ICON);
+	}
 	
 	protected void setupGridBagConstraints() {
 		//Preview Button
