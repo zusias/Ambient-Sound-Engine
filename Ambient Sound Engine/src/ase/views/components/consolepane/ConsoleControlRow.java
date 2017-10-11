@@ -7,6 +7,7 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -24,6 +25,7 @@ import ase.operations.SoundModel;
 import ase.operations.SoundscapeModel;
 import ase.views.GuiSettings;
 import ase.views.components.consolepane.events.RowClickedEvent;
+import ase.views.components.consolepane.events.RowPlayPressedEvent;
 import ase.views.events.SettingsEvent;
 
 /**
@@ -103,6 +105,10 @@ public abstract class ConsoleControlRow extends JPanel {
 	
 	public abstract int getVolume();
 	
+	public int getIndex() {
+		return rowIndex;
+	}
+	
 	public void destroy(){
 		opsMgr.eventBus.unregister(this);
 		tabEventBus.unregister(this);
@@ -149,6 +155,10 @@ public abstract class ConsoleControlRow extends JPanel {
 			public void mouseClicked(MouseEvent evt) {
 				handleMouseClicked(evt);
 			}
+		});
+		
+		playButton.addActionListener((ActionEvent evt) -> {
+			tabEventBus.post(new RowPlayPressedEvent(this, rowIndex));
 		});
 	}
 	

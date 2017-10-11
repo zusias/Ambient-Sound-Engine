@@ -603,6 +603,105 @@ public class OperationsManager {
 	}
 	
 	/**
+	 * Toggles play state
+	 * @param section
+	 * @param index
+	 */
+	public void toggleSoundPlay(Sections section, int index) {
+		SoundscapeModel ss;
+		SoundModel sound;
+		
+		switch(section){
+		
+		case CONSOLE1:
+			sound = this.console1.activeSoundscape.getSoundAtIndex(index);
+			sound = sound.setPlay(!sound.isPlaying);
+			ss = this.console1.activeSoundscape.replaceSound(index, sound);
+			this.console1 = this.console1.replaceSoundscape(ss);
+			
+			this.publishConsoleActiveSs(Sections.CONSOLE1);
+			this.publishSoundscape(Sections.CONSOLE1, this.console1.activeSoundscape.getSoundAtIndex(index), index);
+			break;
+			
+		case CONSOLE2:
+			sound = this.console2.activeSoundscape.getSoundAtIndex(index);
+			sound = sound.setPlay(!sound.isPlaying);
+			ss = this.console2.activeSoundscape.replaceSound(index, sound);
+			this.console2 = this.console2.replaceSoundscape(ss);
+			
+			this.publishConsoleActiveSs(Sections.CONSOLE2);
+			this.publishSoundscape(Sections.CONSOLE2, this.console2.activeSoundscape.getSoundAtIndex(index), index);
+			break;
+			
+		case EFFECTS:
+			sound = this.console2.activeSoundscape.getSoundAtIndex(index);
+			sound = sound.setPlay(!sound.isPlaying);
+			this.effects = this.effects.replaceSound(index, sound);
+			
+			this.publishSoundscape(Sections.EFFECTS, this.effects.getSoundAtIndex(index), index);
+			break;
+			
+		case PREVIEW:
+			sound = this.console2.activeSoundscape.getSoundAtIndex(index);
+			sound = sound.setPlay(!sound.isPlaying);
+			this.preview = this.preview.replaceSound(index, sound);
+			
+			this.publishSoundscape(Sections.PREVIEW, this.preview.getSoundAtIndex(index), index);
+			break;
+			
+		default:
+			throw new IllegalArgumentException("Invalid section");
+		} 
+	}
+	
+	public void setSoundVolume(Sections section, int index, double volume) {
+		SoundscapeModel ss;
+		SoundModel sound;
+		
+		switch(section){
+		
+		case CONSOLE1:
+			sound = this.console1.activeSoundscape.getSoundAtIndex(index);
+			sound = sound.setVolume(volume);
+			ss = this.console1.activeSoundscape.replaceSound(index, sound);
+			this.console1 = this.console1.replaceSoundscape(ss);
+			
+			this.publishConsoleActiveSs(Sections.CONSOLE1);
+			this.publishSoundscape(Sections.CONSOLE1, this.console1.activeSoundscape.getSoundAtIndex(index), index);
+			break;
+			
+		case CONSOLE2:
+			sound = this.console2.activeSoundscape.getSoundAtIndex(index);
+			sound = sound.setVolume(volume);
+			ss = this.console2.activeSoundscape.replaceSound(index, sound);
+			this.console2 = this.console2.replaceSoundscape(ss);
+			
+			this.publishConsoleActiveSs(Sections.CONSOLE2);
+			this.publishSoundscape(Sections.CONSOLE2, this.console2.activeSoundscape.getSoundAtIndex(index), index);
+			break;
+			
+		case EFFECTS:
+			sound = this.console2.activeSoundscape.getSoundAtIndex(index);
+			sound = sound.setVolume(volume);
+			this.effects = this.effects.replaceSound(index, sound);
+			
+			this.publishSoundscape(Sections.EFFECTS, this.effects.getSoundAtIndex(index), index);
+			break;
+			
+		case PREVIEW:
+			sound = this.console2.activeSoundscape.getSoundAtIndex(index);
+			sound = sound.setVolume(volume);
+			this.preview = this.preview.replaceSound(index, sound);
+			
+			this.publishSoundscape(Sections.PREVIEW, this.preview.getSoundAtIndex(index), index);
+			break;
+			
+		default:
+			throw new IllegalArgumentException("Invalid section");
+		} 
+	}
+	
+	/**
 	 * Modify the random play settings for a sound
 	 * @param section
 	 * @param index of the sound in the soundscape

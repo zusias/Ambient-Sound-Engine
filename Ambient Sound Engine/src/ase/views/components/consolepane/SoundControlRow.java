@@ -41,6 +41,10 @@ public class SoundControlRow extends ConsoleControlRow {
 		return sound;
 	}
 	
+	public void decrementIndex() {
+		rowIndex--;
+	}
+	
 	public void updateModel(SoundModel sound) {
 		this.sound = sound;
 		
