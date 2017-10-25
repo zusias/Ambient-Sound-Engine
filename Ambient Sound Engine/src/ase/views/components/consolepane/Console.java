@@ -73,7 +73,7 @@ public class Console extends JTabbedPane {
 		}
 		
 		if (evt.soundscape == null && evt.ssIndex > -1) {
-			SoundscapeTab deadTab = (SoundscapeTab) getTabComponentAt(evt.ssIndex);
+			SoundscapeTab deadTab = (SoundscapeTab) getComponentAt(evt.ssIndex);
 			deadTab.destroy();
 			remove(evt.ssIndex);
 			
@@ -89,8 +89,9 @@ public class Console extends JTabbedPane {
 		
 		//Each individual tab is in charge of handling updated soundscapes
 		//with the ChangedSoundscapeEvent
-		
-		setSelectedIndex(soundscapeSet.activeSoundscapeIndex);
+		if (getTabCount() > 0) {
+			setSelectedIndex(soundscapeSet.activeSoundscapeIndex);
+		}
 	}
 	
 	public static void main(String[] args) throws InterruptedException {
@@ -100,6 +101,7 @@ public class Console extends JTabbedPane {
 		
 		Main m = new Main();
 		
+		opsMgr.removeSoundscape(Sections.CONSOLE1, 0);
 		opsMgr.addSoundscape(Sections.CONSOLE1, ss);
 	}
 }

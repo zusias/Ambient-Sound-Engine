@@ -2,6 +2,9 @@ package ase.views.components.consolepane;
 
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -11,6 +14,8 @@ import com.google.common.eventbus.Subscribe;
 
 import ase.operations.SoundModel;
 import ase.views.GuiSettings;
+import ase.views.components.consolepane.events.RowPlayModeEvent;
+import ase.views.components.consolepane.events.RowPlayPressedEvent;
 import ase.views.events.SettingsEvent;
 import static ase.operations.SoundModel.PlayType.*;
 
@@ -35,6 +40,8 @@ public class SoundControlRow extends ConsoleControlRow {
 		add(playModeButton, playModeButtonGbc);
 		
 		updateModel(sound);
+		
+		initHandlers();
 	}
 	
 	public SoundModel getModel() {
@@ -93,5 +100,22 @@ public class SoundControlRow extends ConsoleControlRow {
 		playModeButton.setMaximumSize(settings.buttonSize);
 		playModeButton.setMinimumSize(settings.buttonSize);
 		playModeButton.setPreferredSize(settings.buttonSize);
+	}
+	
+	private void initHandlers() {
+		SoundControlRow that = this;
+		
+		playModeButton.addActionListener((ActionEvent evt) -> {
+			tabEventBus.post(new RowPlayModeEvent(that, rowIndex));
+		});
+		
+		playModeButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent evt) {
+				if (evt.getButton() > 1) {
+					tabEventBus.post(new RowPlayModeEvent(that, rowIndex, true));
+				}
+			}
+		});
 	}
 }

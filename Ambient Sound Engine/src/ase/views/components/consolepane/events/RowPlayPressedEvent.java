@@ -7,7 +7,6 @@ public class RowPlayPressedEvent extends RowEvent {
 	
 	public RowPlayPressedEvent(ConsoleControlRow row, int index) {
 		super(row, index);
-		// TODO Auto-generated constructor stub
 	}
 	
 }

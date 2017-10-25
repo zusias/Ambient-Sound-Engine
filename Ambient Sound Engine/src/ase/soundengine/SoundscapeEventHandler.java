@@ -55,7 +55,8 @@ class SoundscapeEventHandler {
 					int index = indexMap.get(symbol);
 					
 					SoundModel sound = currentSoundscape.getSoundAtIndex(index);
-					opsMgr.modifySound(section, index, sound.currentPlayType, false, sound.volume);
+					sound = sound.setPlay(false);
+					opsMgr.modifySound(section, index, sound);
 				};
 				
 		this.soundEngineStopFadeSubscriber =

@@ -52,7 +52,7 @@ public class SoundModel {
 		this.randomSettings = randomSettings;
 	}
 	
-	SoundModel setPlay(boolean isPlaying) {
+	public SoundModel setPlay(boolean isPlaying) {
 		return isPlaying == this.isPlaying ? this :
 			this.setPlay(isPlaying, this.currentPlayType);
 	}
@@ -63,7 +63,7 @@ public class SoundModel {
 	 * @param newPlayType
 	 * @return Returns new instance of SoundModel as this is an immutable data structure
 	 */
-	SoundModel setPlay(boolean isPlaying, PlayType newPlayType){
+	public SoundModel setPlay(boolean isPlaying, PlayType newPlayType){
 		return (isPlaying == this.isPlaying && newPlayType == this.currentPlayType) ? this :
 			new SoundModel(this.filePath, this.name, newPlayType, isPlaying, this.volume, this.sizeInBytes, this.randomSettings);
 	}
@@ -73,7 +73,7 @@ public class SoundModel {
 	 * @param newPlayType
 	 * @return Returns new instance of SoundModel as this is an immutable data structure
 	 */
-	SoundModel setPlayType(PlayType newPlayType){
+	public SoundModel setPlayType(PlayType newPlayType){
 		return newPlayType == this.currentPlayType ? this :
 			new SoundModel(this.filePath, this.name, newPlayType, this.isPlaying, this.volume, this.sizeInBytes, this.randomSettings);
 	}
@@ -83,7 +83,7 @@ public class SoundModel {
 	 * @param newVolume number between 0.0 and 1.0 inclusive. If outside those bounds, will round to nearest
 	 * @return
 	 */
-	SoundModel setVolume(double newVolume){
+	public SoundModel setVolume(double newVolume){
 		return newVolume == this.volume ? this :
 			new SoundModel(this.filePath, this.name, this.currentPlayType, this.isPlaying, newVolume, this.sizeInBytes, this.randomSettings);
 	}
@@ -91,7 +91,7 @@ public class SoundModel {
 	/**
 	 * @param randomSettings A new random settings object
 	 */
-	SoundModel setRandomPlaySettings(RandomPlaySettings randomSettings) {
+	public SoundModel setRandomPlaySettings(RandomPlaySettings randomSettings) {
 		return randomSettings == this.randomSettings ? this :
 			new SoundModel(this.filePath, this.name, this.currentPlayType, this.isPlaying, this.volume, this.sizeInBytes, randomSettings);
 	}
@@ -107,7 +107,7 @@ public class SoundModel {
 	 * @param randomSettings
 	 * @return
 	 */
-	SoundModel setAll(boolean isPlaying, PlayType newPlayType, double newVolume, RandomPlaySettings randomSettings){
+	public SoundModel setAll(boolean isPlaying, PlayType newPlayType, double newVolume, RandomPlaySettings randomSettings){
 		return new SoundModel(this.filePath, this.name, newPlayType, isPlaying, newVolume, this.sizeInBytes, randomSettings);
 	}
 }

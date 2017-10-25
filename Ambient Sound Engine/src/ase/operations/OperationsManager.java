@@ -83,6 +83,7 @@ public class OperationsManager {
 	//utility properties
 	private static int runtimeId;
 	private static SoundscapeModel defaultSs;
+	private RandomPlaySettings defaultRandomSettings = new RandomPlaySettings(0, 10, 0, 5);
 	
 	//utility static methods
 	public static long getFileSize(Path filePath) throws IOException {
@@ -363,6 +364,24 @@ public class OperationsManager {
 		}
 	}
 	
+	public void removeSoundscape(Sections section, int index) {
+		switch(section){
+		
+		case CONSOLE1:
+			this.console1 = this.console1.removeSoundscape(index);
+			publishConsole(Sections.CONSOLE1, index);
+			break;
+			
+		case CONSOLE2:
+			this.console2 = this.console2.removeSoundscape(index);
+			publishConsole(Sections.CONSOLE2, index);
+			break;
+			
+		default:
+			throw new IllegalArgumentException("Not a valid section for this operation");
+		}
+	}
+	
 	/**
 	 * Toggles play state to either PLAYING or STOPPED, stepping on
 	 * any current fades
@@ -514,92 +533,69 @@ public class OperationsManager {
 	}
 	
 	/**
-	 * Takes all possible changes in a sound object and determines the best
-	 * modification method to use
+	 * Modifies an existing sound.<br>
+	 * <b>Note:</b> Cannot replace a sound with this method. Must first call
+	 * removeSound and then addSound
 	 * @param section
-	 * @param index
-	 * @param playType
-	 * @param isPlaying
-	 * @param volume
-	 * @throws IllegalArgumentException if invalid section
-	 * @throws ArrayIndexOutOfBoundsException if invalid index
+	 * @param index Index within the soundscape the soundscape is found
+	 * @param sound The new SoundModel object
 	 */
-	public void modifySound(Sections section, int index, SoundModel.PlayType playType, boolean isPlaying, double volume)
-			throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
-		
+	public void modifySound(Sections section, int index, SoundModel sound) {
 		SoundscapeModel ss;
 		
 		switch(section){
 		
 		case CONSOLE1:
-			ss = modifySound(this.console1.activeSoundscape, index, playType, isPlaying, volume);
+			ss = this.console1.activeSoundscape;
+			break;
+		case CONSOLE2:
+			ss = this.console1.activeSoundscape;
+			break;
+		case EFFECTS:
+			ss = this.effects;
+			break;
+		case PREVIEW:
+			ss = this.preview;
+			break;
+		default:
+			throw new IllegalArgumentException("Invalid section");
+		}
+		
+		SoundModel prevSound = ss.getSoundAtIndex(index);
+		
+		if (prevSound == sound) {
+			return;
+		}
+		if (prevSound.name != sound.name || prevSound.filePath != sound.filePath || prevSound.sizeInBytes != sound.sizeInBytes) {
+			throw new IllegalArgumentException("Cannot replace sound by calling modifySound");
+		}
+		
+		ss = ss.replaceSound(index, sound);
+		
+		switch(section){
+		
+		case CONSOLE1:
 			this.console1 = this.console1.replaceSoundscape(ss);
 			this.publishConsoleActiveSs(Sections.CONSOLE1);
 			this.publishSoundscape(Sections.CONSOLE1, this.console1.activeSoundscape.getSoundAtIndex(index), index);
 			break;
 			
 		case CONSOLE2:
-			ss = modifySound(this.console2.activeSoundscape, index, playType, isPlaying, volume);
 			this.console2 = this.console2.replaceSoundscape(ss);
 			this.publishConsoleActiveSs(Sections.CONSOLE2);
 			this.publishSoundscape(Sections.CONSOLE2, this.console2.activeSoundscape.getSoundAtIndex(index), index);
 			break;
 			
 		case EFFECTS:
-			this.effects = modifySound(this.effects, index, playType, isPlaying, volume);
+			this.effects = ss;
 			this.publishSoundscape(Sections.EFFECTS, this.effects.getSoundAtIndex(index), index);
 			break;
 			
 		case PREVIEW:
-			this.preview = modifySound(this.preview, index, playType, isPlaying, volume);
+			this.preview = ss;
 			this.publishSoundscape(Sections.PREVIEW, this.preview.getSoundAtIndex(index), index);
 			break;
-			
-		default:
-			throw new IllegalArgumentException("Invalid section");
 		}
-	}
-	
-	/**
-	 * Private access - modifies sound, but chooses the appropriate method depending on what's changed
-	 * @param ss
-	 * @param index
-	 * @param playType
-	 * @param isPlaying
-	 * @param volume
-	 * @return
-	 */
-	private SoundscapeModel modifySound(SoundscapeModel ss, int index, SoundModel.PlayType playType, boolean isPlaying, double volume) {
-		SoundModel sound = ss.getSoundAtIndex(index);
-		int changes = 0;
-		boolean p = false;
-		boolean iP = false;
-		boolean v = false;
-		
-		if (sound.currentPlayType != playType) {
-			p = true;
-			changes++;
-		}
-		if (sound.isPlaying != isPlaying){
-			iP = true;
-			changes++;
-		}
-		if (sound.volume != volume){
-			v = true;
-			changes++;
-		}
-		
-		if (changes > 1){
-			sound = sound.setAll(isPlaying, playType, volume, sound.randomSettings);
-		} else if (p){
-			sound = sound.setPlayType(playType);
-		} else if (iP){
-			sound = sound.setPlay(isPlaying);
-		} else if (v){
-			sound = sound.setVolume(volume);
-		}
-		
-		return ss.replaceSound(index, sound);
 	}
 	
 	/**
@@ -699,70 +695,6 @@ public class OperationsManager {
 		default:
 			throw new IllegalArgumentException("Invalid section");
 		} 
-	}
-	
-	/**
-	 * Modify the random play settings for a sound
-	 * @param section
-	 * @param index of the sound in the soundscape
-	 * @param minDelay
-	 * @param maxDelay
-	 * @param minRepeats
-	 * @param maxRepeats
-	 */
-	public void modifySoundRandomPlaySettings(
-			Sections section,
-			int index,
-			int minDelay,
-			int maxDelay,
-			int minRepeats,
-			int maxRepeats) {
-		RandomPlaySettings newSettings = new RandomPlaySettings(minDelay, maxDelay, minRepeats, maxRepeats);
-		SoundscapeModel ss;
-		
-		switch(section){
-		
-		case CONSOLE1:
-			ss = modifySoundRandomPlaySettings(this.console1.activeSoundscape, index, newSettings);
-			this.console1 = this.console1.replaceSoundscape(ss);
-			this.publishConsoleActiveSs(Sections.CONSOLE1);
-			this.publishSoundscape(Sections.CONSOLE1, this.console1.activeSoundscape.getSoundAtIndex(index), index);
-			break;
-			
-		case CONSOLE2:
-			ss = modifySoundRandomPlaySettings(this.console2.activeSoundscape, index, newSettings);
-			this.console2 = this.console2.replaceSoundscape(ss);
-			this.publishConsoleActiveSs(Sections.CONSOLE2);
-			this.publishSoundscape(Sections.CONSOLE2, this.console2.activeSoundscape.getSoundAtIndex(index), index);
-			break;
-			
-		case EFFECTS:
-			this.effects = modifySoundRandomPlaySettings(this.effects, index, newSettings);
-			this.publishSoundscape(Sections.EFFECTS, this.effects.getSoundAtIndex(index), index);
-			break;
-			
-		case PREVIEW:
-			this.preview = modifySoundRandomPlaySettings(this.preview, index, newSettings);
-			this.publishSoundscape(Sections.PREVIEW, this.preview.getSoundAtIndex(index), index);
-			break;
-			
-		default:
-			throw new IllegalArgumentException("Invalid section");
-		}
-	}
-	
-	/**
-	 * Private helper method for modifySoundRandomPlaySettings
-	 * @param ss
-	 * @param index
-	 * @param randomSettings
-	 * @return
-	 */
-	private SoundscapeModel modifySoundRandomPlaySettings(SoundscapeModel ss, int index, RandomPlaySettings randomSettings) {
-		SoundModel sound = ss.getSoundAtIndex(index);
-		sound = sound.setRandomPlaySettings(randomSettings);
-		
-		return ss.replaceSound(index, sound);
 	}
 	
 	/**

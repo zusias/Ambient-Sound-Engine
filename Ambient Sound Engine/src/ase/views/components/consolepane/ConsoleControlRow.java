@@ -150,12 +150,16 @@ public abstract class ConsoleControlRow extends JPanel {
 	}
 	
 	private void initListeners() {
-		addMouseListener(new MouseAdapter() {
+		MouseAdapter clickHandler = new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent evt) {
 				handleMouseClicked(evt);
 			}
-		});
+		};
+		
+		addMouseListener(clickHandler);
+		volumeBar.addMouseListener(clickHandler);
+		
 		
 		playButton.addActionListener((ActionEvent evt) -> {
 			tabEventBus.post(new RowPlayPressedEvent(this, rowIndex));

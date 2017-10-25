@@ -7,6 +7,7 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.util.Vector;
+import java.util.LinkedHashMap;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -20,12 +21,14 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
 import ase.operations.OperationsManager.Sections;
+import ase.operations.RandomPlaySettings;
 import ase.operations.SoundModel;
 import ase.operations.SoundscapeModel;
 import ase.operations.SoundscapeModel.PlayState;
 import ase.operations.events.ChangedSoundscapeEvent;
 import ase.views.GuiSettings;
 import ase.views.components.consolepane.events.RowClickedEvent;
+import ase.views.components.consolepane.events.RowPlayModeEvent;
 import ase.views.components.consolepane.events.RowPlayPressedEvent;
 import ase.views.events.SettingsEvent;
 import static ase.operations.OperationsManager.opsMgr;
@@ -52,7 +55,7 @@ public class SoundscapeTab extends JPanel {
 	private SoundscapeControlRow soundscapeController;
 	private Vector<SoundControlRow> soundControllers = new Vector<>();
 	
-	private Vector<ConsoleControlRow> selectedRows = new Vector<>();
+	private LinkedHashMap<ConsoleControlRow, Double[]> selectedRows = new LinkedHashMap<>();
 	
 	private final JPanel soundscapeControlPane = new JPanel();
 	private final GridLayout soundscapeControlPaneLayout = new GridLayout(1, 1);
@@ -84,8 +87,7 @@ public class SoundscapeTab extends JPanel {
 	private Sections section; //so that this tab can inform Ops Mgr of changes without going up through hierarchy
 	private boolean loadedInPreview = false;
 	
-	//state for volume control w/ multi-select rows
-	private int volumeControlLastValue = -1;
+	private int volumeControlReference;
 	
 	/**
 	 * Access the model this tab represents. This is to help verify which tabs correspond
@@ -238,28 +240,40 @@ public class SoundscapeTab extends JPanel {
 		if (selectedRows.size() == 0) {
 			opsMgr.setSoundscapeVolume(section, newVolume);
 		} else if (selectedRows.size() == 1){
-			ConsoleControlRow row = selectedRows.get(0);
+			ConsoleControlRow[] currentRows = new ConsoleControlRow[1];
+			ConsoleControlRow row = selectedRows.keySet().toArray(currentRows)[0];
 			opsMgr.setSoundVolume(section, row.getIndex(), newVolume);
 		} else {
 			//calculate volume diff for each sound
-			for (ConsoleControlRow row : selectedRows) {
+			for (ConsoleControlRow row : selectedRows.keySet()) {
 				//do something
-				double soundVolume = (double) 
-					calculateSoundDiff(
-						volumeControlLastValue,
-						volumeController.getValue(),
-						row.getVolume()) / 1000.0;
+				double soundVolume = 
+					calculateSoundDiff(volumeController.getValue(), selectedRows.get(row)) / 1000.0;
 				
 				opsMgr.setSoundVolume(section, row.getIndex(), soundVolume);
 			}
-			
-			volumeControlLastValue = volumeController.getValue();
 		}
 	}
 	
-	private int calculateSoundDiff(int lastVolumeValue, int currentVolumeValue, int rowVolumeValue) {
-		//TODO implement
-		return 500;
+	/**
+	 * Calculates the new volume for a row given the multi-row volume (both current and previous).
+	 * Calculation based on maintaining the ratio between the Volume Controller value and the sound's
+	 * individual volume.<br><br>ratio = sound volume / volume controller value
+	 * @param currentVolumeValue
+	 * @param rowVolumeRatio
+	 * @return New volume for row
+	 */
+	private double calculateSoundDiff(int currentVolumeValue, Double[] rowRatios) {
+		if (currentVolumeValue == 0) {
+			return 0.0;
+		} else if (currentVolumeValue == 1000) {
+			return 1000.0;
+		} else if (currentVolumeValue <= volumeControlReference) {
+			return currentVolumeValue * rowRatios[0];
+		} else {
+			double remaining = (1000 - currentVolumeValue) * rowRatios[1];
+			return 1000.0 - remaining;
+		}
 	}
 	
 	//Operations events
@@ -358,6 +372,7 @@ public class SoundscapeTab extends JPanel {
 	
 	//ConsolePane events
 	@Subscribe public void handleRowClicked(RowClickedEvent evt) {
+		System.out.println("Row clicked");
 		if (evt.mouseButton == 1 || evt.index == -1 || selectedRows.size() == 0) {
 			setSingleRowFocus(evt.row, evt.index);
 		} else {
@@ -368,10 +383,9 @@ public class SoundscapeTab extends JPanel {
 	private void setSingleRowFocus(ConsoleControlRow row, int index) {
 		resetRowFocus();
 		
-		
 		if (index > -1) {
 			row.setBackground(SINGLE_SELECT_COLOR);
-			selectedRows.addElement(row);
+			selectedRows.put(row, new Double[]{1.0, 1.0});
 		} else {
 			row.setBackground(SOUNDSCAPE_SELECT_COLOR);
 		}
@@ -379,39 +393,58 @@ public class SoundscapeTab extends JPanel {
 		volumeController.setValue(row.getVolume());
 		volumeController.setEnabled(true);
 		ignoreVolumeControl = false;
+		
+		volumeControlReference = -1;
 	}
 	
 	private void setMultiRowFocus(ConsoleControlRow row, int index) {
-		if (selectedRows.removeElement(row)) {
+		
+		if (selectedRows.remove(row) != null) {
 			row.setBackground(Color.white);
 			
 			if (selectedRows.size() == 1) {
-				ConsoleControlRow remainingRow = selectedRows.get(0);
+				ConsoleControlRow[] currentRows = new ConsoleControlRow[1];
+				ConsoleControlRow remainingRow = selectedRows.keySet().toArray(currentRows)[0];
 				remainingRow.setBackground(SINGLE_SELECT_COLOR);
 				volumeController.setValue(remainingRow.getVolume());
 				
-				volumeControlLastValue = -1;
+				volumeControlReference = -1;
 			}
 		} else {
 			if (selectedRows.size() == 1) {
-				selectedRows.get(0).setBackground(MULTI_SELECT_COLOR);
+				ConsoleControlRow[] currentRows = new ConsoleControlRow[1];
+				selectedRows.keySet().toArray(currentRows)[0].setBackground(MULTI_SELECT_COLOR);
 			}
 			
-			selectedRows.addElement(row);
+			selectedRows.put(row, new Double[]{0.0, 0.0});
 			row.setBackground(MULTI_SELECT_COLOR);
 
 			ignoreVolumeControl = true;
 			int volume = getAverageSelectedSoundVolume();
-			volumeController.setValue(getAverageSelectedSoundVolume());
+			volumeController.setValue(volume);
 			ignoreVolumeControl = false;
 			
-			volumeControlLastValue = volume;
+			volumeControlReference = volume;
+			
+			//now that we have the avaerage volume, recalculate the ratio for each row in the map
+			for (ConsoleControlRow currentRow : selectedRows.keySet()) {
+				Double[] ratios = selectedRows.get(currentRow);
+				
+				//Ratios used for calculating the rate of change for an individual sound using
+				//the Volume Controller reference as a starting point
+				
+				//index 0 for when the current volume is less than the starting point
+				ratios[0] = (double) currentRow.getVolume() / volume;
+				//index 1 for when the current volume is greater than the starting point
+				//(Make calc based on distance to full volume)
+				ratios[1] = (double) (1000 - currentRow.getVolume()) / (1000 - volume);
+			}
 		}
 	}
 	
 	private int getAverageSelectedSoundVolume() {
 		int sum = 0;
-		for (ConsoleControlRow row : selectedRows) {
+		for (ConsoleControlRow row : selectedRows.keySet()) {
 			sum += row.getVolume();
 		}
 		
@@ -437,6 +470,18 @@ public class SoundscapeTab extends JPanel {
 			opsMgr.toggleSoundscapePlay(section);
 		} else {
 			opsMgr.toggleSoundPlay(section, evt.index);
+		}
+	}
+	
+	@Subscribe public void handlePlayModeEvent(RowPlayModeEvent evt) {
+		if (evt.isRightClick) {
+			SoundModel sound = evt.row.getModel();
+			
+			sound = sound.setPlayType(SoundModel.PlayType.RANDOM);
+			
+			//launch random play settings dialogue
+			
+			opsMgr.modifySound(this.section, evt.index, sound);
 		}
 	}
 }

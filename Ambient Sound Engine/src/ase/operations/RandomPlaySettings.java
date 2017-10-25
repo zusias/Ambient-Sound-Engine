@@ -19,7 +19,7 @@ public class RandomPlaySettings {
 	 * @param minRepeats
 	 * @param maxRepeats
 	 */
-	RandomPlaySettings(int minDelay, int maxDelay, int minRepeats, int maxRepeats) {
+	public RandomPlaySettings(int minDelay, int maxDelay, int minRepeats, int maxRepeats) {
 		if (minDelay < 0 || maxDelay < 0 || minRepeats < 0 || maxRepeats < 0){
 			throw new IllegalArgumentException("All arguments must be positive integers or 0");
 		}
