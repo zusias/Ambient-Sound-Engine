@@ -95,12 +95,12 @@ public class SearchTab extends SearchPaneTab {
 		add(list2Scroller, list2ScrollerGbc);
 		
 		toAButton.addActionListener((e) -> {
-			opsMgr.logger.log(DEBUG, "Button A pressed");
+			opsMgr.logger.log(DEBUG, "Button 1 pressed");
 		});
 		add(toAButton, toAButtonGbc);
 		
 		toBButton.addActionListener((e) -> {
-			opsMgr.logger.log(DEBUG, "Button B pressed");
+			opsMgr.logger.log(DEBUG, "Button 2 pressed");
 		});
 		add(toBButton, toBButtonGbc);
 		

@@ -6,6 +6,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
 import java.util.Vector;
 import java.util.LinkedHashMap;
 
@@ -27,6 +28,7 @@ import ase.operations.SoundscapeModel;
 import ase.operations.SoundscapeModel.PlayState;
 import ase.operations.events.ChangedSoundscapeEvent;
 import ase.views.GuiSettings;
+import ase.views.components.consolepane.events.LaunchRandomSettingsEvent;
 import ase.views.components.consolepane.events.RowClickedEvent;
 import ase.views.components.consolepane.events.RowPlayModeEvent;
 import ase.views.components.consolepane.events.RowPlayPressedEvent;
@@ -131,12 +133,14 @@ public class SoundscapeTab extends JPanel {
 		buttonPanel.setLayout(buttonPanelLayout);
 		
 		newSoundscapeButton.setToolTipText("New Soundscape");
+		newSoundscapeButton.addActionListener(this::handleNewButtonPress);
 		buttonPanel.add(newSoundscapeButton, newSoundscapeButtonGbc);
 		
 		saveSoundscapeButton.setToolTipText("Save Soundscape");
 		buttonPanel.add(saveSoundscapeButton, saveSoundscapeButtonGbc);
 		
 		copySoundscapeButton.setToolTipText("Copy Soundscape");
+		copySoundscapeButton.addActionListener(this::handleCopyButtonPress);
 		buttonPanel.add(copySoundscapeButton, copySoundscapeButtonGbc);
 		
 		add(buttonPanel, buttonPanelGbc);
@@ -255,6 +259,14 @@ public class SoundscapeTab extends JPanel {
 		}
 	}
 	
+	private void handleNewButtonPress(ActionEvent evt) {
+		opsMgr.newSoundscape(section);
+	}
+	
+	private void handleCopyButtonPress(ActionEvent evt) {
+		opsMgr.copySoundscape(section, soundscape);
+	}
+	
 	/**
 	 * Calculates the new volume for a row given the multi-row volume (both current and previous).
 	 * Calculation based on maintaining the ratio between the Volume Controller value and the sound's
@@ -358,10 +370,12 @@ public class SoundscapeTab extends JPanel {
 			
 			int count = 0;
 			for (SoundModel sound : evt.soundscape) {
+				SoundControlRow controller = soundControllers.get(count);
+				
 				if (sound.isPlaying) {
-					soundControllers.get(count).setPreviewOn();
+					controller.setPreviewOn();
 				} else {
-					soundControllers.get(count).setPreviewOff();
+					controller.setPreviewOff();
 				}
 				count++;
 			}
@@ -474,12 +488,26 @@ public class SoundscapeTab extends JPanel {
 	}
 	
 	@Subscribe public void handlePlayModeEvent(RowPlayModeEvent evt) {
+		SoundModel sound = evt.row.getModel();
+		
 		if (evt.isRightClick) {
-			SoundModel sound = evt.row.getModel();
-			
 			sound = sound.setPlayType(SoundModel.PlayType.RANDOM);
 			
 			//launch random play settings dialogue
+			opsMgr.modifySound(this.section, evt.index, sound); //this needs to fire before the dialog because the dialog blocks 
+			opsMgr.eventBus.post(new LaunchRandomSettingsEvent(section, evt.index, sound));
+		} else {
+			switch(sound.currentPlayType) {
+				case RANDOM:
+					sound = sound.setPlayType(SoundModel.PlayType.SINGLE);
+					break;
+				case SINGLE:
+					sound = sound.setPlayType(SoundModel.PlayType.LOOP);
+					break;
+				case LOOP:
+					sound = sound.setPlayType(SoundModel.PlayType.RANDOM);
+					break;
+			}
 			
 			opsMgr.modifySound(this.section, evt.index, sound);
 		}

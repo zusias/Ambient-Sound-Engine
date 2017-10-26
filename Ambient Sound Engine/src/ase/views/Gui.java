@@ -5,6 +5,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
 import ase.views.components.consolepane.ConsolePane;
+import ase.views.components.consolepane.RandomSettingsDialog;
+import ase.views.components.consolepane.events.LaunchRandomSettingsEvent;
 import ase.views.components.searchpane.SearchPane;
 import ase.views.events.SettingsEvent;
 import ase.views.frames.SubFrame;
@@ -126,6 +128,10 @@ public class Gui extends JFrame {
 		
 		this.setMinimumSize(settings.minimumWindowSize);
 		this.getContentPane().setBackground(settings.backgroundColor);
+	}
+	
+	@Subscribe public void launchRandomSettingsDialog(LaunchRandomSettingsEvent evt) {
+		RandomSettingsDialog dialog = new RandomSettingsDialog(this, evt);
 	}
 	
 	private class WindowListeners extends WindowAdapter {

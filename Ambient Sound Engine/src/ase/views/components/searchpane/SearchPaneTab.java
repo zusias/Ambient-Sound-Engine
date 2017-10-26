@@ -54,9 +54,9 @@ public abstract class SearchPaneTab extends JPanel {
 	protected final GridBagConstraints list2ScrollerGbc = new GridBagConstraints();
 	protected final JList<String> list2List = new JList<>();
 	
-	protected final JButton toAButton = new JButton("To Console A");
+	protected final JButton toAButton = new JButton("To Console 1");
 	protected final GridBagConstraints toAButtonGbc = new GridBagConstraints();
-	protected final JButton toBButton = new JButton("To Console B");
+	protected final JButton toBButton = new JButton("To Console 2");
 	protected final GridBagConstraints toBButtonGbc = new GridBagConstraints();
 	protected final JButton previewButton = new JButton("Preview");
 	protected final GridBagConstraints previewButtonGbc = new GridBagConstraints();

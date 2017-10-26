@@ -163,8 +163,11 @@ class SoundscapeEventHandler {
 			}
 			
 			String symbol = soundSymbols.get(index);
+
 			
-			if (lastSound.currentPlayType != sound.currentPlayType) {
+			if (lastSound.randomSettings != sound.randomSettings) {
+				soundEngine.setSoundPlaytype(ss.runtimeId, symbol, sound.currentPlayType, sound.randomSettings);
+			} else if (lastSound.currentPlayType != sound.currentPlayType) {
 				soundEngine.setSoundPlaytype(ss.runtimeId, symbol, sound.currentPlayType);
 			}
 			
@@ -178,10 +181,6 @@ class SoundscapeEventHandler {
 				} else {
 					soundEngine.stopSound(ss.runtimeId, symbol);
 				}
-			}
-			
-			if (lastSound.randomSettings != sound.randomSettings) {
-				//TODO: Invoke SoundEngine set Random Settings method
 			}
 
 		} catch (SoundEngineException seEx) {

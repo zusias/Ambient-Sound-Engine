@@ -4,6 +4,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.event.ChangeEvent;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -39,6 +40,18 @@ public class Console extends JTabbedPane {
 
 		setMinimumSize(new java.awt.Dimension(460, 200));
 		setPreferredSize(new java.awt.Dimension(460, 260));
+		
+		addChangeListener((ChangeEvent evt) -> {
+			int currentSelection = getSelectedIndex();
+			
+			if (currentSelection != this.soundscapeSet.activeSoundscapeIndex
+					&& currentSelection > -1) {
+				//turn off current soundscape so that when user comes back, it doesn't start playing automatically
+				opsMgr.setSoundscapeIsPlaying(section, false);
+				
+				opsMgr.setActiveSoundscape(section, this.soundscapeSet.getSoundscapeAtIndex(currentSelection).ssid);
+			}
+		});
 		
 		initTabs();
 		
