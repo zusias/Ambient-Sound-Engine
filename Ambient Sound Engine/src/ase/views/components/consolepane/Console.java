@@ -59,9 +59,15 @@ public class Console extends JTabbedPane {
 	}
 	
 	private void initTabs() {
+		
+		int count = 0;
 		for (SoundscapeModel ss : soundscapeSet) {
 			SoundscapeTab newTab = new SoundscapeTab(settings,ss, section);
-			add(ss.name, newTab);
+			SoundscapeTabTitle tabTitle = new SoundscapeTabTitle(settings, ss.name, section, count);
+			add(newTab);
+			setTabComponentAt(count, tabTitle);
+			
+			count++;
 		}
 		
 		setSelectedIndex(soundscapeSet.activeSoundscapeIndex);
@@ -85,19 +91,34 @@ public class Console extends JTabbedPane {
 			return;
 		}
 		
-		if (evt.soundscape == null && evt.ssIndex > -1) {
+		//if 1st 2 conditions indicate a soundscape was deleted. Last comparison checks to see
+		//if a tab was closed in the GUI, and so the tab representing the soundscape being
+		//destroyed is already gone
+		if (evt.soundscape == null && evt.ssIndex > -1
+				&& oldModel.getTotalSoundscapes() == getTabCount()) {
 			SoundscapeTab deadTab = (SoundscapeTab) getComponentAt(evt.ssIndex);
+			SoundscapeTabTitle tabTitle = (SoundscapeTabTitle) getTabComponentAt(evt.ssIndex);
 			deadTab.destroy();
+			tabTitle.destroy();
 			remove(evt.ssIndex);
+			
+			//reset tab title component index to account for gap
+			for (int i = evt.ssIndex; i < getTabCount(); i++) {
+				SoundscapeTabTitle nextTabTitle = (SoundscapeTabTitle) getTabComponentAt(i);
+				nextTabTitle.setIndex(i);
+			}
 			
 		} else if (evt.soundscape != null && evt.ssIndex == oldModel.getTotalSoundscapes()) { //Check to see if there is a new soundscape
 			SoundscapeTab newTab = new SoundscapeTab(settings, evt.soundscape, section);
+			SoundscapeTabTitle tabTitle = new SoundscapeTabTitle(settings, evt.soundscape.name, section, evt.ssIndex);
 			add(evt.soundscape.name, newTab);
+			setTabComponentAt(evt.ssIndex, tabTitle);
 			
 			newTab.applySettings(new SettingsEvent());
 			
 		} else if (evt.soundscape != null) {
-			setTitleAt(evt.ssIndex, evt.soundscape.name);
+			SoundscapeTabTitle tabTitle = (SoundscapeTabTitle) getTabComponentAt(evt.ssIndex);
+			tabTitle.setTitle(evt.soundscape.name);
 		}
 		
 		//Each individual tab is in charge of handling updated soundscapes

@@ -187,7 +187,10 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 			newActiveIndex--;
 		}
 		
-		return new SoundscapeSetModel(newSet, this.activeSoundscape, newActiveIndex);
+		SoundscapeModel newActiveSs = newActiveIndex > -1 ?
+				newSet.get(newActiveIndex) : null; 
+		
+		return new SoundscapeSetModel(newSet, newActiveSs, newActiveIndex);
 	}
 	
 	/**
@@ -206,7 +209,10 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 			newActiveIndex--;
 		}
 		
-		return new SoundscapeSetModel(newSet, this.activeSoundscape, this.activeSoundscapeIndex);
+		SoundscapeModel newActiveSs = newActiveIndex > -1 ?
+				newSet.get(newActiveIndex) : null; 
+		
+		return new SoundscapeSetModel(newSet, newActiveSs, newActiveIndex);
 	}
 	
 	/**

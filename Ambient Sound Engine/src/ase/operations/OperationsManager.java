@@ -267,8 +267,9 @@ public class OperationsManager {
 	/**
 	 * Save a soundscape to the DB. If not already assigned, assigns an ssid to the soundscape
 	 * @param section
+	 * @param index Index within the section of the soundscape to be saved 
 	 */
-	public void saveSoundscape(Sections section){
+	public void saveSoundscape(Sections section, int index){
 		//TODO Implement save function. Will use Database. Ideally should use existing DB methods
 		//Will return an SSID, so possibly trigger a change in the models and resulting notification
 	}

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="Ambient Sound Engine/src"/>
+	<classpathentry kind="lib" path="Ambient Sound Engine/dist/ASE4_5.jar"/>
+	<classpathentry kind="lib" path="Ambient Sound Engine/dist/lib/NativeFmodEx.jar">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="Ambient-Sound-Engine/Ambient Sound Engine/dist"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="Ambient Sound Engine/dist/lib/sqlite-jdbc-3.7.2.jar"/>
+	<classpathentry kind="lib" path="Ambient Sound Engine/dist/lib/swing-layout-1.0.jar"/>
+	<classpathentry kind="lib" path="Ambient Sound Engine/dist/lib/guava-22.0.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/Ambient-Sound-Engine/Ambient%20Sound%20Engine/resources/guava-22.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="Ambient Sound Engine/build/classes"/>
+</classpath>
