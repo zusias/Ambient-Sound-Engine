@@ -71,8 +71,10 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 	/**
 	 * Searches for the soundscape <i>by soundscape id (ssid)</i>. So passing an old reference
 	 * to this object will still produce the correct result, unless the ssid has changed
-	 * @param ss The soundscape to search for
-	 * @return The index, or -1 if not found
+	 * @param ss The soundscape to search for.
+	 * @return The index, or -1 if not found If the ssid of the passed soundscape is -1,
+	 * returns the first soundscape with a matching id in the set. (There could be multiple
+	 * with ssid == -1 because that is the default ID when a soundscape is unsaved)
 	 */
 	public int getSoundscapeIndex(SoundscapeModel ss){
 		int count = 0;
@@ -97,12 +99,17 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 	}
 	
 	/**
-	 * 
-	 * @param ssid
+	 * Returns soundscae by valid ssid. Note that the default initial ssid, -1, is not a valid
+	 * argument for this method
+	 * @param ssid ID (greater than -1)
 	 * @return
 	 * @throws NoMatchFoundException
 	 */
 	public SoundscapeModel getSoundscapeBySsid(int ssid) throws NoMatchFoundException {
+		if (ssid < 0) {
+			throw new IllegalArgumentException("Invalid ssid");
+		}
+		
 		for (SoundscapeModel ss : this.set){
 			if (ss.ssid == ssid){
 				return ss;
@@ -152,7 +159,7 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 	SoundscapeSetModel addSoundscape(SoundscapeModel ss) throws IllegalArgumentException {
 		//error check
 		for (SoundscapeModel currentSs : this.set){
-			if (ss.ssid == currentSs.ssid){
+			if (ss.ssid == currentSs.ssid && ss.ssid != -1){
 				throw new IllegalArgumentException("The set cannot contain 2 soundscapes with the same SSID");
 			}
 		}
@@ -171,6 +178,10 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 	 * @throws NoMatchFoundException if the soundscape is not in the set
 	 */
 	SoundscapeSetModel removeSoundscape(SoundscapeModel ss) throws NoMatchFoundException{
+		if (ss.ssid < 0) {
+			throw new IllegalArgumentException("Invalid ssid on soundscape");
+		}
+		
 		Vector<SoundscapeModel> newSet = new Vector<>();
 		
 		for (SoundscapeModel currentSs : this.set){

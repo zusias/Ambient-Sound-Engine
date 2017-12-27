@@ -108,6 +108,11 @@ public class Console extends JTabbedPane {
 				nextTabTitle.setIndex(i);
 			}
 			
+			//if soundscape set is now empty, add a blank soundscape
+			if (getTabCount() == 0) {
+				opsMgr.newSoundscape(section);
+			}
+			
 		} else if (evt.soundscape != null && evt.ssIndex == oldModel.getTotalSoundscapes()) { //Check to see if there is a new soundscape
 			SoundscapeTab newTab = new SoundscapeTab(settings, evt.soundscape, section);
 			SoundscapeTabTitle tabTitle = new SoundscapeTabTitle(settings, evt.soundscape.name, section, evt.ssIndex);

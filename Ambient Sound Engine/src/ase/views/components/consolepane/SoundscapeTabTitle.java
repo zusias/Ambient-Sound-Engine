@@ -54,9 +54,9 @@ public class SoundscapeTabTitle extends JPanel {
 		//button click handler
 		closeButton.addActionListener((ActionEvent evt) -> {
 			//TODO - Ask user if they want to save or discard before saving
-			opsMgr.saveSoundscape(section, index);
+			opsMgr.saveSoundscape(section, getIndex());
 			
-			opsMgr.removeSoundscape(section, index);
+			opsMgr.removeSoundscape(section, getIndex());
 		});
 		
 		Dimension buttonSize = new Dimension(12, 12);
@@ -77,6 +77,10 @@ public class SoundscapeTabTitle extends JPanel {
 	
 	public void setIndex(int index) {
 		this.index = index;
+	}
+	
+	private int getIndex() {
+		return this.index;
 	}
 	
 	public void destroy() {

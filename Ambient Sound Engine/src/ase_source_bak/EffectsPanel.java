@@ -425,7 +425,7 @@ public class EffectsPanel extends JPanel {
 	 */
 	
 	//Actions for input/actions map for the panel.
-	Action panel1Fade = new AbstractAction() {
+	private Action panel1Fade = new AbstractAction() {
 		private static final long serialVersionUID = 3698226146712167356L;
 
 		@Override
