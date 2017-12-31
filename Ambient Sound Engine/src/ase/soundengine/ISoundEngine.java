@@ -1,13 +1,13 @@
 package ase.soundengine;
 
-import ase.operations.SoundModel;
-import ase.operations.SoundscapeModel;
+import ase.models.RandomPlaySettings;
+import ase.models.SoundModel;
+import ase.models.SoundscapeModel;
 import ase.operations.ISubscriber;
 import ase.operations.OperationsManager.Sections;
-import ase.operations.RandomPlaySettings;
 
 /**
- * <p>Abstract interface for a sound engine implementation.
+ * <p>Interface for a sound engine implementation.
  * Defines methods to load Soundscapes and individual sounds
  * to be played by the sound engine implementation.</p>
  * 
@@ -16,19 +16,18 @@ import ase.operations.RandomPlaySettings;
  * concrete classes for the same soundcard driver is undefined
  * by this interface, but should probably throw an error.</p>
  * 
- * 
  * @author Kevin C. Gall
  *
  */
-public abstract class SoundEngine {
-	
+public interface ISoundEngine {
+
 	/**
 	 * Load a soundscape into the engine. Likely a channel or buffer
 	 * of some kind. Also reads the Soundscape's state and acts accordingly.
 	 * For instance, if play state is "Playing", should play the soundscape.
 	 * <br><br>
 	 * You can access this soundscape in the sound engine using the 
-	 * {@link ase.operations.SoundscapeModel#runtimeId} property
+	 * {@link ase.models.SoundscapeModel#runtimeId} property
 	 * @param ssModel
 	 * @param section Indicates the section of the OperationsManager where this soundscape
 	 * is loaded. Included so that the SoundEngine can reference the active soundscape
@@ -38,8 +37,8 @@ public abstract class SoundEngine {
 	 * Soundscape's iterator
 	 * @throws SoundEngineException
 	 */
-	public abstract String[] loadSoundscape(SoundscapeModel ssModel, Sections section) throws SoundEngineException;
-	
+	String[] loadSoundscape(SoundscapeModel ssModel, Sections section) throws SoundEngineException;
+
 	/**
 	 * Load a sound into an existing Soundscape
 	 * @param id Soundscape ID
@@ -48,8 +47,8 @@ public abstract class SoundEngine {
 	 * soundscape. This symbol could be arbitrary, but must be unique
 	 * @throws SoundEngineException
 	 */
-	public abstract String loadSound(int id, SoundModel sModel) throws SoundEngineException;
-	
+	String loadSound(int id, SoundModel sModel) throws SoundEngineException;
+
 	/**
 	 * Clear an existing sound from the buffer. Must provide the SoundScape id and symbol of the sound.
 	 * The sound stops playing immediately
@@ -58,32 +57,32 @@ public abstract class SoundEngine {
 	 * @param symbol The symbol returned by the SoundEngine uniquely identifying the sound
 	 * @throws SoundEngineException
 	 */
-	public abstract void clearSound(int id, String symbol) throws SoundEngineException;
-	
+	void clearSound(int id, String symbol) throws SoundEngineException;
+
 	/**
 	 * Play a sound
 	 * @param id Soundscape ID
 	 * @param symbol The symbol returned by the SoundEngine uniquely identifying the sound
 	 * @throws SoundEngineException
 	 */
-	public abstract void playSound(int id, String symbol) throws SoundEngineException;
-	
+	void playSound(int id, String symbol) throws SoundEngineException;
+
 	/**
 	 * Stop a sound
 	 * @param id Soundscape ID
 	 * @param symbol The symbol returned by the SoundEngine uniquely identifying the sound
 	 * @throws SoundEngineException
 	 */
-	public abstract void stopSound(int id, String symbol) throws SoundEngineException;
-	
+	void stopSound(int id, String symbol) throws SoundEngineException;
+
 	/**
 	 * Pause a sound
 	 * @param id Soundscape ID
 	 * @param symbol The symbol returned by the SoundEngine uniquely identifying the sound
 	 * @throws SoundEngineException
 	 */
-	public abstract void pauseSound(int id, String symbol) throws SoundEngineException;
-	
+	void pauseSound(int id, String symbol) throws SoundEngineException;
+
 	/**
 	 * 
 	 * @param id Soundscape ID
@@ -92,9 +91,8 @@ public abstract class SoundEngine {
 	 * will be rounded to the nearest valid value
 	 * @throws SoundEngineException
 	 */
-	public abstract void setSoundVolume(int id, String symbol, double newVolume) throws SoundEngineException;
-	
-	
+	void setSoundVolume(int id, String symbol, double newVolume) throws SoundEngineException;
+
 	/**
 	 * Sets the play type of the sound. The sound engine implements the mechanics of the different types.
 	 * <br><br>
@@ -109,8 +107,8 @@ public abstract class SoundEngine {
 	 * @param playType
 	 * @throws SoundEngineException
 	 */
-	public abstract void setSoundPlaytype(int id, String symbol, SoundModel.PlayType playType) throws SoundEngineException;
-	
+	void setSoundPlaytype(int id, String symbol, SoundModel.PlayType playType) throws SoundEngineException;
+
 	/**
 	 * Sets the play type of the sound. The sound engine implements the mechanics of the different types.
 	 * <br><br>
@@ -127,8 +125,9 @@ public abstract class SoundEngine {
 	 * @param randomSettings The settings object attached to a sound
 	 * @throws SoundEngineException
 	 */
-	public abstract void setSoundPlaytype(int id, String symbol, SoundModel.PlayType playType, RandomPlaySettings randomSettings) throws SoundEngineException;
-	
+	void setSoundPlaytype(int id, String symbol, SoundModel.PlayType playType, RandomPlaySettings randomSettings)
+			throws SoundEngineException;
+
 	/**
 	 * Change the volume of a particular soundscape
 	 * @param id Soundscape ID
@@ -136,36 +135,36 @@ public abstract class SoundEngine {
 	 * will be rounded to the nearest valid value
 	 * @throws SoundEngineException
 	 */
-	public abstract void setSoundscapeVolume(int id, double newVolume) throws SoundEngineException;
-	
-	/**
-	 * 
-	 * @param id Soundscape ID
-	 * @throws SoundEngineException
-	 */
-	public abstract void playSoundscape(int id) throws SoundEngineException;
+	void setSoundscapeVolume(int id, double newVolume) throws SoundEngineException;
 
 	/**
 	 * 
 	 * @param id Soundscape ID
 	 * @throws SoundEngineException
 	 */
-	public abstract void pauseSoundscape(int id) throws SoundEngineException;
-	
+	void playSoundscape(int id) throws SoundEngineException;
+
 	/**
 	 * 
 	 * @param id Soundscape ID
 	 * @throws SoundEngineException
 	 */
-	public abstract void stopSoundscape(int id) throws SoundEngineException;
-	
+	void pauseSoundscape(int id) throws SoundEngineException;
+
+	/**
+	 * 
+	 * @param id Soundscape ID
+	 * @throws SoundEngineException
+	 */
+	void stopSoundscape(int id) throws SoundEngineException;
+
 	/**
 	 * Clear a soundscape from memory. Empty buffer, clear channel, etc
 	 * @param id Soundscape ID
 	 * @throws SoundEngineException
 	 */
-	public abstract void clearSoundscape(int id) throws SoundEngineException;
-	
+	void clearSoundscape(int id) throws SoundEngineException;
+
 	/**
 	 * Volume doubles are floating point values between 0 and 1 inclusive. If not within limits,
 	 * will be rounded to the nearest valid value<br/>
@@ -176,8 +175,8 @@ public abstract class SoundEngine {
 	 * @param ms Miliseconds for fade
 	 * @throws SoundEngineException
 	 */
-	public abstract void fadeSoundscape(int id, double startVolume, double endVolume, int ms) throws SoundEngineException;
-	
+	void fadeSoundscape(int id, double startVolume, double endVolume, int ms) throws SoundEngineException;
+
 	/**
 	 * Register a subscriber for when sounds are finished playing.
 	 * When a sound finishes, the subscriber will be notified that the sound whose
@@ -185,8 +184,8 @@ public abstract class SoundEngine {
 	 * @param id Soundscape ID
 	 * @param subscriber
 	 */
-	public abstract void subscribeToFinishedSounds(int id, ISubscriber<String> subscriber) throws SoundEngineException;
-	
+	void subscribeToFinishedSounds(int id, ISubscriber<String> subscriber) throws SoundEngineException;
+
 	/**
 	 * Register a subscriber for when a soundscape finishes fading.
 	 * The subscriber will be passed a PlayState indicating whether the
@@ -197,10 +196,11 @@ public abstract class SoundEngine {
 	 * @param id Soundscape ID
 	 * @param subscriber
 	 */
-	public abstract void subscribeToFinishedFade(int id, ISubscriber<Boolean> subscriber) throws SoundEngineException;
-	
+	void subscribeToFinishedFade(int id, ISubscriber<Boolean> subscriber) throws SoundEngineException;
+
 	/**
 	 * Shuts down the sound engine, releasing any relevant resources
 	 */
-	public abstract void shutdown();
+	void shutdown();
+
 }

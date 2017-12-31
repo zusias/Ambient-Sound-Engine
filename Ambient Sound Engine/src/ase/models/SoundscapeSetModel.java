@@ -1,7 +1,9 @@
-package ase.operations;
+package ase.models;
 
 import java.util.Iterator;
 import java.util.Vector;
+
+import ase.operations.NoMatchFoundException;
 
 /**
  * Immutable data structure representing a set of soundscape objects
@@ -130,7 +132,7 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 	 * @return
 	 * @throws ArrayIndexOutOfBoundsException if index invalid
 	 */
-	SoundscapeSetModel replaceSoundscape(int index, SoundscapeModel ss) throws ArrayIndexOutOfBoundsException{
+	public SoundscapeSetModel replaceSoundscape(int index, SoundscapeModel ss) throws ArrayIndexOutOfBoundsException{
 		Vector<SoundscapeModel> newSet = cloneVector();
 		
 		newSet.setElementAt(ss, index);
@@ -146,7 +148,7 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 	 * @param ss The soundscape to replace the active soundscape
 	 * @return
 	 */
-	SoundscapeSetModel replaceSoundscape(SoundscapeModel ss){
+	public SoundscapeSetModel replaceSoundscape(SoundscapeModel ss){
 		return this.replaceSoundscape(this.activeSoundscapeIndex, ss);
 	}
 	
@@ -156,7 +158,7 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 	 * @return
 	 * @throws IllegalArgumentException if the soundscape (with identical ID) is already in the set
 	 */
-	SoundscapeSetModel addSoundscape(SoundscapeModel ss) throws IllegalArgumentException {
+	public SoundscapeSetModel addSoundscape(SoundscapeModel ss) throws IllegalArgumentException {
 		//error check
 		for (SoundscapeModel currentSs : this.set){
 			if (ss.ssid == currentSs.ssid && ss.ssid != -1){
@@ -177,7 +179,7 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 	 * @return
 	 * @throws NoMatchFoundException if the soundscape is not in the set
 	 */
-	SoundscapeSetModel removeSoundscape(SoundscapeModel ss) throws NoMatchFoundException{
+	public SoundscapeSetModel removeSoundscape(SoundscapeModel ss) throws NoMatchFoundException{
 		if (ss.ssid < 0) {
 			throw new IllegalArgumentException("Invalid ssid on soundscape");
 		}
@@ -210,7 +212,7 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 	 * @return
 	 * @throws ArrayIndexOutOfBoundsException if index is invalid
 	 */
-	SoundscapeSetModel removeSoundscape(int index) throws ArrayIndexOutOfBoundsException{
+	public SoundscapeSetModel removeSoundscape(int index) throws ArrayIndexOutOfBoundsException{
 		Vector<SoundscapeModel> newSet = cloneVector();
 		
 		newSet.remove(index);
@@ -232,7 +234,7 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 	 * @return
 	 * @throws IllegalArgumentException if the passed soundscape model is not in the set
 	 */
-	SoundscapeSetModel setActiveSoundscape(SoundscapeModel activeSs) throws IllegalArgumentException {
+	public SoundscapeSetModel setActiveSoundscape(SoundscapeModel activeSs) throws IllegalArgumentException {
 		int index = set.indexOf(activeSs);
 		
 		if (index < 0){

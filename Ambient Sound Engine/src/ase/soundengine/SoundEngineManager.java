@@ -31,7 +31,7 @@ public class SoundEngineManager {
 	 * @param stage
 	 * @param preview
 	 */
-	public SoundEngineManager(SoundEngine stage, SoundEngine preview){
+	public SoundEngineManager(ISoundEngine stage, ISoundEngine preview){
 		this.console1Subscriber = new SoundscapeEventHandler(stage, Sections.CONSOLE1);
 		this.console2Subscriber = new SoundscapeEventHandler(stage, Sections.CONSOLE2);
 		this.effectsSubscriber = new SoundscapeEventHandler(stage, Sections.EFFECTS);

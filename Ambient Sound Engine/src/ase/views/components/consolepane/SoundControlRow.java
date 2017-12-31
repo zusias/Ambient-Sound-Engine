@@ -1,5 +1,7 @@
 package ase.views.components.consolepane;
 
+import static ase.models.SoundModel.PlayType.*;
+
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -12,12 +14,11 @@ import javax.swing.JButton;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
-import ase.operations.SoundModel;
+import ase.models.SoundModel;
 import ase.views.GuiSettings;
 import ase.views.components.consolepane.events.RowPlayModeEvent;
 import ase.views.components.consolepane.events.RowPlayPressedEvent;
 import ase.views.events.SettingsEvent;
-import static ase.operations.SoundModel.PlayType.*;
 
 public class SoundControlRow extends ConsoleControlRow {
 	private static final long serialVersionUID = 6293656847414464853L;

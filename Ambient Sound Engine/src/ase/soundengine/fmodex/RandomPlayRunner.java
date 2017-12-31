@@ -1,6 +1,6 @@
 package ase.soundengine.fmodex;
 
-import ase.operations.RandomPlaySettings;
+import ase.models.RandomPlaySettings;
 import ase.soundengine.SoundEngineException;
 
 import static ase.operations.Log.LogLevel.*;

@@ -1,4 +1,4 @@
-package ase.operations;
+package ase.models;
 
 /**
  * Model for settings relating to random play

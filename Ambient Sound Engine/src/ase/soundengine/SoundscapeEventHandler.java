@@ -8,11 +8,11 @@ import com.google.common.eventbus.Subscribe;
 //ASE Operations
 import ase.operations.Log;
 import ase.operations.OperationsManager;
-import ase.operations.SoundModel;
-import ase.operations.SoundscapeModel;
 import ase.operations.events.ChangedSoundscapeEvent;
 import ase.operations.Log.LogLevel;
 import ase.operations.OperationsManager.Sections;
+import ase.models.SoundModel;
+import ase.models.SoundscapeModel;
 import ase.operations.IIterableSubscriber;
 import ase.operations.ISubscriber;
 
@@ -30,7 +30,7 @@ class SoundscapeEventHandler {
 	static Log logger = opsMgr.logger;
 	
 	private SoundscapeModel currentSoundscape = null;
-	private final SoundEngine soundEngine;
+	private final ISoundEngine soundEngine;
 	//private final Vector<String> soundSymbols = new Vector<>();
 	private final Sections section;
 	private final BiMap<Integer, String> soundSymbols = HashBiMap.create();
@@ -39,7 +39,7 @@ class SoundscapeEventHandler {
 	public final ISubscriber<String> soundEngineStopSoundSubscriber;
 	public final ISubscriber<Boolean> soundEngineStopFadeSubscriber;
 	
-	public SoundscapeEventHandler(SoundEngine soundEngine, Sections section) {
+	public SoundscapeEventHandler(ISoundEngine soundEngine, Sections section) {
 		this.soundEngine = soundEngine;
 		this.section = section;
 		

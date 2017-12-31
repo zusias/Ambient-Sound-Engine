@@ -21,8 +21,8 @@ import javax.swing.border.EtchedBorder;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
-import ase.operations.SoundModel;
-import ase.operations.SoundscapeModel;
+import ase.models.SoundModel;
+import ase.models.SoundscapeModel;
 import ase.views.GuiSettings;
 import ase.views.components.consolepane.events.RowClickedEvent;
 import ase.views.components.consolepane.events.RowPlayPressedEvent;

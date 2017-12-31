@@ -78,7 +78,12 @@ public class FadeRunner implements Runnable {
 		ChannelGroup channelGroup = channelGroupWrapper.channelGroup;
 		
 		//set start volume before anything else
-		fmodErrCheck(channelGroup.setVolume((float) startVolume));
+		try {
+			fmodErrCheck(channelGroup.setVolume((float) startVolume));
+		} catch (SoundEngineException sEx) {
+			logger.log(PROD, "Fatal sound engine error. Shutting down fader thread");
+			return;
+		}
 		currentVolume = startVolume;
 		
 		//begin playback for soundscape if not already playing
@@ -117,6 +122,9 @@ public class FadeRunner implements Runnable {
 		} catch (InterruptedException interruptedEx) {
 			logger.log(DEV, "Fade runner interrupted!");
 			logger.log(DEBUG, interruptedEx.getStackTrace());
+		} catch (SoundEngineException sEx) {
+			logger.log(PROD, "Fatal sound engine error. Shutting down fader thread");
+			return;
 		}
 
 	}
@@ -126,7 +134,7 @@ public class FadeRunner implements Runnable {
 	 * goes past the target end, volume is reset to the end volume target
 	 * @return New current volume
 	 */
-	private float executeFadeStep() {
+	private float executeFadeStep() throws SoundEngineException {
 		float volumeSet = currentVolume + volumeDelta;
 		
 		if ((volumeDelta < 0.0f && volumeSet < endVolume)

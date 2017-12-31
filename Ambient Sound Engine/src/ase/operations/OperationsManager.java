@@ -11,7 +11,11 @@ import java.util.LinkedList;
 
 import com.google.common.eventbus.EventBus;
 
-import ase.operations.SoundscapeModel.PlayState;
+import ase.models.RandomPlaySettings;
+import ase.models.SoundModel;
+import ase.models.SoundscapeModel;
+import ase.models.SoundscapeSetModel;
+import ase.models.SoundscapeModel.PlayState;
 import ase.operations.events.ChangedSoundscapeEvent;
 import ase.operations.events.ChangedSoundscapeSetEvent;
 

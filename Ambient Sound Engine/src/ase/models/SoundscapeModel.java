@@ -1,10 +1,12 @@
-package ase.operations;
+package ase.models;
 
 //IO
 import java.nio.file.Path;
 //Utils
 import java.util.Iterator;
 import java.util.Vector;
+
+import ase.operations.NoMatchFoundException;
 
 /**
  * Immutable data structure to represent a soundscape.
@@ -43,7 +45,7 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @param fadeDuration Duration of the fade in milliseconds. Defaulted to 0 if invalid
 	 * given playState
 	 */
-	SoundscapeModel(int ssid, int runtimeId,
+	public SoundscapeModel(int ssid, int runtimeId,
 			double masterVolume, SoundModel[] sounds, String name, PlayState playState, int fadeDuration) 
 	{	
 		if (playState == PlayState.PLAYING || playState == PlayState.STOPPED || fadeDuration < 0){
@@ -115,7 +117,7 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @param newVolume
 	 * @return
 	 */
-	SoundscapeModel setMasterVolume(double newVolume){
+	public SoundscapeModel setMasterVolume(double newVolume){
 		return newVolume == this.masterVolume ? this : 
 			new SoundscapeModel(this.ssid, this.runtimeId, newVolume,
 					this.sounds, this.name, this.playState, this.fadeDuration);
@@ -126,7 +128,7 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @param isPlaying
 	 * @return
 	 */
-	SoundscapeModel setIsPlaying(boolean isPlaying){
+	public SoundscapeModel setIsPlaying(boolean isPlaying){
 		PlayState playState = isPlaying ? PlayState.PLAYING : PlayState.STOPPED;
 		
 		return playState == this.playState ? this :
@@ -143,7 +145,7 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * Defaults to 0 if not an actively fading fade state
 	 * @return
 	 */
-	SoundscapeModel setFadeState(PlayState fade, int fadeDuration) {
+	public SoundscapeModel setFadeState(PlayState fade, int fadeDuration) {
 		return fade == this.playState ? this :
 			new SoundscapeModel(this.ssid, this.runtimeId,
 					this.masterVolume, this.sounds, this.name, fade, fadeDuration);
@@ -154,7 +156,7 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @param newName
 	 * @return
 	 */
-	SoundscapeModel rename(String newName){
+	public SoundscapeModel rename(String newName){
 		return newName == this.name ? this :
 			new SoundscapeModel(this.ssid, this.runtimeId,
 					this.masterVolume, this.sounds, newName, this.playState, this.fadeDuration);
@@ -166,13 +168,13 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @param ssid
 	 * @return
 	 */
-	SoundscapeModel setSsid(int ssid){
+	public SoundscapeModel setSsid(int ssid){
 		return ssid == this.ssid ? this :
 			new SoundscapeModel(ssid, this.runtimeId,
 					this.masterVolume, this.sounds, this.name, this.playState, this.fadeDuration);
 	}
 	
-	SoundscapeModel copy(int runtimeId){
+	public SoundscapeModel copy(int runtimeId){
 		return new SoundscapeModel(this.ssid, runtimeId, this.masterVolume,
 				this.sounds, this.name, this.playState, this.fadeDuration);
 	}
@@ -182,7 +184,7 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @param sound
 	 * @return
 	 */
-	SoundscapeModel addSound(SoundModel sound){
+	public SoundscapeModel addSound(SoundModel sound){
 		Vector<SoundModel> newSounds = cloneVector();
 		
 		newSounds.add(sound);
@@ -201,7 +203,7 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @param randomSettings
 	 * @return
 	 */
-	SoundscapeModel addSound(
+	public SoundscapeModel addSound(
 			Path filePath,
 			String name,
 			SoundModel.PlayType currentPlayType,
@@ -226,7 +228,7 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @param sizeInBytes
 	 * @return
 	 */
-	SoundscapeModel addSound(
+	public SoundscapeModel addSound(
 			Path filePath,
 			String name,
 			SoundModel.PlayType currentPlayType,
@@ -241,7 +243,7 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @return
 	 * @throws NoMatchFoundException
 	 */
-	SoundscapeModel removeSound(SoundModel sound) throws NoMatchFoundException {
+	public SoundscapeModel removeSound(SoundModel sound) throws NoMatchFoundException {
 		Vector<SoundModel> newSounds = new Vector<>();
 		
 		for (SoundModel oldSound : this.sounds){
@@ -264,7 +266,7 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @return
 	 * @throws ArrayIndexOutOfBoundsException if invalid index
 	 */
-	SoundscapeModel removeSound(int index) throws ArrayIndexOutOfBoundsException {
+	public SoundscapeModel removeSound(int index) throws ArrayIndexOutOfBoundsException {
 		Vector<SoundModel> newSounds = cloneVector();
 		
 		newSounds.remove(index);
@@ -352,7 +354,7 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @return
 	 * @throws ArrayIndexOutOfBoundsException if the index is invalid
 	 */
-	SoundscapeModel replaceSound(int index, SoundModel sound) throws ArrayIndexOutOfBoundsException {
+	public SoundscapeModel replaceSound(int index, SoundModel sound) throws ArrayIndexOutOfBoundsException {
 		Vector<SoundModel> newSounds = cloneVector();
 		
 		newSounds.setElementAt(sound, index);

@@ -4,15 +4,17 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import ase.operations.SoundModel.PlayType;
+import ase.models.RandomPlaySettings;
+import ase.models.SoundModel;
+import ase.models.SoundscapeModel;
+import ase.models.SoundModel.PlayType;
 
 import static java.lang.System.exit;
-
+import static ase.models.SoundModel.PlayType.*;
+import static ase.models.SoundscapeModel.PlayState.*;
 import static ase.operations.Log.LogLevel.DEBUG;
 import static ase.operations.Log.LogLevel.DEV;
 import static ase.operations.Log.LogLevel.PROD;
-import static ase.operations.SoundModel.PlayType.*;
-import static ase.operations.SoundscapeModel.PlayState.*;
 
 /**
  * Provider meant for test data only. Static methods which

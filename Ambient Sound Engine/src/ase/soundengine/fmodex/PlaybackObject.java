@@ -1,8 +1,7 @@
 package ase.soundengine.fmodex;
 
-//ASE imports
-import ase.operations.SoundModel.PlayType;
-import ase.operations.RandomPlaySettings;
+import ase.models.RandomPlaySettings;
+import ase.models.SoundModel.PlayType;
 
 //Native FmodEx imports
 import org.jouvieje.FmodEx.Channel;

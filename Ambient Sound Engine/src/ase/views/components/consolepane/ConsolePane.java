@@ -42,7 +42,7 @@ public class ConsolePane extends JPanel {
 		this.settings = settings;
 		
 		layout.columnWeights = new double[]{1.0};
-		layout.rowWeights = new double[]{0.1, 1.0, 0.1, 1.0, 0.1, 1.0};
+		layout.rowWeights = new double[]{0.1, 1.0, 0.1, 0.0, 0.1, 1.0};
 		layout.rowHeights = new int[]{0, 0, 0};
 		setLayout(layout);
 		
@@ -60,8 +60,9 @@ public class ConsolePane extends JPanel {
 		
 		effectsPanel = new EffectsPanel(settings);
 		
-		effectsPanel.setMinimumSize(new Dimension(400, 100));
-		effectsPanel.setPreferredSize(new java.awt.Dimension(450, 150));
+		Dimension effectsPanelSize = new Dimension(400, 70);
+		effectsPanel.setMinimumSize(effectsPanelSize);
+		effectsPanel.setPreferredSize(effectsPanelSize);
 		add(effectsPanel, effectsPanelGbc);
 		
 		add(console2Label, console2LabelGbc);

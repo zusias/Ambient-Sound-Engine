@@ -1,10 +1,11 @@
 package ase.views.components.consolepane;
 
+import static ase.models.SoundscapeModel.PlayState.*;
+
 import com.google.common.eventbus.EventBus;
 
-import ase.operations.SoundscapeModel;
+import ase.models.SoundscapeModel;
 import ase.views.GuiSettings;
-import static ase.operations.SoundscapeModel.PlayState.*;
 
 public class SoundscapeControlRow extends ConsoleControlRow {
 	

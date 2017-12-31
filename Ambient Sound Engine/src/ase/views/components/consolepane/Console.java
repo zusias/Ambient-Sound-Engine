@@ -9,10 +9,10 @@ import javax.swing.event.ChangeEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
-import ase.operations.SoundscapeModel;
-import ase.operations.SoundscapeSetModel;
 import ase.operations.TestDataProvider;
 import ase.main.Main;
+import ase.models.SoundscapeModel;
+import ase.models.SoundscapeSetModel;
 import ase.operations.OperationsManager.Sections;
 import ase.operations.events.ChangedSoundscapeSetEvent;
 import ase.views.GuiSettings;

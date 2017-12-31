@@ -1,7 +1,10 @@
 package ase.main;
 
+import ase.database.DatabaseException;
+import ase.database.IDatabase;
+import ase.database.legacy.LegacyDatabaseBridge;
 import ase.operations.Log;
-import ase.soundengine.SoundEngine;
+import ase.soundengine.ISoundEngine;
 import ase.soundengine.SoundEngineException;
 import ase.soundengine.SoundEngineManager;
 import ase.soundengine.fmodex.FmodExEngine;
@@ -9,11 +12,7 @@ import ase.views.Gui;
 import ase.views.navigation.events.QuitEvent;
 
 import static ase.operations.OperationsManager.opsMgr;
-import static ase.operations.Log.LogLevel.PROD;
-import static ase.operations.Log.LogLevel.DEV;
-import static ase.operations.Log.LogLevel.DEBUG;
-
-import java.util.Scanner;
+import static ase.operations.Log.LogLevel.*;
 
 import com.google.common.eventbus.Subscribe;
 
@@ -28,8 +27,11 @@ import com.google.common.eventbus.Subscribe;
  *
  */
 public class Main {
-	private SoundEngine stage = null;
-	private SoundEngine preview = null;
+	private ISoundEngine stage = null;
+	private ISoundEngine preview = null;
+	
+	private boolean active = true;
+	
 	private final Log logger = opsMgr.logger;
 	
 	public Main () {
@@ -38,6 +40,7 @@ public class Main {
 		} catch (SoundEngineException e){
 			logger.log(PROD, "Error initializing primary SoundEngine");
 			logger.log(DEV, e.getMessage());
+			logger.log(DEBUG, e.getStackTrace());
 			System.exit(-1);
 		}
 		
@@ -46,6 +49,7 @@ public class Main {
 		} catch (SoundEngineException e) {
 			logger.log(PROD, "System only supports one sound card.");
 			logger.log(DEV, e.getMessage());
+			logger.log(DEBUG, e.getStackTrace());
 		}
 		
 		logger.log(DEBUG, "Initializing SoundEngineManager");
@@ -59,13 +63,16 @@ public class Main {
 	}
 	
 	@Subscribe public void shutdownOnQuit(QuitEvent e) {
+		active = false;
+		
 		try {
 			stage.shutdown();
 			preview.shutdown();
-		} catch (NullPointerException npe) {
-			opsMgr.logger.log(DEBUG, npe.getMessage());
+		} catch (Exception ex) {
+			logger.log(DEV, ex.getMessage());
+			logger.log(DEBUG, ex.getStackTrace());
 		}
-		opsMgr.logger.log(DEBUG, "Closing application");
+		logger.log(DEBUG, "Closing application");
 	}
 	
 	public static void main(String[] args) throws InterruptedException {
@@ -73,5 +80,13 @@ public class Main {
 		
 		//bootstrap
 		Main main = new Main();
+		
+		try (LegacyDatabaseBridge db = new LegacyDatabaseBridge()) { //automatically closed on exiting the block
+			while (main.active); //infinite loop
+		} catch (Exception ex) {
+			opsMgr.logger.log(PROD, "Unable to initialize database");
+			opsMgr.logger.log(DEV, ex.getMessage());
+			opsMgr.logger.log(DEBUG, ex.getStackTrace());
+		}
 	}
 }

@@ -1,8 +1,8 @@
 package ase.operations.events;
 
 import ase.operations.OperationsManager.Sections;
-import ase.operations.SoundscapeModel;
-import ase.operations.SoundscapeSetModel;
+import ase.models.SoundscapeModel;
+import ase.models.SoundscapeSetModel;
 
 /**
  * Fired when a soundscape set changes

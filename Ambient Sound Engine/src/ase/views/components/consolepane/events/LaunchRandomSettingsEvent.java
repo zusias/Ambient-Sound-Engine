@@ -1,7 +1,7 @@
 package ase.views.components.consolepane.events;
 
+import ase.models.SoundModel;
 import ase.operations.OperationsManager.Sections;
-import ase.operations.SoundModel;
 
 public class LaunchRandomSettingsEvent {
 	public final Sections section;

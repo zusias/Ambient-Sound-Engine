@@ -10,8 +10,8 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 
 import ase.operations.OperationsManager.Sections;
-import ase.operations.RandomPlaySettings;
-import ase.operations.SoundModel;
+import ase.models.RandomPlaySettings;
+import ase.models.SoundModel;
 import ase.views.components.consolepane.events.LaunchRandomSettingsEvent;
 import static ase.operations.OperationsManager.opsMgr;
 

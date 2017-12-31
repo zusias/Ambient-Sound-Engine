@@ -89,7 +89,7 @@ public class EffectsPanel extends JPanel {
 	private final GridBagLayout layout = new GridBagLayout();
 	private final Insets buttonMargin = new Insets(0,0,0,0);
 	
-	private final int buttonSize = 30;
+	private final int buttonSize = 21;
 	private final Dimension buttonDim = new Dimension(buttonSize, buttonSize);
 	
 	private GuiSettings settings;
@@ -99,7 +99,7 @@ public class EffectsPanel extends JPanel {
 		
 		layout.columnWidths = new int[]{20, 150, 65, 40, 40, 65};
 		layout.columnWeights = new double[]{0.1, 1.0, 0.0, 0.0, 0.0, 0.0};
-		layout.rowHeights = new int[]{32, 32, 32};
+		layout.rowHeights = new int[]{23, 23, 23};
 		
 		setLayout(layout);
 		

@@ -22,10 +22,10 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
 import ase.operations.OperationsManager.Sections;
-import ase.operations.RandomPlaySettings;
-import ase.operations.SoundModel;
-import ase.operations.SoundscapeModel;
-import ase.operations.SoundscapeModel.PlayState;
+import ase.models.RandomPlaySettings;
+import ase.models.SoundModel;
+import ase.models.SoundscapeModel;
+import ase.models.SoundscapeModel.PlayState;
 import ase.operations.events.ChangedSoundscapeEvent;
 import ase.views.GuiSettings;
 import ase.views.components.consolepane.events.LaunchRandomSettingsEvent;

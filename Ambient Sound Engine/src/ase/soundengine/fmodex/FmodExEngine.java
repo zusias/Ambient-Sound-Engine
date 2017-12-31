@@ -12,20 +12,20 @@ import java.util.concurrent.Executors;
 
 import static java.lang.System.exit;
 
+import ase.models.RandomPlaySettings;
+import ase.models.SoundModel;
+import ase.models.SoundscapeModel;
+import ase.models.SoundModel.PlayType;
+import ase.models.SoundscapeModel.PlayState;
 import ase.operations.ISubscriber;
-import ase.operations.SoundModel;
-import ase.operations.SoundModel.PlayType;
-import ase.operations.SoundscapeModel;
-import ase.operations.SoundscapeModel.PlayState;
-import ase.soundengine.SoundEngine;
+import ase.soundengine.ISoundEngine;
 import ase.soundengine.SoundEngineException;
 import ase.operations.OperationsManager;
 import ase.operations.OperationsManager.Sections;
-import ase.operations.RandomPlaySettings;
 import ase.operations.Log;
 import static ase.operations.OperationsManager.Sections.*;
-import static ase.operations.SoundscapeModel.PlayState.*;
-import static ase.operations.SoundModel.PlayType.*;
+import static ase.models.SoundModel.PlayType.*;
+import static ase.models.SoundscapeModel.PlayState.*;
 import static ase.operations.Log.LogLevel.*;
 
 //FmodEx imports
@@ -74,7 +74,7 @@ import ase.operations.TestDataProvider;
  * @author Kevin C. Gall
  *
  */
-public class FmodExEngine extends SoundEngine {
+public class FmodExEngine implements ISoundEngine {
 	//static variables
 	private static int driverCount = 0;
 	private static boolean startupSuccess = true;
@@ -103,7 +103,12 @@ public class FmodExEngine extends SoundEngine {
 		} catch (InterruptedException e) {
 			logger.log(DEV, "Update thread interrupted");
 		} finally {
-			internalShutdown();
+			try {
+				internalShutdown();
+			} catch (SoundEngineException sEx) {
+				logger.log(PROD, "Fatal sound engine error. Shutting down");
+				exit(-1);
+			}
 		}
 	};
 	
@@ -192,15 +197,17 @@ public class FmodExEngine extends SoundEngine {
 		driverCount++;
 	}
 	
-	static void fmodErrCheck(FMOD_RESULT result) {
+	static void fmodErrCheck(FMOD_RESULT result) throws SoundEngineException {
 		if (result != FMOD_OK) {
 			logger.log(PROD, "Error with Sound Engine");
-			logger.log(DEV, "FMOD Error! "
-									+ result.asInt()
-									+ " "
-									+ FmodEx.FMOD_ErrorString(result));
 			
-			exit(-1);
+			String errorMessage = "FMOD Error! "
+					+ result.asInt()
+					+ " "
+					+ FmodEx.FMOD_ErrorString(result);
+			logger.log(DEV, errorMessage);
+			
+			throw new SoundEngineException(errorMessage);
 		}
 	}
 	
@@ -779,7 +786,7 @@ public class FmodExEngine extends SoundEngine {
 		updateInterrupt = true;
 	}
 	
-	private void internalShutdown() {
+	private void internalShutdown() throws SoundEngineException {
 		logger.log(DEV, "Shutting down FmodEx Engine: Driver " + driverName);
 		fmodErrCheck(system.close());
 		fmodErrCheck(system.release());
@@ -870,7 +877,14 @@ public class FmodExEngine extends SoundEngine {
 			
 			if (callbackType == FMOD_CHANNEL_CALLBACKTYPE_END) {
 				IntBuffer buffer = BufferUtils.newIntBuffer(256);
-				FmodExEngine.fmodErrCheck(channel.getIndex(buffer));
+				
+				FMOD_RESULT res = channel.getIndex(buffer);
+				try {
+					FmodExEngine.fmodErrCheck(res);
+				} catch (SoundEngineException sEx) {
+					logger.log(PROD, "Severe sound engine error.");
+					return res;
+				}
 				
 				logger.log(DEBUG, "End Callback for channel " + buffer.get());
 
