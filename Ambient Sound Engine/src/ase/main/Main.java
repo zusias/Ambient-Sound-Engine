@@ -33,7 +33,7 @@ public class Main {
 	
 	private boolean active = true;
 	
-	private static final Log logger = opsMgr.logger;
+	private final Log logger = opsMgr.logger;
 	
 	public Main (IDatabase db) {
 		opsMgr.setDatabase(db);
@@ -80,7 +80,7 @@ public class Main {
 	}
 	
 	public static void main(String[] args) throws InterruptedException {
-		logger.log(DEBUG, "In main");
+		opsMgr.logger.log(DEBUG, "In main");
 		
 		try (IDatabase db = new LegacyDatabaseBridge()) { //automatically closed on exiting the block
 			Main main = new Main(db);
@@ -89,9 +89,9 @@ public class Main {
 				Thread.sleep(1000); //make sure we don't spin lock...
 			}; //infinite loop
 		} catch (Exception ex) {
-			logger.log(PROD, "Unable to initialize database");
-			logger.log(DEV, ex.getMessage());
-			logger.log(DEBUG, ex.getStackTrace());
+			opsMgr.logger.log(PROD, "Unable to initialize database");
+			opsMgr.logger.log(DEV, ex.getMessage());
+			opsMgr.logger.log(DEBUG, ex.getStackTrace());
 		}
 	}
 }

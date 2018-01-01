@@ -59,11 +59,8 @@ public class OperationsManager {
 		CONSOLE1, CONSOLE2, EFFECTS, PREVIEW
 	}
 	
-	//singleton
-	public static OperationsManager opsMgr = new OperationsManager();
-	
 	//Main app objects
-	public IDatabase db;
+	private IDatabase db;
 	
 	//utility app objects
 	public final Log logger = new Log(DEBUG); //hard code Debug level for now
@@ -100,6 +97,9 @@ public class OperationsManager {
 		
 		return Long.parseLong(sizeString, 10);
 	}
+
+	//singleton
+	public static final OperationsManager opsMgr = new OperationsManager();
 	
 	private OperationsManager() {
 		logger.log(DEV, "Logger active");
@@ -207,6 +207,14 @@ public class OperationsManager {
 	 */
 	public void setDatabase(IDatabase db) {
 		this.db = db;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public IDatabase getDatabase() {
+		return db;
 	}
 	
 	/**
@@ -327,7 +335,7 @@ public class OperationsManager {
 	 */
 	public SortedMap<Integer, String> searchDb(DataType targetType, String identifier, DataType returnType) {
 		if (targetType == returnType) {
-			//TODO Implement case where target type == return type
+			//TODO Refactor this method: db interface searches for sounds/soundscapes by keyword Id, not keyword string
 			try {
 				switch (targetType) {
 				case SOUND:

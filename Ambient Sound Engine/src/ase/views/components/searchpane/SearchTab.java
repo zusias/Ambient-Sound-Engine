@@ -8,7 +8,9 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.SortedMap;
 
+import javax.swing.JList;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -19,20 +21,20 @@ import ase.views.GuiSettings;
 public class SearchTab extends SearchPaneTab {
 	private static final long serialVersionUID = 3516973549593974478L;
 	
+	private int[] keywordListIds;
+	private int[] matchListIds;
 	
 	public SearchTab(GuiSettings settings) {
 		super(settings);
+		
+		SearchTabUiComposite uiListeners = new SearchTabUiComposite(this);
 		
 		layout.columnWeights = new double[]{1.0, 0.5, 1.0};
 		
 		searchLabel.setText("Keyword");
 		add(searchLabel, searchLabelGbc);
 
-		searchField.addKeyListener(new KeyAdapter() {
-			@Override public void keyReleased(KeyEvent e) {
-				opsMgr.logger.log(DEBUG, "Search key released: " + e.getKeyChar());
-			}
-		});
+		searchField.addKeyListener(uiListeners.searchFieldKeyAdapater);
 		add(searchField, searchFieldGbc);
 		
 		soundscapeRadioButton.addItemListener((e) -> {
@@ -110,5 +112,37 @@ public class SearchTab extends SearchPaneTab {
 		add(previewButton, previewButtonGbc);
 		
 		opsMgr.eventBus.register(this);
+	}
+	
+	/**
+	 * Sets the keyword match list and keeps track of corresponding IDs in an array
+	 * @param items
+	 */
+	public void setKeywordListItems(SortedMap<Integer, String> items) {
+		keywordListIds = new int[items.size()];
+		setList(items, keywordListIds, list1List);
+	}
+	
+	/**
+	 * Sets the keyword match list and keeps track of corresponding IDs in an array
+	 * @param items
+	 */
+	public void setMatchListItems(SortedMap<Integer, String> items) {
+		matchListIds = new int[items.size()];
+		setList(items, matchListIds, list2List);
+	}
+	
+	private void setList(SortedMap<Integer, String> items, int[] ids, JList list) {
+		String[] listItems = new String[items.size()];
+		
+		int index = 0;
+		for (int listId : items.keySet()) {
+			ids[index] = listId;
+			listItems[index] = items.get(listId);
+			
+			index++;
+		}
+		
+		list.setListData(listItems);
 	}
 }

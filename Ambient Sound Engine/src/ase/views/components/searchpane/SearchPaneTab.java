@@ -199,6 +199,18 @@ public abstract class SearchPaneTab extends JPanel {
 		previewButtonGbc.insets = new Insets(0, 7, 7, 25);
 	}
 	
+	public boolean isSoundSelected() {
+		return soundRadioButton.isSelected();
+	}
+	
+	public boolean isSoundscapeSelected() {
+		return soundscapeRadioButton.isSelected();
+	}
+	
+	public String getSearchText() {
+		return searchField.getText();
+	}
+	
 	@Subscribe public void applySettings(SettingsEvent e) {
 		if (e.getNewSettings() != null) {
 			this.settings = e.getNewSettings();

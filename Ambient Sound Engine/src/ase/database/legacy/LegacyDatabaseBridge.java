@@ -5,19 +5,19 @@ import java.sql.SQLException;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import ase.database.Database;
 import ase.database.DatabaseException;
+import ase.database.IDatabase;
 import ase.models.SoundModel;
 import ase.models.SoundscapeModel;
 
 import static ase.database.DataType.*;
 
-public class LegacyDatabaseBridge extends Database {
+public class LegacyDatabaseBridge implements IDatabase {
 	private final LegacyDatabase db;
 	
-	public LegacyDatabaseBridge () throws DatabaseException {
-		super();
+	public LegacyDatabaseBridge() throws DatabaseException {
 		db = new LegacyDatabase();
+		this.connect();
 	}
 	
 	@Override
