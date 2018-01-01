@@ -35,25 +35,52 @@ public interface IDatabase extends AutoCloseable {
 	 * @return map of Keyword Id (from database) to keyword
 	 * @throws DatabaseException
 	 */
-	SortedMap<Integer, String> getKeyword(String identifier) throws DatabaseException;
+	SortedMap<Integer, String> getKeywords(String identifier) throws DatabaseException;
+	
+	/**
+	 * Retrieves settings corresponding to search term. Pass empty string to retrieve
+	 * all settings
+	 * @param identifier
+	 * @return
+	 * @throws DatabaseException
+	 */
+	SortedMap<String, String> getSettings(String identifier) throws DatabaseException;
+	
+	/**
+	 * Searches DB for keywords associated with sound files
+	 * 
+	 * @param identifier Used as prefix keyword search
+	 * @return Map of Keyword Id to Keyword
+	 * @throws DatabaseException
+	 */
+	SortedMap<Integer, String> getSoundKeywords(String identifier) throws DatabaseException;
 	
 	/**
 	 * Searches DB for sound name based on keyword parameter.
 	 * 
-	 * @param identifier Used as prefix keyword search
+	 * @param keywordId Id of keyword to search for sound relationships
 	 * @return Map of Sound Id to Sound Name
 	 * @throws DatabaseException
 	 */
-	SortedMap<Integer, String> getSoundByKeyword(String identifier) throws DatabaseException;
+	SortedMap<Integer, String> getSoundsByKeyword(int keywordId) throws DatabaseException;
+	
+	/**
+	 * Searches DB for keywords associated with soundscapes
+	 * 
+	 * @param identifier Used as prefix keyword search
+	 * @return Map of Keyword ID to Keyword
+	 * @throws DatabaseException
+	 */
+	SortedMap<Integer, String> getSoundscapeKeywords(String identifier) throws DatabaseException;
 	
 	/**
 	 * Searches DB for soundscape based on keyword parameter.
 	 * 
-	 * @param identifier Used as prefix keyword search
+	 * @param keywordIdId of keyword to search for soundscape relationships
 	 * @return Map of Soundscape ID to Soundscape Name
 	 * @throws DatabaseException
 	 */
-	SortedMap<Integer, String> getSoundscapeByKeyword(String identifier) throws DatabaseException;
+	SortedMap<Integer, String> getSoundscapesByKeyword(int keywordId) throws DatabaseException;
 	
 	/**
 	 * Retrieves an individual Sound from the database. Sound not attached to any particular soundscape,

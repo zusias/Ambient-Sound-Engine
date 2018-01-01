@@ -8,9 +8,14 @@ import java.nio.file.Files;
 
 //Utilities
 import java.util.LinkedList;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import com.google.common.eventbus.EventBus;
 
+import ase.database.DataType;
+import ase.database.DatabaseException;
+import ase.database.IDatabase;
 import ase.models.RandomPlaySettings;
 import ase.models.SoundModel;
 import ase.models.SoundscapeModel;
@@ -58,10 +63,10 @@ public class OperationsManager {
 	public static OperationsManager opsMgr = new OperationsManager();
 	
 	//Main app objects
-	//public final Database db;
+	public IDatabase db;
 	
 	//utility app objects
-	public final Log logger;
+	public final Log logger = new Log(DEBUG); //hard code Debug level for now
 	public final EventBus eventBus = new EventBus();
 	
 	//Data models
@@ -85,9 +90,9 @@ public class OperationsManager {
 	}
 	
 	//utility properties
-	private static int runtimeId;
-	private static SoundscapeModel defaultSs;
-	private RandomPlaySettings defaultRandomSettings = new RandomPlaySettings(0, 10, 0, 5);
+	private static int runtimeId = 1;
+	private static SoundscapeModel defaultSs = new SoundscapeModel(-1, runtimeId++, 1.0, null,
+			"New Soundscape", SoundscapeModel.PlayState.STOPPED, 0);
 	
 	//utility static methods
 	public static long getFileSize(Path filePath) throws IOException {
@@ -97,12 +102,6 @@ public class OperationsManager {
 	}
 	
 	private OperationsManager() {
-		//init static variables
-		runtimeId = 1;
-		defaultSs = new SoundscapeModel(-1, runtimeId++, 1.0, null,
-						"New Soundscape", SoundscapeModel.PlayState.STOPPED, 0);
-		this.logger = new Log(DEBUG); //hard code Debug level for now
-		
 		logger.log(DEV, "Logger active");
 		
 		/* initialize soundscapes as empty defaults
@@ -203,6 +202,14 @@ public class OperationsManager {
 	 */
 
 	/**
+	 * Sets the database to be used for retrieve / save / update / delete operations
+	 * @param db
+	 */
+	public void setDatabase(IDatabase db) {
+		this.db = db;
+	}
+	
+	/**
 	 * Sets the active soundscape for a console - correspond to active tab in gui
 	 * @param console
 	 * @param ss
@@ -294,6 +301,65 @@ public class OperationsManager {
 		//This method should retrieve a soundscape from the db
 		
 		return defaultSs;
+	}
+	
+	/**
+	 * Searches DB for given datatype. Signature assumes return information data type is the same
+	 * as the target data type
+	 * @param type The type of data being searched
+	 * @param identifier Prefix-matched search term
+	 * @return A sorted map of the DB id of the data record to the name of the data record
+	 */
+	public SortedMap<Integer, String> searchDb(DataType targetType, String identifier) {
+		return searchDb(targetType, identifier, targetType);
+	}
+	
+	/**
+	 * Searches DB for given datatype, returning info based on returnType. If targetType is SOUND and
+	 * returnType is KEYWORD, returns a map of Keywords by their Keyword_Id of all keywords
+	 * that match the identifier and are associated with a sound. If return type was SOUND, it would return
+	 * Names to Ids of all sounds associated with a keyword that prefix-matched the identifier
+	 * @param targetType Type to be searched. All searches are for keywords, but it might be for keywords
+	 * specifically associated with sounds or soundscapes
+	 * @param identifier Prefix-matched search term
+	 * @param returnType The Data type the return map describes
+	 * @return A sorted map of the DB id of the data record to the name of the data record
+	 */
+	public SortedMap<Integer, String> searchDb(DataType targetType, String identifier, DataType returnType) {
+		if (targetType == returnType) {
+			//TODO Implement case where target type == return type
+			try {
+				switch (targetType) {
+				case SOUND:
+					throw new DatabaseException("Not implemented yet");
+				case SOUNDSCAPE:
+					throw new DatabaseException("Not implemented yet");
+				case KEYWORD:
+					return db.getKeywords(identifier);
+				}
+			} catch (DatabaseException dEx) {
+				logger.log(DEV, dEx.getMessage());
+				logger.log(DEBUG, dEx.getStackTrace());
+			}
+		} else if (returnType == DataType.KEYWORD) {
+			try {
+				switch (targetType) {
+				case SOUND:
+					return db.getSoundKeywords(identifier);
+				case SOUNDSCAPE:
+					return db.getSoundscapeKeywords(identifier);
+				default:
+					throw new IllegalArgumentException("Theoretically unreachable exception");
+				}
+			} catch (DatabaseException dEx) {
+				logger.log(DEV, dEx.getMessage());
+				logger.log(DEBUG, dEx.getStackTrace());
+			}
+		} else {
+			throw new IllegalArgumentException("Sound / Soundscape queries must return either Sound / Soundscape info or keyword info");
+		}
+		
+		return new TreeMap<Integer, String>(); //empty map for bad search
 	}
 	
 	/**

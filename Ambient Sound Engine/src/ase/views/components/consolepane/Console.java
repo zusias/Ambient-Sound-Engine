@@ -138,7 +138,7 @@ public class Console extends JTabbedPane {
 		SoundscapeModel ss = TestDataProvider.testSoundscape(
 				new String[] {".\\03_Waves.mp3", ".\\klaxon alarm aoogah.mp3", ".\\bowling ambience.mp3"});
 		
-		Main m = new Main();
+		//Main m = new Main();
 		
 		opsMgr.removeSoundscape(Sections.CONSOLE1, 0);
 		opsMgr.addSoundscape(Sections.CONSOLE1, ss);

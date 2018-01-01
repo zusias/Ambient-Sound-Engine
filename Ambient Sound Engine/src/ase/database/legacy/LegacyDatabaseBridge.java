@@ -1,13 +1,16 @@
 package ase.database.legacy;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 import ase.database.Database;
 import ase.database.DatabaseException;
-import ase.database.IDatabase;
 import ase.models.SoundModel;
 import ase.models.SoundscapeModel;
+
+import static ase.database.DataType.*;
 
 public class LegacyDatabaseBridge extends Database {
 	private final LegacyDatabase db;
@@ -41,20 +44,81 @@ public class LegacyDatabaseBridge extends Database {
 	}
 
 	@Override
-	public SortedMap<Integer, String> getKeyword(String identifier) throws DatabaseException {
+	/**
+	 * @inheritDoc
+	 */
+	public SortedMap<Integer, String> getKeywords(String identifier) throws DatabaseException {
 		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	/**
+	 * @inheritDoc
+	 */
+	public SortedMap<String, String> getSettings(String identifier) throws DatabaseException {
+		//TODO implement
 		return null;
 	}
 
 	@Override
-	public SortedMap<Integer, String> getSoundByKeyword(String identifier) throws DatabaseException {
-		// TODO Auto-generated method stub
-		return null;
+	/**
+	 * @inheritDoc
+	 */
+	public SortedMap<Integer, String> getSoundKeywords(String identifier) throws DatabaseException {
+		ResultSet results;
+		TreeMap<Integer, String> keywordById = new TreeMap<>();
+		
+		try {
+			results = db.getSearchPrefixMatch(identifier, SOUND);
+			
+			while (results.next()) {
+				keywordById.put(results.getInt(2), results.getString(1));
+			}
+		} catch (SQLException sqlEx) {
+			throw new DatabaseException(sqlEx);
+		}
+		
+		return keywordById;
+	}
+	
+	@Override
+	/**
+	 * @inheritDoc
+	 */
+	public SortedMap<Integer, String> getSoundsByKeyword(int keywordId) throws DatabaseException {
+		ResultSet results;
+		TreeMap<Integer, String> soundNameById = new TreeMap<>();
+		
+		
+		try {
+			results = db.getKeywordSounds(keywordId);
+			
+			while (results.next()) {
+				soundNameById.put(results.getInt(2), results.getString(1));
+			}
+		} catch (SQLException sqlEx) {
+			throw new DatabaseException(sqlEx);
+		}
+		
+		return soundNameById;
 	}
 
 	@Override
-	public SortedMap<Integer, String> getSoundscapeByKeyword(String identifier) throws DatabaseException {
+	/**
+	 * @inheritDoc
+	 */
+	public SortedMap<Integer, String> getSoundscapeKeywords(String identifier) throws DatabaseException {
 		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	/**
+	 * @inheritDoc
+	 */
+	public SortedMap<Integer, String> getSoundscapesByKeyword(int keywordId) throws DatabaseException {
+		//TODO implement
 		return null;
 	}
 

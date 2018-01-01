@@ -29,12 +29,16 @@ import com.google.common.eventbus.Subscribe;
 public class Main {
 	private ISoundEngine stage = null;
 	private ISoundEngine preview = null;
+	private IDatabase db;
 	
 	private boolean active = true;
 	
-	private final Log logger = opsMgr.logger;
+	private static final Log logger = opsMgr.logger;
 	
-	public Main () {
+	public Main (IDatabase db) {
+		opsMgr.setDatabase(db);
+		this.db = db;
+		
 		try {
 			stage = new FmodExEngine();
 		} catch (SoundEngineException e){
@@ -76,17 +80,18 @@ public class Main {
 	}
 	
 	public static void main(String[] args) throws InterruptedException {
-		opsMgr.logger.log(DEBUG, "In main");
+		logger.log(DEBUG, "In main");
 		
-		//bootstrap
-		Main main = new Main();
-		
-		try (LegacyDatabaseBridge db = new LegacyDatabaseBridge()) { //automatically closed on exiting the block
-			while (main.active); //infinite loop
+		try (IDatabase db = new LegacyDatabaseBridge()) { //automatically closed on exiting the block
+			Main main = new Main(db);
+			
+			while (main.active) {
+				Thread.sleep(1000); //make sure we don't spin lock...
+			}; //infinite loop
 		} catch (Exception ex) {
-			opsMgr.logger.log(PROD, "Unable to initialize database");
-			opsMgr.logger.log(DEV, ex.getMessage());
-			opsMgr.logger.log(DEBUG, ex.getStackTrace());
+			logger.log(PROD, "Unable to initialize database");
+			logger.log(DEV, ex.getMessage());
+			logger.log(DEBUG, ex.getStackTrace());
 		}
 	}
 }

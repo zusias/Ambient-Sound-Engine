@@ -9,6 +9,7 @@ import java.sql.Statement;
 import java.util.Collections;
 import java.util.Vector;
 
+import ase.database.DataType;
 import ase.database.DatabaseException;
 import ase.operations.Log;
 
@@ -41,10 +42,6 @@ import static ase.operations.Log.LogLevel.*;
 public class LegacyDatabase { // connects to sqlLite database
 	//logger
 	private static final Log logger = opsMgr.logger;
-	
-	public static enum DataType {
-		SOUND, SOUNDSCAPE, KEYWORD;
-	}
 	
 	private static final String DRIVER = "org.sqlite.JDBC";
 	private static final String DATABASE = "jdbc:sqlite:./soundEngine.db";
@@ -412,8 +409,10 @@ public class LegacyDatabase { // connects to sqlLite database
 	 */
 	private void loadPreparedStatements() throws SQLException{
 		if (isConnected()) {
-			searchSoundKeywords = connection.prepareStatement("SELECT DISTINCT Keyword, keyword_id FROM sound_keyword_search WHERE Keyword like ?");
-			searchSoundscapeKeywords = connection.prepareStatement("SELECT DISTINCT keyword, keyword_id FROM sscape_keyword_search WHERE keyword like ?");
+			searchSoundKeywords = connection
+					.prepareStatement("SELECT DISTINCT Keyword, keyword_id FROM sound_keyword_search WHERE Keyword like ?");
+			searchSoundscapeKeywords = connection
+					.prepareStatement("SELECT DISTINCT keyword, keyword_id FROM sscape_keyword_search WHERE keyword like ?");
 		}
 	}
 	
@@ -447,6 +446,27 @@ public class LegacyDatabase { // connects to sqlLite database
 		
 		return results;
 	}
+	
+	/**
+	 * Finds the sounds associated with a given keyword
+	 * 
+	 * @param keywordId Id of keyword
+	 * @return
+	 */
+	public ResultSet getKeywordSounds(int keywordId) throws SQLException {
+		Statement statement;
+
+		statement = connection.createStatement();
+
+		String command = "SELECT sound_file.name, sound_file.sound_file_id FROM (sound_file, sound_file_keyword, keyword) "
+				+ "WHERE (sound_file.sound_file_id = sound_file_keyword.sound_file_id) "
+				+ "AND (sound_file_keyword.keyword_id = keyword.keyword_id) "
+				+ "AND keyword.keyword_id = "
+				+ keywordId
+				+ " ORDER BY sound_file.name";
+
+		return statement.executeQuery(command);
+	} // getKeywordSounds()
 }
 
 
