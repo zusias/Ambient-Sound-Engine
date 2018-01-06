@@ -15,6 +15,7 @@ import static java.lang.System.exit;
 import ase.models.RandomPlaySettings;
 import ase.models.SoundModel;
 import ase.models.SoundscapeModel;
+import ase.models.TestDataProvider;
 import ase.models.SoundModel.PlayType;
 import ase.models.SoundscapeModel.PlayState;
 import ase.operations.ISubscriber;
@@ -52,10 +53,6 @@ import static org.jouvieje.FmodEx.Defines.VERSIONS.NATIVEFMODEX_JAR_VERSION;
 import static org.jouvieje.FmodEx.Defines.VERSIONS.NATIVEFMODEX_LIBRARY_VERSION;
 import static org.jouvieje.FmodEx.Enumerations.FMOD_CHANNEL_CALLBACKTYPE.FMOD_CHANNEL_CALLBACKTYPE_END;
 import static org.jouvieje.FmodEx.Enumerations.FMOD_RESULT.FMOD_OK;
-
-
-//Test imports
-import ase.operations.TestDataProvider;
 
 /**
  * <p>Implementation of the SoundEngine abstract class. This implementation
@@ -520,13 +517,19 @@ public class FmodExEngine implements ISoundEngine {
 		PlayType oldPlayType = playObj.getPlayType();
 		playObj.setPlayType(playType);
 		
-		if (oldPlayType != playType && oldPlayType == RANDOM) {
-			RandomPlayRunner runner = chGrp.activeRandomPlayers.remove(symbol);
-			runner.setStopped(true); //cancel random play
-		}
-		
 		if (playObj.hasChannel()) {
 			setChannelPlayType(id, playObj);
+		}
+		
+		if (oldPlayType != playType && oldPlayType == RANDOM) {
+			RandomPlayRunner runner = chGrp.activeRandomPlayers.remove(symbol);
+			if (runner != null) { //could be null if user is quickly cycling through
+				runner.setStopped(true); //cancel random play
+				
+				if (!runner.isPaused()) {
+					playSound(id, symbol);
+				}
+			}
 		}
 	}
 	

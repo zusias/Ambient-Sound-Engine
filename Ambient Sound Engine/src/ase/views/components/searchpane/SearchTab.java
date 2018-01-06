@@ -55,22 +55,8 @@ public class SearchTab extends SearchPaneTab {
 		list1Label.setText("Matches");
 		add(list1Label, list1LabelGbc);
 		
-		/* TODO: POSSIBLY REMOVE PREVIOUS KEY LISTENERS */
-		list1List.addKeyListener(new KeyAdapter() {
-			@Override public void keyReleased(KeyEvent e) {
-				opsMgr.logger.log(DEBUG, "Key release on match list: " + e.getKeyCode());
-			}
-		});
-		list1List.addListSelectionListener(new ListSelectionListener() {
-			@Override public void valueChanged(ListSelectionEvent e) {
-				opsMgr.logger.log(DEBUG, "Match list item selected. " + e.getFirstIndex());
-			}
-		});
-		list1List.addMouseListener(new MouseAdapter() {
-			@Override public void mouseClicked(MouseEvent e) {
-				opsMgr.logger.log(DEBUG, "Mouse click on match list");
-			}
-		});
+		list1List.addKeyListener(uiListeners.keywordListKeyAdapter);
+		list1List.addListSelectionListener(uiListeners.keywordListSelectionListener);
 		
 		add(list1Scroller, list1ScrollerGbc);
 		
@@ -78,32 +64,15 @@ public class SearchTab extends SearchPaneTab {
 		add(list2Label, list2LabelGbc);
 		
 		/* TODO: POSSIBLY REMOVE PREVIOUS KEY LISTENERS */
-		list2List.addKeyListener(new KeyAdapter() {
-			@Override public void keyReleased(KeyEvent e) {
-				opsMgr.logger.log(DEBUG, "Key release on result list: " + e.getKeyCode());
-			}
-		});
-		list2List.addListSelectionListener(new ListSelectionListener() {
-			@Override public void valueChanged(ListSelectionEvent e) {
-				opsMgr.logger.log(DEBUG, "Result list item selected. " + e.getFirstIndex());
-			}
-		});
-		list2List.addMouseListener(new MouseAdapter() {
-			@Override public void mouseClicked(MouseEvent e) {
-				opsMgr.logger.log(DEBUG, "Mouse click on result list");
-			}
-		});
+		list2List.addKeyListener(uiListeners.matchListKeyAdapter);
+		list2List.addListSelectionListener(uiListeners.matchListSelectionListener);
 		
 		add(list2Scroller, list2ScrollerGbc);
 		
-		toAButton.addActionListener((e) -> {
-			opsMgr.logger.log(DEBUG, "Button 1 pressed");
-		});
+		toAButton.addActionListener(uiListeners.toConsole1Listener);
 		add(toAButton, toAButtonGbc);
 		
-		toBButton.addActionListener((e) -> {
-			opsMgr.logger.log(DEBUG, "Button 2 pressed");
-		});
+		toBButton.addActionListener(uiListeners.toConsole2Listener);
 		add(toBButton, toBButtonGbc);
 		
 		previewButton.addActionListener((e) -> {
@@ -124,6 +93,16 @@ public class SearchTab extends SearchPaneTab {
 	}
 	
 	/**
+	 * Get the database ID of the selected keyword
+	 * @return keyword ID, or -1 if nothing is selected
+	 */
+	public int getSelectedKeywordId() {
+		int selectedIndex = list1List.getSelectedIndex();
+		
+		return selectedIndex == -1 ? selectedIndex : keywordListIds[selectedIndex];
+	}
+	
+	/**
 	 * Sets the keyword match list and keeps track of corresponding IDs in an array
 	 * @param items
 	 */
@@ -132,7 +111,17 @@ public class SearchTab extends SearchPaneTab {
 		setList(items, matchListIds, list2List);
 	}
 	
-	private void setList(SortedMap<Integer, String> items, int[] ids, JList list) {
+	/**
+	 * Get the database ID of the selected keyword
+	 * @return keyword ID, or -1 if nothing is selected
+	 */
+	public int getSelectedMatchId() {
+		int selectedIndex = list2List.getSelectedIndex();
+		
+		return selectedIndex == -1 ? selectedIndex : matchListIds[selectedIndex];
+	}
+	
+	private void setList(SortedMap<Integer, String> items, int[] ids, JList<String> list) {
 		String[] listItems = new String[items.size()];
 		
 		int index = 0;

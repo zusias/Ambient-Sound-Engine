@@ -16,6 +16,7 @@ import com.google.common.eventbus.EventBus;
 import ase.database.DataType;
 import ase.database.DatabaseException;
 import ase.database.IDatabase;
+import ase.models.ModelFactory;
 import ase.models.RandomPlaySettings;
 import ase.models.SoundModel;
 import ase.models.SoundscapeModel;
@@ -64,6 +65,7 @@ public class OperationsManager {
 	
 	//utility app objects
 	public final Log logger = new Log(DEBUG); //hard code Debug level for now
+	public final ModelFactory modelFactory = new ModelFactory(); 
 	public final EventBus eventBus = new EventBus();
 	
 	//Data models
@@ -86,11 +88,6 @@ public class OperationsManager {
 		return preview;
 	}
 	
-	//utility properties
-	private static int runtimeId = 1;
-	private static SoundscapeModel defaultSs = new SoundscapeModel(-1, runtimeId++, 1.0, null,
-			"New Soundscape", SoundscapeModel.PlayState.STOPPED, 0);
-	
 	//utility static methods
 	public static long getFileSize(Path filePath) throws IOException {
 		String sizeString = Files.getAttribute(filePath, "size").toString();
@@ -111,14 +108,12 @@ public class OperationsManager {
 		 * storing it in the database under some kind of session state table
 		 */
 		//Making use of immutability of object to efficiently clone
-		SoundscapeModel defaultEffects = defaultSs.rename("Effects Panel").copy(runtimeId++);
-		SoundscapeModel defaultPreview = defaultSs.rename("Preview Soundscape").copy(runtimeId++);
 		
-		this.console1 = new SoundscapeSetModel(new SoundscapeModel[] {defaultSs});
-		this.console2 = new SoundscapeSetModel(new SoundscapeModel[] {defaultSs.copy(runtimeId++)});
+		this.console1 = new SoundscapeSetModel(new SoundscapeModel[] {modelFactory.getNewSoundscape()});
+		this.console2 = new SoundscapeSetModel(new SoundscapeModel[] {modelFactory.getNewSoundscape()});
 
-		this.effects = defaultEffects;
-		this.preview = defaultPreview;
+		this.effects = modelFactory.getNewSoundscape().rename("Effects Panel");
+		this.preview = modelFactory.getNewSoundscape().rename("Preview Soundscape");
 		
 		eventBus.register(this);
 		
@@ -220,17 +215,17 @@ public class OperationsManager {
 	/**
 	 * Sets the active soundscape for a console - correspond to active tab in gui
 	 * @param console
-	 * @param ss
+	 * @param runtimeId
 	 * @throws IllegalArgumentException if console is not either CONSOLE1 or CONSOLE2
 	 * @throws NoMatchFoundException if ssid not in console
 	 */
-	public void setActiveSoundscape(Sections console, int ssid) throws IllegalArgumentException, NoMatchFoundException {
+	public void setActiveSoundscape(Sections console, int runtimeId) throws IllegalArgumentException, NoMatchFoundException {
 		if (console == Sections.CONSOLE1){
-			this.console1 = this.console1.setActiveSoundscape(this.console1.getSoundscapeBySsid(ssid));
+			this.console1 = this.console1.setActiveSoundscape(this.console1.getSoundscapeByRuntimeId(runtimeId));
 			this.publishConsole(Sections.CONSOLE1, -1);
 			this.publishSoundscape(Sections.CONSOLE1, -1);
 		} else if (console == Sections.CONSOLE2){
-			this.console2 = this.console2.setActiveSoundscape(this.console2.getSoundscapeBySsid(ssid));
+			this.console2 = this.console2.setActiveSoundscape(this.console2.getSoundscapeByRuntimeId(runtimeId));
 			this.publishConsole(Sections.CONSOLE2, -1);
 			this.publishSoundscape(Sections.CONSOLE2, -1);
 		} else{
@@ -308,7 +303,7 @@ public class OperationsManager {
 		//TODO Implement
 		//This method should retrieve a soundscape from the db
 		
-		return defaultSs;
+		return null;
 	}
 	
 	/**
@@ -376,7 +371,7 @@ public class OperationsManager {
 	 * @param section
 	 */
 	public void newSoundscape(Sections section){
-		SoundscapeModel newSs = defaultSs.copy(runtimeId++);
+		SoundscapeModel newSs = modelFactory.getNewSoundscape();
 
 		this.addSoundscape(section, newSs);
 	}
@@ -397,7 +392,7 @@ public class OperationsManager {
 		case CONSOLE2:
 		case EFFECTS:
 		case PREVIEW:
-			SoundscapeModel newSs = ss.copy(runtimeId++).setSsid(-1);
+			SoundscapeModel newSs = modelFactory.copySoundscape(ss);
 			this.addSoundscape(section, newSs);
 			break;
 			
@@ -628,7 +623,7 @@ public class OperationsManager {
 			ss = this.console1.activeSoundscape;
 			break;
 		case CONSOLE2:
-			ss = this.console1.activeSoundscape;
+			ss = this.console2.activeSoundscape;
 			break;
 		case EFFECTS:
 			ss = this.effects;

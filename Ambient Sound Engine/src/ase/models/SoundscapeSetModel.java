@@ -101,19 +101,20 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 	}
 	
 	/**
-	 * Returns soundscae by valid ssid. Note that the default initial ssid, -1, is not a valid
-	 * argument for this method
-	 * @param ssid ID (greater than -1)
+	 * Returns soundscape by valid Runtime Id. Note that the ssid property is the unique identifier
+	 * that indicates a database ID, but may not be set if the soundscape has not been saved yet.
+	 * Therefore we use runtime ID, which should be guaranteed unique
+	 * @param runtimeId ID (greater than -1)
 	 * @return
 	 * @throws NoMatchFoundException
 	 */
-	public SoundscapeModel getSoundscapeBySsid(int ssid) throws NoMatchFoundException {
-		if (ssid < 0) {
-			throw new IllegalArgumentException("Invalid ssid");
+	public SoundscapeModel getSoundscapeByRuntimeId(int runtimeId) throws NoMatchFoundException {
+		if (runtimeId < 0) {
+			throw new IllegalArgumentException("Invalid runtimeId");
 		}
 		
 		for (SoundscapeModel ss : this.set){
-			if (ss.ssid == ssid){
+			if (ss.runtimeId == runtimeId){
 				return ss;
 			}
 		}

@@ -50,7 +50,12 @@ public class LegacyDatabase { // connects to sqlLite database
 	private static final int CURRENT_VERSION = 4;
 
 	private PreparedStatement searchSoundKeywords;
+	private PreparedStatement searchSoundsByKeyword;
 	private PreparedStatement searchSoundscapeKeywords;
+	private PreparedStatement searchSoundscapesByKeyword;
+	private PreparedStatement loadSoundFileData;
+	private PreparedStatement loadSoundscapeData;
+	private PreparedStatement loadSoundscapeSoundsData;
 
 	//SETUP / TEARDOWN METHODS
 	
@@ -411,8 +416,25 @@ public class LegacyDatabase { // connects to sqlLite database
 		if (isConnected()) {
 			searchSoundKeywords = connection
 					.prepareStatement("SELECT DISTINCT Keyword, keyword_id FROM sound_keyword_search WHERE Keyword like ?");
+			searchSoundsByKeyword = connection
+					.prepareStatement("SELECT DISTINCT Sound_File, sound_file_id FROM sound_keyword_search WHERE Keyword_id = ?");
 			searchSoundscapeKeywords = connection
 					.prepareStatement("SELECT DISTINCT keyword, keyword_id FROM sscape_keyword_search WHERE keyword like ?");
+			searchSoundscapesByKeyword = connection
+					.prepareStatement("SELECT DISTINCT name, soundscape_id FROM sscape_keyword_search WHERE keyword_id = ?");
+			loadSoundFileData = connection
+					.prepareStatement("SELECT name, data_file, file_path, file_size FROM sound_file WHERE sound_file_id = ?");
+			loadSoundscapeData = connection
+					.prepareStatement("SELECT name,description,fmod_volume FROM soundscape WHERE soundscape_id =?");
+			loadSoundscapeSoundsData = connection
+					.prepareStatement("SELECT soundscape_sound.sound_file_id, sound_file.name," +
+							  " sound_file.data_file, sound_file.file_path, soundscape_sound.fmod_volume," +
+							  " soundscape_sound.playback_mode, sound_file.file_size, " +
+							  " soundscape_sound.min_repeat, soundscape_sound.max_repeat, soundscape_sound.min_repeat_time, " +
+							  " soundscape_sound.max_repeat_time" +
+							  " FROM soundscape_sound " +
+							  " LEFT JOIN sound_file ON (soundscape_sound.sound_file_id = sound_file.sound_file_id)" +
+							  " WHERE soundscape_sound.soundscape_id =?");
 		}
 	}
 	
@@ -448,25 +470,53 @@ public class LegacyDatabase { // connects to sqlLite database
 	}
 	
 	/**
-	 * Finds the sounds associated with a given keyword
-	 * 
-	 * @param keywordId Id of keyword
-	 * @return
+	 * Finds the sounds or soundscapes associated with a given keyword 
+	 * @param keywordId
+	 * @param type
+	 * @return The result set including the sound or soundscape name and its integer id.
+	 * @throws DatabaseException
+	 * @throws SQLException
 	 */
-	public ResultSet getKeywordSounds(int keywordId) throws SQLException {
-		Statement statement;
-
-		statement = connection.createStatement();
-
-		String command = "SELECT sound_file.name, sound_file.sound_file_id FROM (sound_file, sound_file_keyword, keyword) "
-				+ "WHERE (sound_file.sound_file_id = sound_file_keyword.sound_file_id) "
-				+ "AND (sound_file_keyword.keyword_id = keyword.keyword_id) "
-				+ "AND keyword.keyword_id = "
-				+ keywordId
-				+ " ORDER BY sound_file.name";
-
-		return statement.executeQuery(command);
-	} // getKeywordSounds()
+	public ResultSet getNarrowedSearchByKeyword(int keywordId, DataType type) throws DatabaseException, SQLException {
+		ResultSet results = null;
+		
+		switch(type) {
+			case SOUND:
+				searchSoundsByKeyword.setInt(1, keywordId);
+				results = searchSoundsByKeyword.executeQuery();
+				break;
+			case SOUNDSCAPE:
+				searchSoundscapesByKeyword.setInt(1, keywordId);
+				results = searchSoundscapesByKeyword.executeQuery();
+				break;
+			default:
+				throw new DatabaseException("Invalid data type for prefix matching");
+		}
+		
+		return results;
+	}
+	
+	/**
+	 * Retrieves data about a sound outside of the context of a Soundscape
+	 * @param soundId
+	 * @return
+	 * @throws SQLException
+	 */
+	public ResultSet getSoundData(int soundId) throws SQLException {
+		loadSoundFileData.setInt(1, soundId);
+		
+		return loadSoundFileData.executeQuery();
+	}
+	
+	public ResultSet getSoundscapeData(int soundscapeId) throws SQLException {
+		loadSoundscapeData.setInt(1, soundscapeId);
+		return loadSoundscapeData.executeQuery();
+	}
+	
+	public ResultSet getSoundscapeSoundData(int soundscapeId) throws SQLException {
+		loadSoundscapeSoundsData.setInt(1, soundscapeId);
+		return loadSoundscapeSoundsData.executeQuery();
+	}
 }
 
 

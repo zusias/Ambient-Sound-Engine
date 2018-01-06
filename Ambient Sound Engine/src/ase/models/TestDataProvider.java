@@ -1,13 +1,11 @@
-package ase.operations;
+package ase.models;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import ase.models.RandomPlaySettings;
-import ase.models.SoundModel;
-import ase.models.SoundscapeModel;
 import ase.models.SoundModel.PlayType;
+import ase.operations.OperationsManager;
 
 import static java.lang.System.exit;
 import static ase.models.SoundModel.PlayType.*;
@@ -18,7 +16,8 @@ import static ase.operations.Log.LogLevel.PROD;
 
 /**
  * Provider meant for test data only. Static methods which
- * construct soundscapes and sound objects
+ * construct soundscapes and sound objects. Should be rewritten for
+ * any official Unit tests to use ModelFactory
  * @author Kevin C. Gall
  *
  */
@@ -52,7 +51,7 @@ public class TestDataProvider {
 			
 			RandomPlaySettings randomSettings = new RandomPlaySettings(0, 10, 0, 5);
 			
-			SoundModel newSound = new SoundModel(filePath, "test" + testCount, playType, true, 1, size, randomSettings);
+			SoundModel newSound = new SoundModel(-1, filePath, "test" + testCount, playType, true, 1, size, randomSettings);
 			sounds[testCount++] = newSound;
 		}
 		

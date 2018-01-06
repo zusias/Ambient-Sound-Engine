@@ -10,9 +10,23 @@ import java.nio.file.Path;
  */
 public class SoundModel {
 	public static enum PlayType {
-		LOOP, SINGLE, RANDOM
+		LOOP, SINGLE, RANDOM;
+		
+		public static PlayType fromInt(int i) {
+			switch(i) {
+			case 0:
+				return LOOP;
+			case 1:
+				return SINGLE;
+			case 2:
+				return RANDOM;
+			default:
+				return null;
+			}
+		}
 	}
 	
+	public final int soundId;
 	public final Path filePath;
 	public final long sizeInBytes;
 	public final String name;
@@ -32,6 +46,7 @@ public class SoundModel {
 	 * @param randomSettings
 	 */
 	public SoundModel(
+			int soundId,
 			Path filePath,
 			String name,
 			PlayType currentPlayType,
@@ -43,6 +58,7 @@ public class SoundModel {
 		if (volume < 0.0) normalizedVolume = 0.0;
 		if (volume > 1.0) normalizedVolume = 1.0;
 		
+		this.soundId = soundId;
 		this.filePath = filePath;
 		this.sizeInBytes = sizeInBytes;
 		this.name = name;
@@ -65,7 +81,7 @@ public class SoundModel {
 	 */
 	public SoundModel setPlay(boolean isPlaying, PlayType newPlayType){
 		return (isPlaying == this.isPlaying && newPlayType == this.currentPlayType) ? this :
-			new SoundModel(this.filePath, this.name, newPlayType, isPlaying, this.volume, this.sizeInBytes, this.randomSettings);
+			new SoundModel(this.soundId, this.filePath, this.name, newPlayType, isPlaying, this.volume, this.sizeInBytes, this.randomSettings);
 	}
 	
 	/**
@@ -75,7 +91,7 @@ public class SoundModel {
 	 */
 	public SoundModel setPlayType(PlayType newPlayType){
 		return newPlayType == this.currentPlayType ? this :
-			new SoundModel(this.filePath, this.name, newPlayType, this.isPlaying, this.volume, this.sizeInBytes, this.randomSettings);
+			new SoundModel(this.soundId, this.filePath, this.name, newPlayType, this.isPlaying, this.volume, this.sizeInBytes, this.randomSettings);
 	}
 	
 	/**
@@ -85,7 +101,7 @@ public class SoundModel {
 	 */
 	public SoundModel setVolume(double newVolume){
 		return newVolume == this.volume ? this :
-			new SoundModel(this.filePath, this.name, this.currentPlayType, this.isPlaying, newVolume, this.sizeInBytes, this.randomSettings);
+			new SoundModel(this.soundId, this.filePath, this.name, this.currentPlayType, this.isPlaying, newVolume, this.sizeInBytes, this.randomSettings);
 	}
 	
 	/**
@@ -93,11 +109,11 @@ public class SoundModel {
 	 */
 	public SoundModel setRandomPlaySettings(RandomPlaySettings randomSettings) {
 		return randomSettings == this.randomSettings ? this :
-			new SoundModel(this.filePath, this.name, this.currentPlayType, this.isPlaying, this.volume, this.sizeInBytes, randomSettings);
+			new SoundModel(this.soundId, this.filePath, this.name, this.currentPlayType, this.isPlaying, this.volume, this.sizeInBytes, randomSettings);
 	}
 	
 	/**
-	 * Sets all "changeable" fields on a sound model.
+	 * Sets all "changeable" fields on a sound model except soundId. 
 	 * <b>NOTE:</b> Whereas other set methods check to ensure that something is changing
 	 * before creating a new object, this method simply creates a new object no matter
 	 * what. Only use this method when you know something is changing
@@ -108,6 +124,11 @@ public class SoundModel {
 	 * @return
 	 */
 	public SoundModel setAll(boolean isPlaying, PlayType newPlayType, double newVolume, RandomPlaySettings randomSettings){
-		return new SoundModel(this.filePath, this.name, newPlayType, isPlaying, newVolume, this.sizeInBytes, randomSettings);
+		return new SoundModel(this.soundId, this.filePath, this.name, newPlayType, isPlaying, newVolume, this.sizeInBytes, randomSettings);
+	}
+	
+	public SoundModel setSoundId(int soundId) {
+		return soundId == this.soundId ? this :
+			new SoundModel(soundId, this.filePath, this.name, this.currentPlayType, this.isPlaying, this.volume, this.sizeInBytes, this.randomSettings);
 	}
 }

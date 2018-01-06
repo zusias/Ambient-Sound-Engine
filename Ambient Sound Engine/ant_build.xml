@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="ASE4_5" default="default" basedir=".">
+<project name="ASE5_0(BETA)" default="default" basedir=".">
 	<target name="default">
-		<description>Builds, tests, and runs the project ASE4_5.</description>
-    	<jar destfile="dist/ASE4_5.jar">
+		<description>Builds, tests, and runs the project ASE5_0(BETA).</description>
+    	<jar destfile="dist/ASE5_0(BETA).jar">
     		<zipfileset dir="build/classes" includes="**/*.class"/>
 			<manifest>
-    			<attribute name="Main-Class" value="ase_source.Main"/>
-	    		<attribute name="Class-Path" value="lib/NativeFmodEx.jar lib/swing-layout-1.0.jar lib/sqlite-jdbc-3.7.2.jar"/>
+    			<attribute name="Main-Class" value="ase.main.Main"/>
+	    		<attribute name="Class-Path" value="lib/NativeFmodEx.jar lib/swing-layout-1.0.jar lib/sqlite-jdbc-3.7.2.jar lib/guava-22.0.jar"/>
     		</manifest>
     	</jar>
-		<copy file="dist/ASE4_5.jar" tofile="dist/ASE4_5"/>
+		<copy file="dist/ASE5_0(BETA).jar" tofile="dist/ASE5_0(BETA)"/>
     </target>
 </project>

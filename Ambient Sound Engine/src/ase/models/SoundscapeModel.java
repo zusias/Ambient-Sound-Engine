@@ -34,7 +34,8 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	public final String name;
 	
 	/**
-	 * 
+	 * Note: constructor is set to package scope. This is so that the Runtime ID property can be
+	 * strictly maintained by the ModelFactory class
 	 * @param ssid
 	 * @param runtimeId
 	 * @param masterVolume Must be a value between 0.0 and 1.0 inclusive. If not,
@@ -45,7 +46,7 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @param fadeDuration Duration of the fade in milliseconds. Defaulted to 0 if invalid
 	 * given playState
 	 */
-	public SoundscapeModel(int ssid, int runtimeId,
+	SoundscapeModel(int ssid, int runtimeId,
 			double masterVolume, SoundModel[] sounds, String name, PlayState playState, int fadeDuration) 
 	{	
 		if (playState == PlayState.PLAYING || playState == PlayState.STOPPED || fadeDuration < 0){
@@ -193,47 +194,15 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 				this.masterVolume, newSounds, this.name, this.playState, this.fadeDuration);
 	}
 	
-	/**
-	 * 
-	 * @param filePath
-	 * @param name
-	 * @param currentPlayType
-	 * @param isPlaying
-	 * @param sizeInBytes
-	 * @param randomSettings
-	 * @return
-	 */
-	public SoundscapeModel addSound(
-			Path filePath,
-			String name,
-			SoundModel.PlayType currentPlayType,
-			boolean isPlaying,
-			long sizeInBytes,
-			RandomPlaySettings randomSettings) {
-		SoundModel newSound = new SoundModel(filePath, name, currentPlayType, isPlaying, 1.0, sizeInBytes, randomSettings);
-		
+	public SoundscapeModel addAllSounds(SoundModel[] sounds) {
 		Vector<SoundModel> newSounds = cloneVector();
 		
-		newSounds.add(newSound);
+		for (SoundModel sound : sounds) {
+			newSounds.add(sound);
+		}
 		
 		return new SoundscapeModel(this.ssid, this.runtimeId,
 				this.masterVolume, newSounds, this.name, this.playState, this.fadeDuration);
-	}
-	
-	/**
-	 * Adds a sound with random play settings defaulted and set as playing
-	 * @param filePath
-	 * @param name
-	 * @param currentPlayType
-	 * @param sizeInBytes
-	 * @return
-	 */
-	public SoundscapeModel addSound(
-			Path filePath,
-			String name,
-			SoundModel.PlayType currentPlayType,
-			long sizeInBytes) {
-		return this.addSound(filePath, name, currentPlayType, true, sizeInBytes, new RandomPlaySettings(1, 9999, 1, 9999));
 	}
 	
 	/**
@@ -344,7 +313,7 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 	 * @return Total sounds in soundscape
 	 */
 	public int getTotalSounds(){
-		return this.sounds.size();
+		return this.sounds == null ? 0 : this.sounds.size();
 	}
 	
 	/**

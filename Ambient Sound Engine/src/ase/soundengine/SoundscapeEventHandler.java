@@ -43,6 +43,22 @@ class SoundscapeEventHandler {
 		this.soundEngine = soundEngine;
 		this.section = section;
 		
+		//set initial soundscape
+		switch(section) {
+		case CONSOLE1:
+			handleSoundscapeChange(opsMgr.getConsole1().activeSoundscape, -1);
+			break;
+		case CONSOLE2:
+			handleSoundscapeChange(opsMgr.getConsole2().activeSoundscape, -1);
+			break;
+		case EFFECTS:
+			handleSoundscapeChange(opsMgr.getEffects(), -1);
+			break;
+		case PREVIEW:
+			handleSoundscapeChange(opsMgr.getPreview(), -1);
+			break;
+		}
+		
 		/*
 		 * Initialize subscribers that must be instantiated after
 		 * main object initialization

@@ -9,10 +9,10 @@ import javax.swing.event.ChangeEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
-import ase.operations.TestDataProvider;
 import ase.main.Main;
 import ase.models.SoundscapeModel;
 import ase.models.SoundscapeSetModel;
+import ase.models.TestDataProvider;
 import ase.operations.OperationsManager.Sections;
 import ase.operations.events.ChangedSoundscapeSetEvent;
 import ase.views.GuiSettings;
@@ -49,7 +49,7 @@ public class Console extends JTabbedPane {
 				//turn off current soundscape so that when user comes back, it doesn't start playing automatically
 				opsMgr.setSoundscapeIsPlaying(section, false);
 				
-				opsMgr.setActiveSoundscape(section, this.soundscapeSet.getSoundscapeAtIndex(currentSelection).ssid);
+				opsMgr.setActiveSoundscape(section, this.soundscapeSet.getSoundscapeAtIndex(currentSelection).runtimeId);
 			}
 		});
 		
