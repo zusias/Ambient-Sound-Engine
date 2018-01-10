@@ -99,4 +99,13 @@ public interface IDatabase extends AutoCloseable {
 	 * @throws DatabaseException if ssId retrieves more or less than 1 soundscape
 	 */
 	SoundscapeModel getSoundscapeById(int ssId) throws DatabaseException;
+	
+	/**
+	 * Save a soundscape including which sounds are associated with it
+	 * @param soundscape
+	 * @return If saving existing soundscape, return soundscape. If saving new one, return the SoundscapeModel
+	 * including the new ssid
+	 * @throws DatabaseException
+	 */
+	SoundscapeModel saveSoundscape(SoundscapeModel soundscape) throws DatabaseException;
 }

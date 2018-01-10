@@ -56,6 +56,15 @@ public class LegacyDatabase { // connects to sqlLite database
 	private PreparedStatement loadSoundFileData;
 	private PreparedStatement loadSoundscapeData;
 	private PreparedStatement loadSoundscapeSoundsData;
+	private PreparedStatement insertSoundscape;
+	private PreparedStatement updateSoundscape;
+	private PreparedStatement insertSoundscapeSounds;
+	private PreparedStatement deleteSoundscapeSounds;
+	private PreparedStatement insertKeyword;
+	private PreparedStatement insertSoundscapeKeyword;
+	private PreparedStatement getMostRecentSoundscapeAdded;
+	private PreparedStatement getMostRecentSoundAdded;
+	private PreparedStatement getKeywordId;
 
 	//SETUP / TEARDOWN METHODS
 	
@@ -97,7 +106,7 @@ public class LegacyDatabase { // connects to sqlLite database
 		if(connectionStatus) {
 			int version = 0;
 			try(Statement statement = connection.createStatement()){
-				ResultSet rs = statement.executeQuery("select * from version");
+				ResultSet rs = statement.executeQuery("SELECT * FROM version");
 				version = 0;
 				while(rs.next()){
 					version = rs.getInt(1);
@@ -425,7 +434,7 @@ public class LegacyDatabase { // connects to sqlLite database
 			loadSoundFileData = connection
 					.prepareStatement("SELECT name, data_file, file_path, file_size FROM sound_file WHERE sound_file_id = ?");
 			loadSoundscapeData = connection
-					.prepareStatement("SELECT name,description,fmod_volume FROM soundscape WHERE soundscape_id =?");
+					.prepareStatement("SELECT name,description,fmod_volume FROM soundscape WHERE soundscape_id = ?");
 			loadSoundscapeSoundsData = connection
 					.prepareStatement("SELECT soundscape_sound.sound_file_id, sound_file.name," +
 							  " sound_file.data_file, sound_file.file_path, soundscape_sound.fmod_volume," +
@@ -435,6 +444,28 @@ public class LegacyDatabase { // connects to sqlLite database
 							  " FROM soundscape_sound " +
 							  " LEFT JOIN sound_file ON (soundscape_sound.sound_file_id = sound_file.sound_file_id)" +
 							  " WHERE soundscape_sound.soundscape_id =?");
+			insertSoundscape = connection
+					.prepareStatement("INSERT INTO soundscape (name, description, fmod_volume) VALUES (?,?,?)");
+			updateSoundscape = connection
+					.prepareStatement("UPDATE soundscape SET fmod_volume = ? WHERE soundscape_id = ?");
+			insertSoundscapeSounds = connection
+					.prepareStatement("INSERT INTO soundscape_sound"
+							+ " (soundscape_id, sound_file_id,"
+							+ " fmod_volume, playback_mode, min_repeat,"
+							+ " max_repeat, min_repeat_time, max_repeat_time)"
+							+ " VALUES (?,?,?,?,?,?,?,?)");
+			deleteSoundscapeSounds = connection
+					.prepareStatement("DELETE FROM soundscape_sound WHERE soundscape_id = ?");
+			getMostRecentSoundscapeAdded = connection
+					.prepareStatement("SELECT MAX(soundscape_id) FROM soundscape");
+			insertKeyword = connection
+					.prepareStatement("INSERT INTO keyword (keyword) VALUES (?)");
+			insertSoundscapeKeyword = connection
+					.prepareStatement("INSERT INTO soundscape_keyword (soundscape_id, keyword_id) VALUES (?,?)");
+			getMostRecentSoundAdded = connection
+					.prepareStatement("SELECT MAX(sound_file_id) FROM sound_file");
+			getKeywordId = connection
+					.prepareStatement("SELECT keyword_id FROM keyword WHERE keyword = ?");
 		}
 	}
 	
@@ -508,14 +539,139 @@ public class LegacyDatabase { // connects to sqlLite database
 		return loadSoundFileData.executeQuery();
 	}
 	
+	/**
+	 * Retrieves soundscape data excluding soundscape sound data
+	 * @param soundscapeId
+	 * @return
+	 * @throws SQLException
+	 */
 	public ResultSet getSoundscapeData(int soundscapeId) throws SQLException {
 		loadSoundscapeData.setInt(1, soundscapeId);
 		return loadSoundscapeData.executeQuery();
 	}
 	
+	/**
+	 * Retrievs soundscape sound data
+	 * @param soundscapeId
+	 * @return
+	 * @throws SQLException
+	 */
 	public ResultSet getSoundscapeSoundData(int soundscapeId) throws SQLException {
 		loadSoundscapeSoundsData.setInt(1, soundscapeId);
 		return loadSoundscapeSoundsData.executeQuery();
+	}
+	
+	//PUBLIC SAVE METHODS
+	
+	/**
+	 * Saves a new soundscape and returns its ssId
+	 * @param name
+	 * @param volume Should be integer from 0 to 100
+	 * @return
+	 * @throws SQLException
+	 * @throws DatabaseException If save was successful, but could not retrieve ssId
+	 */
+	public int saveNewSoundscape(String name, int volume) throws SQLException, DatabaseException {
+		insertSoundscape.setString(1, name);
+		insertSoundscape.setString(2,  "");
+		insertSoundscape.setInt(3, volume);
+		
+		insertSoundscape.executeUpdate();
+		
+		ResultSet results = getMostRecentSoundscapeAdded.executeQuery();
+		
+		if (results.next()) {
+			return results.getInt(1);
+		}
+		
+		throw new DatabaseException("Could not retrieve new SSID");
+	}
+	
+	/**
+	 * Saves a sound to a specific soundscape with soundscape-specific settings
+	 * @param ssid
+	 * @param soundFileId
+	 * @param volume Integer from 0 to 100
+	 * @param playbackMode 0 for Loop, 1 for Single, 2 for Random
+	 * @param minRepeats
+	 * @param maxRepeats
+	 * @param minDelay
+	 * @param maxDelay
+	 * @throws SQLException
+	 */
+	public void saveSoundscapeSound
+		(int ssid, int soundFileId, int volume, int playbackMode, int minRepeats, int maxRepeats, int minDelay, int maxDelay)
+		throws SQLException
+	{
+		insertSoundscapeSounds.setInt(1, ssid);
+		insertSoundscapeSounds.setInt(2, soundFileId);
+		insertSoundscapeSounds.setInt(3, volume);
+		insertSoundscapeSounds.setInt(4, playbackMode);
+		insertSoundscapeSounds.setInt(5, minRepeats);
+		insertSoundscapeSounds.setInt(6, maxRepeats);
+		insertSoundscapeSounds.setInt(7, minDelay);
+		insertSoundscapeSounds.setInt(8, maxDelay);
+		
+		insertSoundscapeSounds.executeUpdate();
+	}
+	
+	//PUBLIC UPDATE METHODS
+	
+	/**
+	 * 
+	 * @param ssid
+	 * @param volume Integer from 0 to 100
+	 * @throws SQLException
+	 */
+	public void updateSoundscape(int ssid, int volume) throws SQLException {
+		updateSoundscape.setInt(1, volume);
+		updateSoundscape.setInt(2, ssid);
+		
+		updateSoundscape.executeUpdate();
+	}
+	
+	//PUBLIC DELETE METHODS
+	
+	/**
+	 * Deletes all sound associations with a soundscape
+	 * @param ssid
+	 * @throws SQLException
+	 */
+	public void deleteSoundscapeSounds(int ssid) throws SQLException {
+		deleteSoundscapeSounds.setInt(1, ssid);
+		
+		deleteSoundscapeSounds.executeUpdate();
+	}
+	
+	//PRIVATE DB METHODS
+	
+	public void addKeywordToSoundscape(int ssid, String keyword) throws SQLException, DatabaseException {
+		getKeywordId.setString(1, keyword);
+		
+		ResultSet results = getKeywordId.executeQuery();
+		
+		int keywordId = -1;
+		if (results.next()) {
+			keywordId = results.getInt(1);
+		}
+		
+		if (keywordId < 0) {
+			insertKeyword.setString(1, keyword);
+			
+			insertKeyword.executeUpdate();
+			results = getKeywordId.executeQuery();
+			
+			if (results.next()) {
+				keywordId = results.getInt(1);
+			} else {
+				throw new DatabaseException("Unable to save new keyword");
+			}
+		}
+		
+		insertSoundscapeKeyword.setInt(1, ssid);
+		insertSoundscapeKeyword.setInt(2, keywordId);
+		
+		insertSoundscapeKeyword.executeUpdate();
 	}
 }
 

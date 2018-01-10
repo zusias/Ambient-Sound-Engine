@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
@@ -22,6 +23,8 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
 import ase.operations.OperationsManager.Sections;
+import ase.database.DatabaseException;
+import ase.database.IDatabase;
 import ase.models.RandomPlaySettings;
 import ase.models.SoundModel;
 import ase.models.SoundscapeModel;
@@ -86,6 +89,7 @@ public class SoundscapeTab extends JPanel {
 	
 	//data model
 	private SoundscapeModel soundscape;
+	private SoundscapeModel rollbackSoundscape; //rollback point to determine if there are changes
 	private Sections section; //so that this tab can inform Ops Mgr of changes without going up through hierarchy
 	private boolean loadedInPreview = false;
 	
@@ -103,6 +107,7 @@ public class SoundscapeTab extends JPanel {
 	public SoundscapeTab(GuiSettings settings, SoundscapeModel soundscape, Sections section) {
 		this.settings = settings;
 		this.soundscape = soundscape;
+		this.rollbackSoundscape = soundscape;
 		this.section = section;
 		
 		setMinimumSize(new Dimension(450, 280));
@@ -137,6 +142,7 @@ public class SoundscapeTab extends JPanel {
 		buttonPanel.add(newSoundscapeButton, newSoundscapeButtonGbc);
 		
 		saveSoundscapeButton.setToolTipText("Save Soundscape");
+		saveSoundscapeButton.addActionListener(this::handleSaveButtonPress);
 		buttonPanel.add(saveSoundscapeButton, saveSoundscapeButtonGbc);
 		
 		copySoundscapeButton.setToolTipText("Copy Soundscape");
@@ -261,6 +267,36 @@ public class SoundscapeTab extends JPanel {
 	
 	private void handleNewButtonPress(ActionEvent evt) {
 		opsMgr.newSoundscape(section);
+	}
+	
+	private void handleSaveButtonPress(ActionEvent evt) {
+		if (this.rollbackSoundscape == this.soundscape && this.soundscape.ssid > -1) {
+			opsMgr.logger.log(PROD, "No changes to save");
+			return;
+		}
+		
+		IDatabase db = opsMgr.getDatabase();
+		SoundscapeModel ssToSave = this.soundscape;
+		
+		if (this.soundscape.ssid == -1) {
+			String ssName = JOptionPane.showInputDialog(this, "Enter a name for the Soundscape");
+			while (ssName.length() == 0) {
+				ssName = JOptionPane.showInputDialog(this, "You must provide a name for the Soundscape");
+			}
+			
+			ssToSave = ssToSave.rename(ssName);
+		}
+		
+		try {
+			SoundscapeModel savedSoundscape = db.saveSoundscape(ssToSave);
+			this.rollbackSoundscape = savedSoundscape;
+			
+			opsMgr.replaceSoundscape(section, savedSoundscape);
+		} catch (DatabaseException dbEx) {
+			opsMgr.logger.log(PROD, "Unable to save Soundscape");
+			opsMgr.logger.log(DEV, dbEx.getMessage());
+			opsMgr.logger.log(DEBUG, dbEx.getStackTrace());
+		}
 	}
 	
 	private void handleCopyButtonPress(ActionEvent evt) {

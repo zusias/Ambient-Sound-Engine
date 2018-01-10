@@ -194,6 +194,11 @@ public class SoundscapeModel implements Iterable<SoundModel> {
 				this.masterVolume, newSounds, this.name, this.playState, this.fadeDuration);
 	}
 	
+	/**
+	 * Add an array of sounds to the soundscape
+	 * @param sounds
+	 * @return
+	 */
 	public SoundscapeModel addAllSounds(SoundModel[] sounds) {
 		Vector<SoundModel> newSounds = cloneVector();
 		

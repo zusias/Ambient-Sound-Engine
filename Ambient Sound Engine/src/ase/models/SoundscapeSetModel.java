@@ -71,17 +71,16 @@ public class SoundscapeSetModel implements Iterable<SoundscapeModel> {
 	}
 	
 	/**
-	 * Searches for the soundscape <i>by soundscape id (ssid)</i>. So passing an old reference
-	 * to this object will still produce the correct result, unless the ssid has changed
+	 * Searches for the soundscape <i>by runtime id</i>. So passing an old reference
+	 * to this object will still produce the correct result, but passing a reference to
+	 * a different instance of the same soundscape will not return any results
 	 * @param ss The soundscape to search for.
-	 * @return The index, or -1 if not found If the ssid of the passed soundscape is -1,
-	 * returns the first soundscape with a matching id in the set. (There could be multiple
-	 * with ssid == -1 because that is the default ID when a soundscape is unsaved)
+	 * @return The index, or -1 if not found.
 	 */
 	public int getSoundscapeIndex(SoundscapeModel ss){
 		int count = 0;
 		for (SoundscapeModel currentSs : this.set){
-			if (currentSs.ssid == ss.ssid){
+			if (currentSs.runtimeId == ss.runtimeId){
 				return count;
 			}
 			count++;

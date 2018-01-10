@@ -163,18 +163,45 @@ public class OperationsManager {
 	}
 	
 	/**
-	 * Notify subscribers of a particular soundscape of a change in the model
-	 * @param ss
-	 * @param subscribers
+	 * 
+	 * @param section
+	 * @param removedIndex
 	 */
 	private void publishSoundscape(Sections section, int removedIndex){
 		SoundscapeModel ss = getActiveSoundscapeFromSection(section);
 		eventBus.post(new ChangedSoundscapeEvent(section, ss, null, removedIndex));
 	}
 	
+	/**
+	 * For publishing a soundscape that is not currently active
+	 * @param section
+	 * @param soundscape
+	 * @param removedIndex
+	 */
+	private void publishSoundscape(Sections section, SoundscapeModel soundscape, int removedIndex) {
+		eventBus.post(new ChangedSoundscapeEvent(section, soundscape, null, removedIndex));
+	}
+	
+	/**
+	 * 
+	 * @param section
+	 * @param sound
+	 * @param index
+	 */
 	private void publishSoundscape(Sections section, SoundModel sound, int index){
 		SoundscapeModel ss = getActiveSoundscapeFromSection(section);
 		eventBus.post(new ChangedSoundscapeEvent(section, ss, sound, index));
+	}
+	
+	/**
+	 * For publishing a soundscape that is not currently active
+	 * @param section
+	 * @param soundscape
+	 * @param sound
+	 * @param index
+	 */
+	private void publishSoundscape(Sections section, SoundscapeModel soundscape, SoundModel sound, int index) {
+		eventBus.post(new ChangedSoundscapeEvent(section, soundscape, sound, index));
 	}
 	
 	private SoundscapeModel getActiveSoundscapeFromSection(Sections section) {
@@ -438,6 +465,11 @@ public class OperationsManager {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param section
+	 * @param index
+	 */
 	public void removeSoundscape(Sections section, int index) {
 		switch(section){
 		
@@ -453,6 +485,47 @@ public class OperationsManager {
 			
 		default:
 			throw new IllegalArgumentException("Not a valid section for this operation");
+		}
+	}
+	
+	/**
+	 * Replace a soundscape with a new version of itself. Will only replace a soundscape that
+	 * has the same runtime id as the soundscape argument. Meant primarily for saving new soundscapes
+	 * since the soundscape name is often set when it is first saved.
+	 * @param section
+	 * @param soundscape
+	 */
+	public void replaceSoundscape(Sections section, SoundscapeModel soundscape) {
+		int index;
+		
+		switch(section) {
+		
+		case CONSOLE1:
+			index = this.console1.getSoundscapeIndex(soundscape);
+			this.console1 = this.console1.replaceSoundscape(index, soundscape);
+			publishConsole(section, soundscape, index);
+			publishSoundscape(section, soundscape, -1);
+			break;
+			
+		case CONSOLE2:
+			index = this.console2.getSoundscapeIndex(soundscape);
+			this.console2 = this.console2.replaceSoundscape(index, soundscape);
+			publishConsole(section, soundscape, index);
+			publishSoundscape(section, soundscape, -1);
+			break;
+			
+		case EFFECTS:
+			this.effects = soundscape;
+			publishSoundscape(Sections.EFFECTS, -1);
+			break;
+			
+		case PREVIEW:
+			this.preview = soundscape;
+			publishSoundscape(Sections.PREVIEW, -1);
+			break;
+			
+		default:
+			throw new IllegalArgumentException("Invalid section");
 		}
 	}
 	

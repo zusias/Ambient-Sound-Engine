@@ -18,6 +18,7 @@ import ase.models.SoundscapeModel;
 
 import static ase.database.DataType.*;
 import static ase.operations.OperationsManager.opsMgr;
+import static ase.operations.Log.LogLevel.*;
 
 public class LegacyDatabaseBridge implements IDatabase {
 	private final LegacyDatabase db;
@@ -136,6 +137,9 @@ public class LegacyDatabaseBridge implements IDatabase {
 	}
 
 	@Override
+	/**
+	 * @inheritDoc
+	 */
 	public SoundModel getSoundById(int soundId) throws DatabaseException {
 		try {
 			ResultSet results = db.getSoundData(soundId);
@@ -156,6 +160,9 @@ public class LegacyDatabaseBridge implements IDatabase {
 	}
 
 	@Override
+	/**
+	 * @inheritDoc
+	 */
 	public SoundscapeModel getSoundscapeById(int ssId) throws DatabaseException {
 		try {
 			ResultSet soundResults = db.getSoundscapeSoundData(ssId);
@@ -206,6 +213,48 @@ public class LegacyDatabaseBridge implements IDatabase {
 		} catch (SQLException sqlEx) {
 			throw new DatabaseException(sqlEx);
 		}
+	}
+	
+	@Override
+	/**
+	 * @inheritDoc
+	 */
+	public SoundscapeModel saveSoundscape(SoundscapeModel soundscape) throws DatabaseException {
+		opsMgr.logger.log(DEV, "Saving soundscape: Name - " + soundscape.name + "; ssid - " + soundscape.ssid);
+		
+		SoundscapeModel returnSoundscape = soundscape;
+		try {
+			//update / insert the soundscape
+			if (soundscape.ssid == -1) {
+				int newSsid = db.saveNewSoundscape(soundscape.name, (int) (100 * soundscape.masterVolume));
+				
+				returnSoundscape = soundscape.setSsid(newSsid);
+				
+				opsMgr.logger.log(DEV, "Adding keyword " + soundscape.name + " to soundscape keywords");
+				db.addKeywordToSoundscape(returnSoundscape.ssid, returnSoundscape.name);
+			} else {
+				db.updateSoundscape(soundscape.ssid, (int) (100 * soundscape.masterVolume));
+			}
+			
+			//now update / insert the sounds
+			db.deleteSoundscapeSounds(returnSoundscape.ssid);
+			
+			for (SoundModel sound : returnSoundscape) {
+				db.saveSoundscapeSound(
+					returnSoundscape.ssid,
+					sound.soundId,
+					(int) (100 * sound.volume),
+					sound.currentPlayType.ordinal(),
+					sound.randomSettings.minRepeats,
+					sound.randomSettings.maxRepeats,
+					sound.randomSettings.minDelay,
+					sound.randomSettings.maxDelay);
+			}
+		} catch (SQLException sqlEx) {
+			throw new DatabaseException(sqlEx);
+		}
+		
+		return returnSoundscape;
 	}
 
 }

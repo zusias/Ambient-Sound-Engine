@@ -40,6 +40,7 @@ public class SearchTab extends SearchPaneTab {
 		soundscapeRadioButton.addItemListener((e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
 				opsMgr.logger.log(DEBUG, "Soundscape Radio selected");
+				resetLists();
 			}
 		});
 		add(soundscapeRadioButton, soundscapeRadioButtonGbc);
@@ -47,6 +48,7 @@ public class SearchTab extends SearchPaneTab {
 		soundRadioButton.addItemListener((e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
 				opsMgr.logger.log(DEBUG, "Sound Radio selected");
+				resetLists();
 			}
 		});
 		add(soundRadioButton, soundRadioButtonGbc);
@@ -133,5 +135,11 @@ public class SearchTab extends SearchPaneTab {
 		}
 		
 		list.setListData(listItems);
+	}
+	
+	private void resetLists() {
+		String[] emptyArray = new String[0]; 
+		list1List.setListData(emptyArray);
+		list2List.setListData(emptyArray);
 	}
 }
