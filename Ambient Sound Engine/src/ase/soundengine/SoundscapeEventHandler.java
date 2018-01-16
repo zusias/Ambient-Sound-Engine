@@ -77,7 +77,11 @@ class SoundscapeEventHandler {
 				
 		this.soundEngineStopFadeSubscriber =
 				(Boolean isPlaying) -> {
-					opsMgr.setSoundscapeIsPlaying(section, isPlaying);
+					//fade would be null if the fade was interrupted, meaning the app is responsible
+					//for determining whether the soundscape is playing or not
+					if (isPlaying != null) { 
+						opsMgr.setSoundscapeIsPlaying(section, isPlaying);
+					}
 					
 					try {
 						soundEngine.setSoundscapeVolume(currentSoundscape.runtimeId, currentSoundscape.masterVolume);

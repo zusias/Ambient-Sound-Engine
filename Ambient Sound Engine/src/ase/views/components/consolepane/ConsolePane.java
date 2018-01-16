@@ -73,6 +73,10 @@ public class ConsolePane extends JPanel {
 		opsMgr.eventBus.register(this);
 	}
 	
+	public boolean hasUnsavedChanges() {
+		return console1.getChanged() || console2.getChanged();
+	}
+	
 	private void setupGridBagConstraints() {
 		Insets consoleInsets = new Insets(0, 15, 0, 15);
 		

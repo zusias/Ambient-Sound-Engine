@@ -475,12 +475,14 @@ public class OperationsManager {
 		
 		case CONSOLE1:
 			this.console1 = this.console1.removeSoundscape(index);
-			publishConsole(Sections.CONSOLE1, index);
+			publishConsole(section, index);
+			publishSoundscape(section, this.console1.activeSoundscape, -1);
 			break;
 			
 		case CONSOLE2:
 			this.console2 = this.console2.removeSoundscape(index);
-			publishConsole(Sections.CONSOLE2, index);
+			publishConsole(section, index);
+			publishSoundscape(section, this.console2.activeSoundscape, -1);
 			break;
 			
 		default:

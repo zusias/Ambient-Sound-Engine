@@ -10,6 +10,7 @@ import ase.soundengine.SoundEngineManager;
 import ase.soundengine.fmodex.FmodExEngine;
 import ase.views.Gui;
 import ase.views.navigation.events.QuitEvent;
+import ase.views.navigation.events.ShutdownEvent;
 
 import static ase.operations.OperationsManager.opsMgr;
 import static ase.operations.Log.LogLevel.*;
@@ -66,7 +67,7 @@ public class Main {
 		opsMgr.eventBus.register(this);
 	}
 	
-	@Subscribe public void shutdownOnQuit(QuitEvent e) {
+	@Subscribe public void shutdownOnQuit(ShutdownEvent e) {
 		active = false;
 		
 		try {

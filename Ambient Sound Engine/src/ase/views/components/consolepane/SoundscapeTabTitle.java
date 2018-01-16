@@ -13,6 +13,7 @@ import ase.views.GuiSettings;
 import ase.views.events.SettingsEvent;
 
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -35,11 +36,14 @@ public class SoundscapeTabTitle extends JPanel {
 	private final JButton closeButton = new JButton(DELETE_ICON);
 	private final GridBagConstraints closeButtonGbc = new GridBagConstraints();
 	
+	private final SoundscapeTab tab;
 	
-	public SoundscapeTabTitle(GuiSettings settings, String name, Sections section, int index) {
+	
+	public SoundscapeTabTitle(GuiSettings settings, SoundscapeTab tab, Sections section, int index) {
 		this.settings = settings;
 		this.section = section;
 		this.index = index;
+		this.tab = tab;
 		
 		
 		
@@ -48,15 +52,20 @@ public class SoundscapeTabTitle extends JPanel {
 		layout.columnWidths = new int[] {0, 16};
 		layout.rowHeights = new int[] {16};
 		
-		title.setText(name);
+		title.setText(tab.getModel().name);
 		add(title, titleGbc);
 		
 		//button click handler
 		closeButton.addActionListener((ActionEvent evt) -> {
-			//TODO - Ask user if they want to save or discard before saving
-			opsMgr.saveSoundscape(section, getIndex());
+			int saveAnswer = JOptionPane.NO_OPTION;
 			
-			opsMgr.removeSoundscape(section, getIndex());
+			if (tab.getIsChanged()) {
+				saveAnswer = tab.savePrompt();
+			}
+			
+			if (saveAnswer != JOptionPane.CANCEL_OPTION) {
+				opsMgr.removeSoundscape(section, getIndex());
+			}
 		});
 		
 		Dimension buttonSize = new Dimension(12, 12);

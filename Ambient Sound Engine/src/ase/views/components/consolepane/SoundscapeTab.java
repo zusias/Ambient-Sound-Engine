@@ -36,6 +36,8 @@ import ase.views.components.consolepane.events.RowClickedEvent;
 import ase.views.components.consolepane.events.RowPlayModeEvent;
 import ase.views.components.consolepane.events.RowPlayPressedEvent;
 import ase.views.events.SettingsEvent;
+import ase.views.navigation.events.QuitEvent;
+
 import static ase.operations.OperationsManager.opsMgr;
 import static ase.operations.Log.LogLevel.*;
 
@@ -104,6 +106,26 @@ public class SoundscapeTab extends JPanel {
 		return soundscape;
 	}
 	
+	/**
+	 * Prompt the user for whether or not they want to save the soundscape
+	 * @return JOptionPane constant for the user's response: YES_OPTION, NO_OPTION,
+	 * or CANCEL_OPTION
+	 */
+	public int savePrompt() {
+		int saveDecision = JOptionPane.showConfirmDialog(this.getParent(),
+				"Would you like to save your changes for " + soundscape.name + "?", soundscape.name, JOptionPane.YES_NO_CANCEL_OPTION);
+		
+		if (saveDecision == JOptionPane.YES_OPTION) {
+			handleSaveRequest();
+		}
+		
+		return saveDecision;
+	}
+	
+	public boolean getIsChanged() {
+		return rollbackSoundscape != soundscape;
+	}
+	
 	public SoundscapeTab(GuiSettings settings, SoundscapeModel soundscape, Sections section) {
 		this.settings = settings;
 		this.soundscape = soundscape;
@@ -142,7 +164,9 @@ public class SoundscapeTab extends JPanel {
 		buttonPanel.add(newSoundscapeButton, newSoundscapeButtonGbc);
 		
 		saveSoundscapeButton.setToolTipText("Save Soundscape");
-		saveSoundscapeButton.addActionListener(this::handleSaveButtonPress);
+		saveSoundscapeButton.addActionListener((ActionEvent evt) -> {
+			handleSaveRequest();
+		});
 		buttonPanel.add(saveSoundscapeButton, saveSoundscapeButtonGbc);
 		
 		copySoundscapeButton.setToolTipText("Copy Soundscape");
@@ -269,7 +293,7 @@ public class SoundscapeTab extends JPanel {
 		opsMgr.newSoundscape(section);
 	}
 	
-	private void handleSaveButtonPress(ActionEvent evt) {
+	private void handleSaveRequest() {
 		if (this.rollbackSoundscape == this.soundscape && this.soundscape.ssid > -1) {
 			opsMgr.logger.log(PROD, "No changes to save");
 			return;
@@ -517,7 +541,8 @@ public class SoundscapeTab extends JPanel {
 	
 	@Subscribe public void handlePlayEvent(RowPlayPressedEvent evt) {
 		if (evt.index == -1) { //soundscape
-			opsMgr.toggleSoundscapePlay(section);
+			boolean isPlaying = soundscape.playState != PlayState.STOPPED;
+			opsMgr.setSoundscapeIsPlaying(section, !isPlaying);
 		} else {
 			opsMgr.toggleSoundPlay(section, evt.index);
 		}

@@ -5,6 +5,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -15,7 +16,9 @@ import com.google.common.eventbus.Subscribe;
 
 import javax.swing.JButton;
 
+import ase.models.SoundscapeModel.PlayState;
 import ase.operations.OperationsManager.Sections;
+import ase.operations.events.ChangedSoundscapeEvent;
 import ase.views.GuiSettings;
 import ase.views.events.SettingsEvent;
 
@@ -83,7 +86,7 @@ public class EffectsPanel extends JPanel {
 	
 	//Possibly write effects settings model class?
 		//State variables, exposed through the settings menu
-	private int delay = 200;
+	private int delay = 0; //not used yet
 	private int fadeTime = 5000;
 	
 	private final GridBagLayout layout = new GridBagLayout();
@@ -92,7 +95,30 @@ public class EffectsPanel extends JPanel {
 	private final int buttonSize = 21;
 	private final Dimension buttonDim = new Dimension(buttonSize, buttonSize);
 	
+	// Scaled Icons
+	private ImageIcon scaledSettingsIcon;
+	private ImageIcon scaledNothingLoaded;
+	private ImageIcon scaledFadeIn;
+	private ImageIcon scaledFadeOut;
+	private ImageIcon scaledCrossfade;
+	
 	private GuiSettings settings;
+	
+	/**
+	 * Set fade time
+	 * @param timeInMs Time for fade in milliseconds
+	 */
+	public void setFadeTime(int timeInMs) {
+		fadeTime = timeInMs;
+	}
+	
+	/**
+	 * Set delay for fades
+	 * @param timeInMs
+	 */
+	public void setDelay(int timeInMs) {
+		delay = timeInMs;
+	}
 	
 	public EffectsPanel(GuiSettings settings) {
 		this.settings = settings;
@@ -101,32 +127,51 @@ public class EffectsPanel extends JPanel {
 		layout.columnWeights = new double[]{0.1, 1.0, 0.0, 0.0, 0.0, 0.0};
 		layout.rowHeights = new int[]{23, 23, 23};
 		
+		//scaled buttons
+		scaledSettingsIcon = getScaledIcon(settingsIcon, buttonSize);
+		scaledNothingLoaded = getScaledIcon(nothingLoaded, buttonSize);
+		scaledFadeIn = getScaledIcon(fadeIn, buttonSize);
+		scaledFadeOut = getScaledIcon(fadeOut, buttonSize);
+		scaledCrossfade = getScaledIcon(crossfade, buttonSize);
+		
 		setLayout(layout);
 		
 		setupGridBagConstraints();
 		
 		configButton.setToolTipText("Transition Settings");
-		setupButton(configButton, settingsIcon);
+		setupButton(configButton);
+		configButton.setIcon(scaledSettingsIcon);
 		add(configButton, configButtonGbc);
 		
 		transSoundInput.setEnabled(false);
 		add(transSoundInput, transSoundInputGbc);
 		
 		add(fade1Label, fade1LabelGbc);
-		setupButton(fade1Button, fadeIn);
+		setupButton(fade1Button);
+		fade1Button.addActionListener((ActionEvent evt) -> {initiateFade(0, Sections.CONSOLE1);});
 		add(fade1Button, fade1ButtonGbc);
 		
 		add(transitionLabel, transitionLabelGbc);
-		setupButton(transitionButton, nothingLoaded);
+		setupButton(transitionButton);
 		add(transitionButton, transitionButtonGbc);
 		
 		add(fade2Label, fade2LabelGbc);
-		setupButton(fade2Button, fadeIn);
+		setupButton(fade2Button);
+		fade2Button.addActionListener((ActionEvent evt) -> {initiateFade(1, Sections.CONSOLE2);});
 		add(fade2Button, fade2ButtonGbc);
 		
 		add(crossfadeButton, crossfadeButtonGbc);
-		setupButton(crossfadeButton, nothingLoaded);
+		setupButton(crossfadeButton);
+		crossfadeButton.addActionListener((ActionEvent evt) -> {
+			//check to ensure crossfade button is ready
+			if (buttonStates[2] != ButtonState.READY) { return; }
+			
+			initiateFade(0, Sections.CONSOLE1);
+			initiateFade(1, Sections.CONSOLE2);
+		});
 		add(crossfadeLabel, crossfadeLabelGbc);
+		
+		setButtonIcons();
 		
 		//initialize the effects panel
 		opsMgr.newSoundscape(EFFECTS);
@@ -196,14 +241,42 @@ public class EffectsPanel extends JPanel {
 		crossfadeLabelGbc.fill = java.awt.GridBagConstraints.NONE;
 	}
 	
-	private void setupButton(JButton button, ImageIcon buttonIcon) {
+	private void setupButton(JButton button) {
 		button.setMargin(buttonMargin);
 		
 		button.setPreferredSize(buttonDim);
 		button.setMinimumSize(buttonDim);
 		button.setMaximumSize(buttonDim);
+	}
+	
+	private void setButtonIcons() {
+		//Fade 1 and 2
+		setFadeButtonIcons(fade1Button, 0);
+		setFadeButtonIcons(fade2Button, 1);
 		
-		button.setIcon(getScaledIcon(buttonIcon, buttonSize));
+		//Crossfade
+		if (buttonStates[2] == ButtonState.READY) {
+			crossfadeButton.setIcon(scaledCrossfade);
+		} else {
+			crossfadeButton.setIcon(scaledNothingLoaded);
+		}
+		
+		//Transition button. Not sure what icon it will be, so leave as inactive for now
+		transitionButton.setIcon(scaledNothingLoaded);
+	}
+	
+	private void setFadeButtonIcons(JButton button, int index) {
+		switch(buttonStates[index]) {
+			case FADEIN:
+				button.setIcon(scaledFadeIn);
+				break;
+			case FADEOUT:
+				button.setIcon(scaledFadeOut);
+				break;
+			case INACTIVE:
+				button.setIcon(scaledNothingLoaded);
+				break;
+		}
 	}
 	
 	private ImageIcon getScaledIcon(ImageIcon icon, int size) {
@@ -213,11 +286,69 @@ public class EffectsPanel extends JPanel {
 		return new ImageIcon(scaledImg);
 	}
 	
+	/**
+	 * 
+	 * @param index Index of buttonStates that retrieves the intended button state
+	 * @param section Section to be modified
+	 */
+	private void initiateFade(int index, Sections section) {
+		PlayState fadeState = translatePlayState(index);
+		
+		if (fadeState == null) { return; } //indicates that button is inactive
+		
+		opsMgr.fadeSoundscape(section, fadeState, this.fadeTime);
+	}
+	
+	private PlayState translatePlayState(int index) {
+		switch(buttonStates[index]) {
+			case FADEIN:
+				return PlayState.FADEIN;
+			case FADEOUT:
+				return PlayState.FADEOUT;
+			default:
+				return null;
+		}
+	}
+	
 	@Subscribe public void applySettings(SettingsEvent e) {
 		if (e.getNewSettings() != null) {
 			this.settings = e.getNewSettings();
 		}
 		
 		setBackground(settings.foregroundColor);
+	}
+	
+	@Subscribe public void handleChangedSoundscape(ChangedSoundscapeEvent evt) {
+		int index = -1;
+		
+		switch(evt.section) {
+			case CONSOLE1:
+				index = 0;
+				break;
+			case CONSOLE2:
+				index = 1;
+				break;
+			default:
+				return; //Only Console1 and Console2 cause changes to Effects Panel State
+		}
+		
+		if (evt.soundscape.playState == PlayState.PLAYING
+			|| evt.soundscape.playState == PlayState.FADEIN) {
+			buttonStates[index] = ButtonState.FADEOUT;
+		} else {
+			buttonStates[index] = ButtonState.FADEIN;
+		}
+		
+		// Handle change in crossfade state
+		if (buttonStates[0] != buttonStates[1]
+			&& buttonStates[0] != ButtonState.INACTIVE
+			&& buttonStates[1] != ButtonState.INACTIVE) {
+			
+			buttonStates[2] = ButtonState.READY;
+		} else {
+			buttonStates[2] = ButtonState.INACTIVE;
+		}
+		
+		setButtonIcons();
 	}
 }

@@ -12,6 +12,7 @@ import java.awt.event.MouseEvent;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -139,6 +140,11 @@ public class SearchTabUiComposite {
 	};
 	
 	private void sendSoundToConsole(int soundId, Sections section) {
+		if (soundId == -1) {
+			JOptionPane.showMessageDialog(searchTab, "No Sound selected");
+			return;
+		}
+		
 		IDatabase db = opsMgr.getDatabase();
 		
 		try {
@@ -151,6 +157,11 @@ public class SearchTabUiComposite {
 	}
 	
 	private void sendSoundscapeToConsole(int ssid, Sections section) {
+		if (ssid == -1) {
+			JOptionPane.showMessageDialog(searchTab, "No Soundscape selected");
+			return;
+		}
+		
 		IDatabase db = opsMgr.getDatabase();
 		
 		try {

@@ -104,6 +104,13 @@ public class FadeRunner implements Runnable {
 				this.currentVolume = executeFadeStep();
 			}
 			
+			if (channelGroupWrapper.isFading() == false) {
+				logger.log(DEV, "Fade interrupted. Publishing interruption");
+				
+				soundEngine.publishFinishedFade(soundscapeId, null);
+				return;
+			}
+			
 			logger.log(DEV, "Fade runner finishing for soundscape " + soundscapeId);
 			channelGroupWrapper.setFading(false);
 			

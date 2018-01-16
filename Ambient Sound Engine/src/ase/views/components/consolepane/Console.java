@@ -58,12 +58,25 @@ public class Console extends JTabbedPane {
 		opsMgr.eventBus.register(this);
 	}
 	
+	/**
+	 * Return whether any soundscapes in the set have changed.
+	 */
+	public boolean getChanged() {
+		for (int i = 0; i < getTabCount(); i++) {
+			SoundscapeTab ssTab = (SoundscapeTab) getComponentAt(i);
+			
+			if (ssTab.getIsChanged()) { return true; }
+		}
+		
+		return false;
+	}
+	
 	private void initTabs() {
 		
 		int count = 0;
 		for (SoundscapeModel ss : soundscapeSet) {
 			SoundscapeTab newTab = new SoundscapeTab(settings,ss, section);
-			SoundscapeTabTitle tabTitle = new SoundscapeTabTitle(settings, ss.name, section, count);
+			SoundscapeTabTitle tabTitle = new SoundscapeTabTitle(settings, newTab, section, count);
 			add(newTab);
 			setTabComponentAt(count, tabTitle);
 			
@@ -115,7 +128,7 @@ public class Console extends JTabbedPane {
 			
 		} else if (evt.soundscape != null && evt.ssIndex == oldModel.getTotalSoundscapes()) { //Check to see if there is a new soundscape
 			SoundscapeTab newTab = new SoundscapeTab(settings, evt.soundscape, section);
-			SoundscapeTabTitle tabTitle = new SoundscapeTabTitle(settings, evt.soundscape.name, section, evt.ssIndex);
+			SoundscapeTabTitle tabTitle = new SoundscapeTabTitle(settings, newTab, section, evt.ssIndex);
 			add(evt.soundscape.name, newTab);
 			setTabComponentAt(evt.ssIndex, tabTitle);
 			

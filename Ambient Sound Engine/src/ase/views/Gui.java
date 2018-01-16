@@ -3,6 +3,7 @@ package ase.views;
 import javax.swing.ImageIcon;
 //GUI imports
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 import ase.views.components.consolepane.ConsolePane;
 import ase.views.components.consolepane.RandomSettingsDialog;
@@ -13,6 +14,7 @@ import ase.views.frames.SubFrame;
 //ASE Views
 import ase.views.navigation.AseMenuBar;
 import ase.views.navigation.events.QuitEvent;
+import ase.views.navigation.events.ShutdownEvent;
 
 import java.awt.Container;
 import java.awt.Dimension;
@@ -59,7 +61,7 @@ public class Gui extends JFrame {
 		
 		opsMgr.logger.log(DEBUG, "Gui constructor");
 		this.addWindowListener(new WindowListeners());
-		this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE); //will close manually after save confirmations
 		this.setVisible(true);
 		
 		//static settings that won't change
@@ -107,14 +109,34 @@ public class Gui extends JFrame {
 	}
 	
 	@Subscribe public void quitCleanup(QuitEvent qe) {
-		onWindowClosing();
-		this.dispose();
+		if (confirmClose()) {
+			closeWindow();
+		}
 	}
 	
-	public void onWindowClosing () {
+	public boolean confirmClose () {
+		//check for unsaved changes
+		if (consolePane.hasUnsavedChanges()) {
+			int quitConfirmation = JOptionPane.showConfirmDialog(
+				this,
+				"You have unsaved changes. Do you really want to quit?",
+				"Unsaved Changes",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.WARNING_MESSAGE);
+			
+			if (quitConfirmation == JOptionPane.NO_OPTION) { return false; }
+		}
+		
+		return true;
+	}
+	
+	public void closeWindow() {
 		opsMgr.logger.log(DEV, "Window closing");
 		isOpen = false;
 		SubFrame.disposeAllSubFrames();
+		this.dispose();
+		
+		opsMgr.eventBus.post(new ShutdownEvent());
 	}
 	
 	public boolean isOpen() {
