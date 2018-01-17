@@ -256,5 +256,38 @@ public class LegacyDatabaseBridge implements IDatabase {
 		
 		return returnSoundscape;
 	}
-
+	
+	@Override
+	/**
+	 * @inheritDoc
+	 */
+	public void setSetting(String key, String value) throws DatabaseException {
+		opsMgr.logger.log(DEV, "Setting setting " + key + " to value " + value);
+		
+		try {
+			db.setSetting(key, value);
+		} catch (SQLException sqlEx) {
+			throw new DatabaseException(sqlEx);
+		}
+	}
+	
+	@Override
+	/**
+	 * @inheritDoc
+	 */
+	public String getSetting(String key) throws DatabaseException {
+		opsMgr.logger.log(DEV, "Getting setting " + key);
+		
+		try {
+			ResultSet rs = db.getSetting(key);
+			
+			if (rs.next()) {
+				return rs.getString(1);
+			}
+			
+			return null;
+		} catch (SQLException sqlEx) {
+			throw new DatabaseException(sqlEx);
+		}
+	}
 }

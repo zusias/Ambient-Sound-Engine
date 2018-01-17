@@ -31,6 +31,7 @@ public class Main {
 	private ISoundEngine stage = null;
 	private ISoundEngine preview = null;
 	private IDatabase db;
+	private Settings settings;
 	
 	private boolean active = true;
 	
@@ -43,18 +44,14 @@ public class Main {
 		try {
 			stage = new FmodExEngine();
 		} catch (SoundEngineException e){
-			logger.log(PROD, "Error initializing primary SoundEngine");
-			logger.log(DEV, e.getMessage());
-			logger.log(DEBUG, e.getStackTrace());
+			logger.logError("Error initializing primary SoundEngine", e);
 			System.exit(-1);
 		}
 		
 		try {
 			preview = new FmodExEngine();
 		} catch (SoundEngineException e) {
-			logger.log(PROD, "System only supports one sound card.");
-			logger.log(DEV, e.getMessage());
-			logger.log(DEBUG, e.getStackTrace());
+			logger.logError("System only supports one sound card.", e);
 		}
 		
 		logger.log(DEBUG, "Initializing SoundEngineManager");
@@ -63,6 +60,8 @@ public class Main {
 
 		logger.log(DEBUG, "Initializing GUI");
 		Gui app = Gui.initGui();
+		
+		settings = new Settings();
 		
 		opsMgr.eventBus.register(this);
 	}
@@ -74,8 +73,7 @@ public class Main {
 			stage.shutdown();
 			preview.shutdown();
 		} catch (Exception ex) {
-			logger.log(DEV, ex.getMessage());
-			logger.log(DEBUG, ex.getStackTrace());
+			logger.logError("", ex);
 		}
 		logger.log(DEBUG, "Closing application");
 	}
@@ -90,9 +88,7 @@ public class Main {
 				Thread.sleep(1000); //make sure we don't spin lock...
 			}; //infinite loop
 		} catch (Exception ex) {
-			opsMgr.logger.log(PROD, "Unable to initialize database");
-			opsMgr.logger.log(DEV, ex.getMessage());
-			opsMgr.logger.log(DEBUG, ex.getStackTrace());
+			opsMgr.logger.logError("Unable to initialize database", ex);
 		}
 	}
 }

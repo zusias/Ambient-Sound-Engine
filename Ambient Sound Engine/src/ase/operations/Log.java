@@ -38,6 +38,12 @@ public class Log {
 		}
 	}
 	
+	public void logError(String prodMessage, Exception ex) {
+		log(LogLevel.PROD, prodMessage);
+		log(LogLevel.DEV, ex.getMessage());
+		log(LogLevel.DEBUG, ex.getStackTrace());
+	}
+	
 	private boolean shouldLog(LogLevel lv) {
 		if (this.lv == LogLevel.PROD && lv != LogLevel.PROD){
 			return false;

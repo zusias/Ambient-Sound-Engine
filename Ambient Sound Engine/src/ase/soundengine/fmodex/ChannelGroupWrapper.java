@@ -1,5 +1,6 @@
 package ase.soundengine.fmodex;
 
+import java.nio.FloatBuffer;
 //Java imports
 import java.util.HashMap;
 import java.util.Map;
@@ -8,8 +9,10 @@ import java.util.Vector;
 
 //Native FmodEx Imports
 import org.jouvieje.FmodEx.ChannelGroup;
+import org.jouvieje.FmodEx.Misc.BufferUtils;
 
 import ase.operations.ISubscriber;
+import ase.soundengine.SoundEngineException;
 
 /**
  * Wrapper class that wraps ChannelGroup and contains a
@@ -30,6 +33,10 @@ class ChannelGroupWrapper {
 	private boolean isPlaying = false;
 	private boolean isFading = false;
 	
+	private boolean fadeInterrupt = false;
+	private float interruptEndVolume = -1.0f;
+	private int interruptDuration = -1;
+	
 	public boolean isPlaying() {
 		return isPlaying;
 	}
@@ -43,5 +50,29 @@ class ChannelGroupWrapper {
 	
 	public void setFading(boolean isFading) {
 		this.isFading = isFading;
+	}
+	
+	public void setInterrupt(double endVolume, int durationMs) {
+		fadeInterrupt = true;
+		interruptEndVolume = (float) endVolume;
+		interruptDuration = durationMs;
+	}
+	
+	public void resetInterrupt() {
+		fadeInterrupt = false;
+		interruptEndVolume = -1.0f;
+		interruptDuration = -1;
+	}
+	
+	public float getInterruptVolume() {
+		return interruptEndVolume;
+	}
+	
+	public int getInterruptDuration() {
+		return interruptDuration;
+	}
+	
+	public boolean getInterrupted() {
+		return fadeInterrupt;
 	}
 }

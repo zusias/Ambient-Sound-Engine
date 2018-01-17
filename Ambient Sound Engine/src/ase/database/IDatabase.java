@@ -108,4 +108,20 @@ public interface IDatabase extends AutoCloseable {
 	 * @throws DatabaseException
 	 */
 	SoundscapeModel saveSoundscape(SoundscapeModel soundscape) throws DatabaseException;
+	
+	/**
+	 * Sets a setting in the DB
+	 * @param key
+	 * @param value
+	 * @throws DatabaseException
+	 */
+	void setSetting(String key, String value) throws DatabaseException;
+	
+	/**
+	 * Gets setting from database
+	 * @param key
+	 * @return Value of the setting
+	 * @throws DatabaseException
+	 */
+	String getSetting(String key) throws DatabaseException;
 }

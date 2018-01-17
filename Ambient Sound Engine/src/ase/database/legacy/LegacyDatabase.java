@@ -65,6 +65,9 @@ public class LegacyDatabase { // connects to sqlLite database
 	private PreparedStatement getMostRecentSoundscapeAdded;
 	private PreparedStatement getMostRecentSoundAdded;
 	private PreparedStatement getKeywordId;
+	private PreparedStatement getSettingCount;
+	private PreparedStatement updateSetting;
+	private PreparedStatement getSetting;
 
 	//SETUP / TEARDOWN METHODS
 	
@@ -466,6 +469,12 @@ public class LegacyDatabase { // connects to sqlLite database
 					.prepareStatement("SELECT MAX(sound_file_id) FROM sound_file");
 			getKeywordId = connection
 					.prepareStatement("SELECT keyword_id FROM keyword WHERE keyword = ?");
+			getSettingCount = connection
+					.prepareStatement("SELECT COUNT(*) FROM settings WHERE setting = ?");
+			updateSetting = connection
+					.prepareStatement("UPDATE settings SET value = ? WHERE setting = ?");
+			getSetting = connection
+					.prepareStatement("SELECT value FROM settings WHERE setting = ?");
 		}
 	}
 	
@@ -561,6 +570,11 @@ public class LegacyDatabase { // connects to sqlLite database
 		return loadSoundscapeSoundsData.executeQuery();
 	}
 	
+	public ResultSet getSetting(String setting) throws SQLException {
+		getSetting.setString(1, setting);
+		return getSetting.executeQuery();
+	}
+	
 	//PUBLIC SAVE METHODS
 	
 	/**
@@ -628,6 +642,34 @@ public class LegacyDatabase { // connects to sqlLite database
 		updateSoundscape.setInt(2, ssid);
 		
 		updateSoundscape.executeUpdate();
+	}
+	
+	public void setSetting(String key, String value) throws SQLException {
+		getSettingCount.setString(1, key);
+		ResultSet rs = getSettingCount.executeQuery();
+		
+		int count = 0;
+		if (rs.next()) {
+			count = rs.getInt(1);
+		}
+		
+		if (count != 1) {
+			//Shouldn't be more than one, delete them and then just insert a new one
+			PreparedStatement deletePs = connection.prepareStatement("DELETE FROM settings where setting = ?");
+			deletePs.setString(1, key);
+			deletePs.executeUpdate();
+			deletePs.close();
+			
+			PreparedStatement insertPs = connection.prepareStatement("INSERT INTO settings (setting, value) values (?,?)");
+			insertPs.setString(1, key);
+			insertPs.setString(2, value);
+			insertPs.executeUpdate();
+			insertPs.close();
+		} else {
+			updateSetting.setString(1, value);
+			updateSetting.setString(2, key);
+			updateSetting.executeUpdate();
+		}
 	}
 	
 	//PUBLIC DELETE METHODS

@@ -747,10 +747,15 @@ public class FmodExEngine implements ISoundEngine {
 			throw new SoundEngineException("Invalid soundscape ID");
 		}
 		
-		chGrp.setFading(true);
-		
-		FadeRunner fader = new FadeRunner(this, chGrp, id, startVolume, endVolume, ms);
-		threadPool.submit(fader);
+		//if already fading, set the interrupt volume which tells the
+		if (chGrp.isFading()) {
+			chGrp.setInterrupt(endVolume, ms);
+		} else {
+			chGrp.setFading(true);
+			
+			FadeRunner fader = new FadeRunner(this, chGrp, id, startVolume, endVolume, ms);
+			threadPool.submit(fader);
+		}
 	}
 	
 	/**

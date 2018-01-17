@@ -5,6 +5,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import ase.database.DatabaseException;
+import ase.database.IDatabase;
 import ase.views.components.consolepane.ConsolePane;
 import ase.views.components.consolepane.RandomSettingsDialog;
 import ase.views.components.consolepane.events.LaunchRandomSettingsEvent;
@@ -21,6 +23,7 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -86,6 +89,9 @@ public class Gui extends JFrame {
 		//register for events on EventBus
 		opsMgr.eventBus.register(this);
 		
+		//set location / size
+		setSizeLocation();
+		
 		//Apply settings for all components
 		opsMgr.eventBus.post(new SettingsEvent());
 	}
@@ -130,13 +136,52 @@ public class Gui extends JFrame {
 		return true;
 	}
 	
-	public void closeWindow() {
+	private void closeWindow() {
 		opsMgr.logger.log(DEV, "Window closing");
 		isOpen = false;
 		SubFrame.disposeAllSubFrames();
+		
+		try {
+			saveState();
+		} catch (DatabaseException dbEx) {
+			opsMgr.logger.log(PROD, "Unable to save GUI state");
+			opsMgr.logger.log(DEV, "Database Error! " + dbEx.getMessage());
+			opsMgr.logger.log(DEBUG, dbEx.getStackTrace());
+		}
+		
 		this.dispose();
 		
 		opsMgr.eventBus.post(new ShutdownEvent());
+	}
+	
+	private void saveState() throws DatabaseException {
+		IDatabase db = opsMgr.getDatabase();
+		
+		db.setSetting("width", String.valueOf(this.getWidth()));
+		db.setSetting("height", String.valueOf(this.getHeight()));
+		
+		Point location = this.getLocation();
+		db.setSetting("xLocation", String.valueOf((int) location.getX()));
+		db.setSetting("yLocation", String.valueOf((int) location.getY()));
+	}
+	
+	private void setSizeLocation() {
+		IDatabase db = opsMgr.getDatabase();
+		
+		try {
+
+			this.setSize(
+				Integer.parseInt(db.getSetting("width")),
+				Integer.parseInt(db.getSetting("height")));
+			this.setLocation(
+				Integer.parseInt(db.getSetting("xLocation")),
+				Integer.parseInt(db.getSetting("yLocation")));
+			
+		} catch (DatabaseException dbEx) {
+			opsMgr.logger.log(PROD, "Unable to retrieve GUI state");
+			opsMgr.logger.log(DEV, "Database Error! " + dbEx.getMessage());
+			opsMgr.logger.log(DEBUG, dbEx.getStackTrace());
+		}
 	}
 	
 	public boolean isOpen() {

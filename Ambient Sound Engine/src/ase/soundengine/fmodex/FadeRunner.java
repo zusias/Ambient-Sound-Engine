@@ -16,16 +16,17 @@ import ase.soundengine.SoundEngineException;
  *
  */
 public class FadeRunner implements Runnable {
-	private static float INTERVAL = 50.0f; //time in ms between each volume decrement
+	private static float INTERVAL_f = 50.0f; //time in ms between each volume decrement
+	private static long INTERVAL_l = (long) INTERVAL_f;
 	
 	private final FmodExEngine soundEngine;
 	private final ChannelGroupWrapper channelGroupWrapper;
-	private final float startVolume;
-	private final float endVolume;
-	private final int duration;
+	private float startVolume;
+	private float endVolume;
+	private int duration;
 	private final int soundscapeId;
 	
-	private final float volumeDelta;
+	private float volumeDelta;
 	private float currentVolume;
 	
 	/**
@@ -53,22 +54,7 @@ public class FadeRunner implements Runnable {
 		this.duration = durationMs;
 		
 		
-		//Ensure the delta is not 0 (with imprecision of floats) by setting a default.
-		//The default may go too fast, but it is an edge case that the delta is
-		//so extremely small that this implementation will do.
-		
-		float tempVolumeDelta = (this.endVolume - this.startVolume) / (duration / INTERVAL);
-		
-		if (tempVolumeDelta == 0.0f) {
-			if (this.endVolume > this.startVolume) {
-				tempVolumeDelta = 0.001f;
-			} else if (this.endVolume < this.startVolume) {
-				tempVolumeDelta = -0.001f;
-			}
-		}
-		this.volumeDelta = tempVolumeDelta;
-		
-		logger.log(DEBUG, "Volume delta: " + tempVolumeDelta);
+		setVolumeDelta();
 	}
 
 	@Override
@@ -99,7 +85,18 @@ public class FadeRunner implements Runnable {
 		try {
 			while (channelGroupWrapper.isFading() && currentVolume != endVolume) {
 				//logger.log(DEBUG, "Thread sleeping for fader, soundscape ID: " + soundscapeId);
-				Thread.sleep(50l);
+				Thread.sleep(INTERVAL_l);
+				
+				//fade interrupted with another fade -> adjust values and recalculate fade
+				if (channelGroupWrapper.getInterrupted()) {
+					this.startVolume = this.currentVolume;
+					this.endVolume = channelGroupWrapper.getInterruptVolume();
+					this.duration = channelGroupWrapper.getInterruptDuration();
+					
+					setVolumeDelta();
+					
+					channelGroupWrapper.resetInterrupt();
+				}
 				
 				this.currentVolume = executeFadeStep();
 			}
@@ -152,6 +149,25 @@ public class FadeRunner implements Runnable {
 		fmodErrCheck(channelGroupWrapper.channelGroup.setVolume(volumeSet));
 		
 		return volumeSet;
+	}
+	
+	private void setVolumeDelta() {
+		//Ensure the delta is not 0 (with imprecision of floats) by setting a default.
+		//The default may go too fast, but it is an edge case that the delta is
+		//so extremely small that this implementation will do.
+		
+		float tempVolumeDelta = (this.endVolume - this.startVolume) / (duration / INTERVAL_f);
+		
+		if (tempVolumeDelta == 0.0f) {
+			if (this.endVolume > this.startVolume) {
+				tempVolumeDelta = 0.001f;
+			} else if (this.endVolume < this.startVolume) {
+				tempVolumeDelta = -0.001f;
+			}
+		}
+		this.volumeDelta = tempVolumeDelta;
+		
+		logger.log(DEBUG, "Volume delta: " + tempVolumeDelta);
 	}
 
 }
