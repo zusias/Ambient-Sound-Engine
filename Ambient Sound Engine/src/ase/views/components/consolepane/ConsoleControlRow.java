@@ -8,14 +8,20 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.ImageIcon;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.KeyStroke;
 import javax.swing.border.EtchedBorder;
 
 import com.google.common.eventbus.EventBus;
@@ -25,8 +31,11 @@ import ase.models.SoundModel;
 import ase.models.SoundscapeModel;
 import ase.views.GuiSettings;
 import ase.views.components.consolepane.events.RowClickedEvent;
+import ase.views.components.consolepane.events.RowDeleteEvent;
 import ase.views.components.consolepane.events.RowPlayPressedEvent;
+import ase.views.components.consolepane.events.RowVolumeChangeEvent;
 import ase.views.events.SettingsEvent;
+import static ase.operations.Log.LogLevel.*;
 
 /**
  * Control Row element. Used for either the soundscape master control row,
@@ -63,6 +72,8 @@ public abstract class ConsoleControlRow extends JPanel {
 	protected final GridBagConstraints volumeBarGbc = new GridBagConstraints();
 	protected final JLabel title = new JLabel();
 	protected final GridBagConstraints titleGbc = new GridBagConstraints();
+	
+	protected final ConsoleControlRow that = this;
 	
 	public ConsoleControlRow(GuiSettings settings, int rowIndex,  EventBus tabEventBus) {
 		this.settings = settings;
@@ -164,9 +175,44 @@ public abstract class ConsoleControlRow extends JPanel {
 		playButton.addActionListener((ActionEvent evt) -> {
 			tabEventBus.post(new RowPlayPressedEvent(this, rowIndex));
 		});
+		
+		ActionMap actionMap = getActionMap();
+		actionMap.put("delete", new AbstractAction() {
+			@Override public void actionPerformed(ActionEvent evt) { tabEventBus.post(new RowDeleteEvent(that, rowIndex)); }
+		});
+		
+		actionMap.put("increaseVolume", new AbstractAction() {
+			@Override public void actionPerformed(ActionEvent evt) {
+				int newVolume = getVolume() + 50;
+				if (newVolume > 1000) { newVolume = 1000; }
+				
+				tabEventBus.post(new RowVolumeChangeEvent(that, rowIndex, newVolume));
+			}
+		});
+		actionMap.put("decreaseVolume", new AbstractAction() {
+			@Override public void actionPerformed(ActionEvent evt) {
+				int newVolume = getVolume() - 50;
+				if (newVolume < 0) { newVolume = 0; }
+				
+				tabEventBus.post(new RowVolumeChangeEvent(that, rowIndex, newVolume));
+			}
+		});
+		
+		InputMap inputMap = getInputMap();
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "delete");
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_E, 0), "increaseVolume");
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0), "decreaseVolume");
+		
+		this.addKeyListener(new KeyAdapter() {
+			@Override public void keyTyped(KeyEvent evt) {
+				opsMgr.logger.log(DEV, "Key pressed for " + rowIndex);
+			}
+		});
 	}
 	
 	private void handleMouseClicked(MouseEvent evt) {
+		requestFocusInWindow();
 		tabEventBus.post(new RowClickedEvent(this, rowIndex, evt.getButton()));
 	}
 	

@@ -29,12 +29,15 @@ import ase.models.RandomPlaySettings;
 import ase.models.SoundModel;
 import ase.models.SoundscapeModel;
 import ase.models.SoundscapeModel.PlayState;
+import ase.models.SoundscapeSetModel;
 import ase.operations.events.ChangedSoundscapeEvent;
 import ase.views.GuiSettings;
 import ase.views.components.consolepane.events.LaunchRandomSettingsEvent;
 import ase.views.components.consolepane.events.RowClickedEvent;
+import ase.views.components.consolepane.events.RowDeleteEvent;
 import ase.views.components.consolepane.events.RowPlayModeEvent;
 import ase.views.components.consolepane.events.RowPlayPressedEvent;
+import ase.views.components.consolepane.events.RowVolumeChangeEvent;
 import ase.views.events.SettingsEvent;
 import ase.views.navigation.events.QuitEvent;
 
@@ -401,6 +404,12 @@ public class SoundscapeTab extends JPanel {
 			//removed sound
 			SoundControlRow deadRow = soundControllers.remove(evt.soundIndex);
 			soundRowPanel.remove(deadRow);
+			
+			/*
+			 * START HERE. NEED TO REPAINT AFTER DELETE, BUT IT'S NOT WORKING RIGHT NOW
+			 */
+			
+			soundRowPanel.repaint(); //THIS DOESN'T WORK!!! START HERE
 			deadRow.destroy();
 			
 			//decrement index for all rows after the row that was removed
@@ -571,6 +580,29 @@ public class SoundscapeTab extends JPanel {
 			}
 			
 			opsMgr.modifySound(this.section, evt.index, sound);
+		}
+	}
+	
+	@Subscribe public void handleDeleteEvent(RowDeleteEvent evt) {
+		if (evt.index == -1) {
+			SoundscapeSetModel console = section == Sections.CONSOLE1 ? opsMgr.getConsole1() : opsMgr.getConsole2();
+			
+			opsMgr.removeSoundscape(section, console.getSoundscapeIndex(soundscape));
+		} else {
+			opsMgr.removeSound(section, evt.index);
+		}
+	}
+	
+	@Subscribe public void handleVolumeChangeEvent(RowVolumeChangeEvent evt) {
+		SoundscapeSetModel console = section == Sections.CONSOLE1 ? opsMgr.getConsole1() : opsMgr.getConsole2();
+		if (soundscape != console.activeSoundscape) {
+			throw new IllegalStateException("Cannot change the volume on a soundscape or sound that is not active");
+		}
+		
+		if (evt.index == -1) {
+			opsMgr.setSoundscapeVolume(section, (double) evt.newVolume / 1000.0);
+		} else {
+			opsMgr.setSoundVolume(section, evt.index, (double) evt.newVolume / 1000.0); 
 		}
 	}
 }

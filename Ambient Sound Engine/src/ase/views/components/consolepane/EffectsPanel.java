@@ -7,14 +7,20 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ActionMap;
 import javax.swing.ImageIcon;
+import javax.swing.InputMap;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 
 import com.google.common.eventbus.Subscribe;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
 
 import ase.models.SoundscapeModel.PlayState;
 import ase.operations.OperationsManager.Sections;
@@ -148,7 +154,7 @@ public class EffectsPanel extends JPanel {
 		
 		add(fade1Label, fade1LabelGbc);
 		setupButton(fade1Button);
-		fade1Button.addActionListener((ActionEvent evt) -> {initiateFade(0, Sections.CONSOLE1);});
+		fade1Button.addActionListener(fadeConsole1Action);
 		add(fade1Button, fade1ButtonGbc);
 		
 		add(transitionLabel, transitionLabelGbc);
@@ -157,21 +163,16 @@ public class EffectsPanel extends JPanel {
 		
 		add(fade2Label, fade2LabelGbc);
 		setupButton(fade2Button);
-		fade2Button.addActionListener((ActionEvent evt) -> {initiateFade(1, Sections.CONSOLE2);});
+		fade2Button.addActionListener(fadeConsole2Action);
 		add(fade2Button, fade2ButtonGbc);
 		
 		add(crossfadeButton, crossfadeButtonGbc);
 		setupButton(crossfadeButton);
-		crossfadeButton.addActionListener((ActionEvent evt) -> {
-			//check to ensure crossfade button is ready
-			if (buttonStates[2] != ButtonState.READY) { return; }
-			
-			initiateFade(0, Sections.CONSOLE1);
-			initiateFade(1, Sections.CONSOLE2);
-		});
+		crossfadeButton.addActionListener(crossfadeAction);
 		add(crossfadeLabel, crossfadeLabelGbc);
 		
 		setButtonIcons();
+		setupInputMap();
 		
 		//initialize the effects panel
 		opsMgr.newSoundscape(EFFECTS);
@@ -286,6 +287,18 @@ public class EffectsPanel extends JPanel {
 		return new ImageIcon(scaledImg);
 	}
 	
+	private void setupInputMap() {
+		ActionMap actionMap = getActionMap();
+		actionMap.put("fadeConsole1", fadeConsole1Action);
+		actionMap.put("fadeConsole2", fadeConsole2Action);
+		actionMap.put("crossfade", crossfadeAction);
+		
+		InputMap inputMap = getInputMap(WHEN_IN_FOCUSED_WINDOW);
+		inputMap.put(KeyStroke.getKeyStroke('a'), "fadeConsole1");
+		inputMap.put(KeyStroke.getKeyStroke('b'), "fadeConsole2");
+		inputMap.put(KeyStroke.getKeyStroke('t'), "crossfade");
+	}
+	
 	/**
 	 * 
 	 * @param index Index of buttonStates that retrieves the intended button state
@@ -309,6 +322,29 @@ public class EffectsPanel extends JPanel {
 				return null;
 		}
 	}
+	
+	private final Action fadeConsole1Action = new AbstractAction() {
+		private static final long serialVersionUID = -8029827559273273535L;
+
+		@Override public void actionPerformed(ActionEvent evt) { initiateFade(0, Sections.CONSOLE1); }
+	};
+	
+	private final Action fadeConsole2Action = new AbstractAction() {
+		private static final long serialVersionUID = -2059376422699307445L;
+
+		@Override public void actionPerformed(ActionEvent evt) { initiateFade(1, Sections.CONSOLE2); }
+	};
+	
+	private final Action crossfadeAction = new AbstractAction() {
+		private static final long serialVersionUID = 1344158266430093209L;
+
+		@Override public void actionPerformed(ActionEvent evt) {
+			if (buttonStates[2] != ButtonState.READY) { return; }
+			
+			initiateFade(0, Sections.CONSOLE1);
+			initiateFade(1, Sections.CONSOLE2);
+		}
+	};
 	
 	@Subscribe public void applySettings(SettingsEvent e) {
 		if (e.getNewSettings() != null) {

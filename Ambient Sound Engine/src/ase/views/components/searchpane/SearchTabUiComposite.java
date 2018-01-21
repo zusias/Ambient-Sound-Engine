@@ -12,6 +12,8 @@ import java.awt.event.MouseEvent;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -30,10 +32,23 @@ import ase.operations.OperationsManager.Sections;
  */
 public class SearchTabUiComposite {
 	private final SearchTab searchTab;
+	private final SearchTabUiComposite that = this;
 	
 	public SearchTabUiComposite(SearchTab searchTab) {
 		this.searchTab = searchTab;
 	}
+	
+	public final Action soundscapeSearchAction = new AbstractAction() {
+		private static final long serialVersionUID = 7220867334991957295L;
+
+		@Override public void actionPerformed(ActionEvent e) { searchTab.searchFocus(SearchTab.SOUNDSCAPE_SEARCH); }
+	};
+	
+	public final Action soundSearchAction = new AbstractAction() {
+		private static final long serialVersionUID = -4485931158986922100L;
+
+		@Override public void actionPerformed(ActionEvent e) { searchTab.searchFocus(SearchTab.SOUND_SEARCH); }
+	};
 	
 	public final KeyAdapter searchFieldKeyAdapater = new KeyAdapter() {
 		@Override
@@ -60,10 +75,23 @@ public class SearchTabUiComposite {
 		}
 	};
 	
-	public final KeyAdapter keywordListKeyAdapter = new KeyAdapter() {
-		@Override public void keyReleased(KeyEvent e) {
-			opsMgr.logger.log(DEBUG, "Key release on keyword list: " + e.getKeyCode());
-		}
+	//ActionMap actions
+	public final Action keywordListEnterAction = new AbstractAction() {
+		private static final long serialVersionUID = -7235231031918631254L;
+
+		@Override public void actionPerformed(ActionEvent e) { searchTab.setListFocus(SearchTab.RESULT_LIST); }
+	};
+	
+	public final Action keywordListDecrementAction = new AbstractAction() {
+		private static final long serialVersionUID = -3884342418382603447L;
+
+		@Override public void actionPerformed(ActionEvent e) { searchTab.decrementSelection(SearchTab.MATCH_LIST); }
+	};
+	
+	public final Action keywordListIncrementAction = new AbstractAction() {
+		private static final long serialVersionUID = 6888669953835441302L;
+
+		@Override public void actionPerformed(ActionEvent e) { searchTab.incrementSelection(SearchTab.MATCH_LIST); }
 	};
 	
 	public final ListSelectionListener keywordListSelectionListener = new ListSelectionListener() {
@@ -103,19 +131,41 @@ public class SearchTabUiComposite {
 		searchTab.setMatchListItems(dbResults);
 	}
 	
-	public final KeyAdapter matchListKeyAdapter = new KeyAdapter() {
-		@Override public void keyReleased(KeyEvent e) {
-			opsMgr.logger.log(DEBUG, "Key release on match list: " + e.getKeyCode());
-		}
+	public final Action resultListDecrementAction = new AbstractAction() {
+		private static final long serialVersionUID = -8029957788826371710L;
+
+		@Override public void actionPerformed(ActionEvent e) { searchTab.decrementSelection(SearchTab.RESULT_LIST); }
 	};
 	
-	public final ListSelectionListener matchListSelectionListener = new ListSelectionListener() {
+	public final Action resultListIncrementAction = new AbstractAction() {
+		private static final long serialVersionUID = 3013945482455075119L;
+
+		@Override public void actionPerformed(ActionEvent e) { searchTab.incrementSelection(SearchTab.RESULT_LIST); }
+	};
+	
+	public final ListSelectionListener resultListSelectionListener = new ListSelectionListener() {
 		@Override public void valueChanged(ListSelectionEvent e) {
 			opsMgr.logger.log(DEBUG, "Data element selected, id: " + searchTab.getSelectedMatchId());
 		}
 	};
 	
-	public final ActionListener toConsole1Listener = new ActionListener() {
+	public final MouseAdapter resultListClickListener = new MouseAdapter() {
+		@Override public void mouseClicked(MouseEvent evt) {
+			if (evt.getClickCount() == 2) {
+				ActionEvent actionEvt = new ActionEvent(evt.getSource(), evt.getID(), "Send to Console");
+				
+				if (evt.getButton() == 1) {
+					that.toConsole1Action.actionPerformed(actionEvt);
+				} else {
+					that.toConsole2Action.actionPerformed(actionEvt);
+				}
+			}
+		}
+	};
+	
+	public final Action toConsole1Action = new AbstractAction() {
+		private static final long serialVersionUID = 1174807677859420354L;
+
 		@Override public void actionPerformed(ActionEvent evt) {
 			int matchId = searchTab.getSelectedMatchId();
 			
@@ -127,7 +177,9 @@ public class SearchTabUiComposite {
 		}
 	};
 	
-	public final ActionListener toConsole2Listener = new ActionListener() {
+	public final Action toConsole2Action = new AbstractAction() {
+		private static final long serialVersionUID = -9108863900201144705L;
+
 		@Override public void actionPerformed(ActionEvent evt) {
 			int matchId = searchTab.getSelectedMatchId();
 			
@@ -172,4 +224,17 @@ public class SearchTabUiComposite {
 			opsMgr.logger.log(DEBUG, dEx.getStackTrace());
 		}
 	}
+	
+	/**
+	 * This function acts to override the InputMap on the search field so that
+	 * window-wide key listeners can be ignored.
+	 */
+	public final Action doNothing = new AbstractAction() {
+		private static final long serialVersionUID = -2887112221019506305L;
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			opsMgr.logger.log(DEBUG, "Do nothing invocation");
+		}
+	};
 }
