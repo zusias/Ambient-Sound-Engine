@@ -120,9 +120,9 @@ public class GuiSettings {
 			dimensions.put("addSoundFrameDefaultSize", new Dimension(800, 900));
 			dimensions.put("manageFrameDefaultSize", new Dimension(1000, 600));
 			dimensions.put("metadataFrameDefaultSize", new Dimension(500, 600));
-			dimensions.put("preferencesFrameDefaultSize", new Dimension(550, 300));
+			dimensions.put("preferencesFrameDefaultSize", new Dimension(430, 150));
 			dimensions.put("helpFrameDefaultSize", new Dimension(200, 200));
-			dimensions.put("aboutFrameDefaultSize", new Dimension(200, 400));
+			dimensions.put("aboutFrameDefaultSize", new Dimension(300, 270));
 			dimensions.put("buttonSize", new Dimension(25, 25));
 		}
 		

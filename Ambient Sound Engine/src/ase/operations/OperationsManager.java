@@ -16,6 +16,7 @@ import com.google.common.eventbus.EventBus;
 import ase.database.DataType;
 import ase.database.DatabaseException;
 import ase.database.IDatabase;
+import ase.main.Settings;
 import ase.models.ModelFactory;
 import ase.models.RandomPlaySettings;
 import ase.models.SoundModel;
@@ -43,11 +44,6 @@ import static ase.operations.Log.LogLevel.PROD;
  * NOTE: The Operations Manager is guaranteed to always add sounds to the end of the data structures.
  * You may remove one from the middle, but never add to the middle or reorder existing sounds<br><br>
  * 
- * TODO: General to do list for project
- * <ul>
- * 	<li>Write Fmodex implementation of SoundEngine</li>
- * </ul>
- * 
  * NOTE: Consider altering Subject / Observer in favor of an event bus.
  * Perhaps v5.1 or v6.0
  * 
@@ -62,6 +58,7 @@ public class OperationsManager {
 	
 	//Main app objects
 	private IDatabase db;
+	private Settings appSettings;
 	
 	//utility app objects
 	public final Log logger = new Log(DEBUG); //hard code Debug level for now
@@ -239,6 +236,14 @@ public class OperationsManager {
 		return db;
 	}
 	
+	public Settings getAppSettings() {
+		return appSettings;
+	}
+
+	public void setAppSettings(Settings appSettings) {
+		this.appSettings = appSettings;
+	}
+
 	/**
 	 * Sets the active soundscape for a console - correspond to active tab in gui
 	 * @param console
@@ -303,34 +308,6 @@ public class OperationsManager {
 	private SoundscapeSetModel setSoundscapeVolume(SoundscapeSetModel set, double volume){
 		SoundscapeModel ss = set.activeSoundscape;
 		return set.replaceSoundscape(ss.setMasterVolume(volume));
-	}
-	
-	/**
-	 * Save a soundscape to the DB. If not already assigned, assigns an ssid to the soundscape
-	 * @param section
-	 * @param index Index within the section of the soundscape to be saved 
-	 */
-	public void saveSoundscape(Sections section, int index){
-		//TODO Implement save function. Will use Database. Ideally should use existing DB methods
-		//Will return an SSID, so possibly trigger a change in the models and resulting notification
-	}
-	
-	/*
-	 * TODO Review DB access model, implement
-	 * Below is a stub representing a set of DB access functions.
-	 * May consider exposing a 'create query' method of some kind
-	 * that returns another controller object that crafts a query.<br>
-	 * For instance:
-	 *  - startQuery().Soundscape.bySsid(int ssid).execute()
-	 *  - startQuery().Soundscape.byKeyword(String keyword).execute()
-	 *  - startQuery().Sound.byName(String name).execute()
-	 * etc...
-	 */
-	public SoundscapeModel getSoundscapeFromDb(int ssid){
-		//TODO Implement
-		//This method should retrieve a soundscape from the db
-		
-		return null;
 	}
 	
 	/**

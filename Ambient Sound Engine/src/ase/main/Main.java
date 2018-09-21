@@ -24,7 +24,7 @@ import com.google.common.eventbus.Subscribe;
  * object which manages application state and data persistence through
  * the database.
  * 
- * @author Kevin
+ * @author Kevin C. Gall
  *
  */
 public class Main {
@@ -62,6 +62,7 @@ public class Main {
 		Gui app = Gui.initGui();
 		
 		settings = new Settings();
+		opsMgr.setAppSettings(settings);
 		
 		opsMgr.eventBus.register(this);
 	}

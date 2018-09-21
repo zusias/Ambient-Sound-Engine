@@ -72,5 +72,7 @@ public abstract class SubFrame extends JFrame {
 		if (e.getNewSettings() != null) {
 			this.settings = e.getNewSettings();
 		}
+		
+		this.setBackground(settings.foregroundColor);
 	}
 }
